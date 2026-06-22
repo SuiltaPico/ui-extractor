@@ -1,0 +1,1025 @@
+{
+  "width": 1282,
+  "height": 745,
+  "root": {
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1282,
+      "height": 745
+    },
+    "kind": "root",
+    "children": [
+      {
+        "bounds": {
+          "x": 10,
+          "y": 28,
+          "width": 45,
+          "height": 40
+        },
+        "kind": "icon",
+        "name": "google",
+        "confidence": 0.6620074
+      },
+      {
+        "bounds": {
+          "x": 1226,
+          "y": 30,
+          "width": 34,
+          "height": 34
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1233,
+              "y": 35,
+              "width": 21,
+              "height": 20
+            },
+            "kind": "text",
+            "content": "S",
+            "confidence": 84.4879
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1185,
+          "y": 37,
+          "width": 20,
+          "height": 20
+        },
+        "kind": "icon",
+        "name": "dots-grid",
+        "confidence": 0.78332335
+      },
+      {
+        "bounds": {
+          "x": 182,
+          "y": 39,
+          "width": 31,
+          "height": 17
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 175,
+              "y": 31,
+              "width": 61,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "全部",
+            "confidence": 99.9271
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 234,
+          "y": 39,
+          "width": 29,
+          "height": 17
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 224,
+              "y": 31,
+              "width": 51,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "图片",
+            "confidence": 97.50115
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 286,
+          "y": 39,
+          "width": 30,
+          "height": 16
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 278,
+              "y": 33,
+              "width": 47,
+              "height": 25
+            },
+            "kind": "text",
+            "content": "购物",
+            "confidence": 99.99837
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 338,
+          "y": 39,
+          "width": 30,
+          "height": 16
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 311,
+              "y": 31,
+              "width": 65,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "视频",
+            "confidence": 91.87384
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 391,
+          "y": 39,
+          "width": 42,
+          "height": 17
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 382,
+              "y": 32,
+              "width": 56,
+              "height": 25
+            },
+            "kind": "text",
+            "content": "更多、",
+            "confidence": 91.93307
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1097,
+          "y": 39,
+          "width": 43,
+          "height": 16
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1086,
+              "y": 28,
+              "width": 64,
+              "height": 32
+            },
+            "kind": "text",
+            "content": "↓升级",
+            "confidence": 70.93947
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 112,
+          "y": 40,
+          "width": 49,
+          "height": 15
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 108,
+              "y": 35,
+              "width": 59,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "AI模式",
+            "confidence": 88.74535
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 862,
+          "y": 116,
+          "width": 35,
+          "height": 23
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 921,
+          "y": 121,
+          "width": 56,
+          "height": 16
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 23,
+          "y": 128,
+          "width": 22,
+          "height": 20
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 16,
+              "y": 120,
+              "width": 37,
+              "height": 36
+            },
+            "kind": "text",
+            "content": "=",
+            "confidence": 83.17074
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 603,
+          "y": 138,
+          "width": 148,
+          "height": 20
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 596,
+              "y": 132,
+              "width": 162,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "mdi图标库png 格式",
+            "confidence": 97.31128
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1110,
+          "y": 157,
+          "width": 86,
+          "height": 86
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1113,
+              "y": 198,
+              "width": 81,
+              "height": 43
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 1116,
+              "y": 171,
+              "width": 85,
+              "height": 39
+            },
+            "kind": "text",
+            "content": "Pictograr",
+            "confidence": 90.87035
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 162,
+          "width": 239,
+          "height": 36
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 855,
+              "y": 154,
+              "width": 250,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "Material Design Icons - Icon Library",
+            "confidence": 95.998505
+          },
+          {
+            "bounds": {
+              "x": 856,
+              "y": 174,
+              "width": 123,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "-Pictogrammers",
+            "confidence": 99.47674
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 23,
+          "y": 185,
+          "width": 23,
+          "height": 23
+        },
+        "kind": "icon",
+        "name": "square-edit-outline",
+        "confidence": 0.7774716
+      },
+      {
+        "bounds": {
+          "x": 113,
+          "y": 195,
+          "width": 370,
+          "height": 21
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 107,
+              "y": 192,
+              "width": 660,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "获取 Material Design Icons (MDI)的PNG 格式图标，主要有以下几种最方便的渠道和下载方",
+            "confidence": 95.29293
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 491,
+          "y": 196,
+          "width": 275,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 203,
+          "width": 237,
+          "height": 30
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 857,
+              "y": 196,
+              "width": 244,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "Open-source iconography for designers and",
+            "confidence": 97.54515
+          },
+          {
+            "bounds": {
+              "x": 856,
+              "y": 212,
+              "width": 120,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "developers. We're .",
+            "confidence": 92.59479
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 113,
+          "y": 221,
+          "width": 24,
+          "height": 18
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 104,
+              "y": 214,
+              "width": 40,
+              "height": 31
+            },
+            "kind": "text",
+            "content": "式：",
+            "confidence": 73.80415
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 248,
+          "width": 108,
+          "height": 19
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 855,
+              "y": 240,
+              "width": 120,
+              "height": 31
+            },
+            "kind": "text",
+            "content": "@ Pictogrammers",
+            "confidence": 92.47299
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 114,
+          "y": 268,
+          "width": 251,
+          "height": 22
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 110,
+              "y": 263,
+              "width": 426,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "1.在线图标库直接导出PNG（最推荐单张下载)",
+            "confidence": 96.31651
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 376,
+          "y": 268,
+          "width": 158,
+          "height": 23
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 295,
+          "width": 203,
+          "height": 35
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 859,
+              "y": 291,
+              "width": 207,
+              "height": 20
+            },
+            "kind": "text",
+            "content": "Material Design Icons - Icones",
+            "confidence": 96.97478
+          },
+          {
+            "bounds": {
+              "x": 856,
+              "y": 308,
+              "width": 338,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "483 icons - OpenMoji 4297 icons - Twitter Emoji. 3668 icons..",
+            "confidence": 95.60562
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 113,
+          "y": 308,
+          "width": 473,
+          "height": 19
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 107,
+              "y": 302,
+              "width": 637,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "许多在线图标整合平台支持将MDI图标一键转换为PNG格式下载，支持自定义颜色和大",
+            "confidence": 99.59998
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 594,
+          "y": 308,
+          "width": 147,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1051,
+          "y": 315,
+          "width": 136,
+          "height": 15
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 862,
+          "y": 316,
+          "width": 53,
+          "height": 13
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 112,
+          "y": 333,
+          "width": 25,
+          "height": 17
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 107,
+              "y": 326,
+              "width": 37,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "小：",
+            "confidence": 93.58582
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 863,
+          "y": 340,
+          "width": 14,
+          "height": 17
+        },
+        "kind": "icon",
+        "name": "power-off",
+        "confidence": 0.66636187
+      },
+      {
+        "bounds": {
+          "x": 885,
+          "y": 341,
+          "width": 48,
+          "height": 13
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 857,
+              "y": 334,
+              "width": 79,
+              "height": 27
+            },
+            "kind": "text",
+            "content": "δ JS.ORG",
+            "confidence": 88.69962
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 135,
+          "y": 372,
+          "width": 95,
+          "height": 20
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 112,
+              "y": 367,
+              "width": 132,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "•lcones平台：",
+            "confidence": 86.52317
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 238,
+          "y": 372,
+          "width": 232,
+          "height": 20
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 231,
+              "y": 366,
+              "width": 242,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "一个极简且强大的图标搜索网站。",
+            "confidence": 99.756294
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 385,
+          "width": 314,
+          "height": 17
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 856,
+              "y": 378,
+              "width": 322,
+              "height": 27
+            },
+            "kind": "text",
+            "content": "Material Design Icons 6.9.96 npm install @mdi/",
+            "confidence": 98.054504
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 406,
+          "width": 29,
+          "height": 13
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 856,
+              "y": 401,
+              "width": 40,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "font",
+            "confidence": 97.78166
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 157,
+          "y": 409,
+          "width": 40,
+          "height": 43
+        },
+        "kind": "icon",
+        "name": "currency-twd",
+        "confidence": 0.6611687
+      },
+      {
+        "bounds": {
+          "x": 205,
+          "y": 409,
+          "width": 174,
+          "height": 20
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 467,
+          "y": 409,
+          "width": 290,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 386,
+          "y": 410,
+          "width": 73,
+          "height": 18
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 132,
+              "y": 402,
+              "width": 629,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "。操作：搜索你需要的MDI图标，点击图标，在右侧弹窗中直接点击PNG按钮即可下",
+            "confidence": 99.69945
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 861,
+          "y": 426,
+          "width": 323,
+          "height": 15
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 856,
+              "y": 418,
+              "width": 337,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "Click the icon, hex codepoint, or name below to copy the val..",
+            "confidence": 96.784195
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 197,
+          "y": 438,
+          "width": 59,
+          "height": 13
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 148,
+              "y": 425,
+              "width": 116,
+              "height": 33
+            },
+            "kind": "text",
+            "content": "载。 JS.ORG",
+            "confidence": 83.73172
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 885,
+          "y": 451,
+          "width": 41,
+          "height": 13
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 857,
+              "y": 445,
+              "width": 72,
+              "height": 23
+            },
+            "kind": "text",
+            "content": "©GitHub",
+            "confidence": 85.49853
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 135,
+          "y": 473,
+          "width": 210,
+          "height": 45
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 128,
+              "y": 490,
+              "width": 76,
+              "height": 33
+            },
+            "kind": "text",
+            "content": "Icons)。",
+            "confidence": 96.05111
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 352,
+          "y": 473,
+          "width": 349,
+          "height": 20
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 127,
+              "y": 469,
+              "width": 576,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "Google Fonts Icons 官方库：Google 官方的 Material 变体(Material Symbols/",
+            "confidence": 94.77799
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1000,
+          "y": 492,
+          "width": 58,
+          "height": 18
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 994,
+              "y": 486,
+              "width": 68,
+              "height": 27
+            },
+            "kind": "text",
+            "content": "全部显示",
+            "confidence": 90.347115
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 156,
+          "y": 534,
+          "width": 41,
+          "height": 43
+        },
+        "kind": "icon",
+        "name": "currency-twd",
+        "confidence": 0.66514695
+      },
+      {
+        "bounds": {
+          "x": 317,
+          "y": 534,
+          "width": 292,
+          "height": 20
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 131,
+              "y": 526,
+              "width": 636,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "。操作：点击任意图标，右侧侧边栏会提供Download PNG选项，并支持切换三种不同",
+            "confidence": 98.39286
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 618,
+          "y": 534,
+          "width": 146,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 204,
+          "y": 535,
+          "width": 105,
+          "height": 18
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 211,
+          "y": 561,
+          "width": 72,
+          "height": 15
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 147,
+              "y": 549,
+              "width": 146,
+              "height": 37
+            },
+            "kind": "text",
+            "content": "尺寸。Gitut+2$",
+            "confidence": 74.860405
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 112,
+          "y": 633,
+          "width": 68,
+          "height": 19
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 107,
+              "y": 626,
+              "width": 77,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "尽情提问",
+            "confidence": 99.95176
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 122,
+          "y": 680,
+          "width": 16,
+          "height": 16
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 111,
+              "y": 668,
+              "width": 43,
+              "height": 36
+            },
+            "kind": "text",
+            "content": "+",
+            "confidence": 92.847824
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 856,
+          "y": 110,
+          "width": 128,
+          "height": 35
+        },
+        "kind": "text",
+        "content": "回ô8个网站",
+        "confidence": 77.99773
+      }
+    ]
+  }
+}

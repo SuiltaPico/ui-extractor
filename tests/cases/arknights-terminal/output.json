@@ -1,0 +1,786 @@
+{
+  "width": 1280,
+  "height": 582,
+  "root": {
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 582
+    },
+    "kind": "root",
+    "children": [
+      {
+        "bounds": {
+          "x": 394,
+          "y": 0,
+          "width": 120,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 218,
+          "y": 9,
+          "width": 28,
+          "height": 35
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 246,
+          "y": 9,
+          "width": 77,
+          "height": 32
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 52,
+          "y": 13,
+          "width": 800,
+          "height": 395
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 714,
+              "y": 225,
+              "width": 51,
+              "height": 99
+            },
+            "kind": "container",
+            "children": [
+              {
+                "bounds": {
+                  "x": 726,
+                  "y": 242,
+                  "width": 22,
+                  "height": 46
+                },
+                "kind": "container"
+              },
+              {
+                "bounds": {
+                  "x": 696,
+                  "y": 301,
+                  "width": 76,
+                  "height": 31
+                },
+                "kind": "text",
+                "content": "相变临界",
+                "confidence": 99.888145
+              }
+            ]
+          },
+          {
+            "bounds": {
+              "x": 369,
+              "y": 243,
+              "width": 99,
+              "height": 72
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 572,
+              "y": 60,
+              "width": 63,
+              "height": 19
+            },
+            "kind": "text",
+            "content": "ATTENTION",
+            "confidence": 97.27571
+          },
+          {
+            "bounds": {
+              "x": 629,
+              "y": 97,
+              "width": 168,
+              "height": 37
+            },
+            "kind": "text",
+            "content": "阵地足球锦标",
+            "confidence": 96.95947
+          },
+          {
+            "bounds": {
+              "x": 632,
+              "y": 132,
+              "width": 138,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "PFC? 作战已结束",
+            "confidence": 80.95094
+          },
+          {
+            "bounds": {
+              "x": 555,
+              "y": 185,
+              "width": 69,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "2天",
+            "confidence": 99.045906
+          },
+          {
+            "bounds": {
+              "x": 576,
+              "y": 313,
+              "width": 31,
+              "height": 17
+            },
+            "kind": "text",
+            "content": "进度",
+            "confidence": 99.22373
+          },
+          {
+            "bounds": {
+              "x": 559,
+              "y": 331,
+              "width": 65,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "全部完成",
+            "confidence": 99.691925
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 81,
+          "y": 18,
+          "width": 17,
+          "height": 29
+        },
+        "kind": "icon",
+        "name": "less-than",
+        "confidence": 0.7179727
+      },
+      {
+        "bounds": {
+          "x": 675,
+          "y": 24,
+          "width": 55,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 228,
+          "y": 47,
+          "width": 16,
+          "height": 7
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 178,
+          "y": 50,
+          "width": 58,
+          "height": 44
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 882,
+          "y": 61,
+          "width": 254,
+          "height": 261
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 895,
+              "y": 77,
+              "width": 54,
+              "height": 51
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 1063,
+              "y": 96,
+              "width": 70,
+              "height": 66
+            },
+            "kind": "container",
+            "children": [
+              {
+                "bounds": {
+                  "x": 1072,
+                  "y": 81,
+                  "width": 57,
+                  "height": 32
+                },
+                "kind": "text",
+                "content": "0160",
+                "confidence": 86.01912
+              },
+              {
+                "bounds": {
+                  "x": 1079,
+                  "y": 119,
+                  "width": 48,
+                  "height": 24
+                },
+                "kind": "text",
+                "content": "0/24",
+                "confidence": 78.75086
+              }
+            ]
+          },
+          {
+            "bounds": {
+              "x": 895,
+              "y": 165,
+              "width": 53,
+              "height": 46
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 1021,
+              "y": 238,
+              "width": 110,
+              "height": 47
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 893,
+              "y": 60,
+              "width": 56,
+              "height": 19
+            },
+            "kind": "text",
+            "content": "TO-0O LST",
+            "confidence": 84.20561
+          },
+          {
+            "bounds": {
+              "x": 963,
+              "y": 84,
+              "width": 75,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "数据增补条",
+            "confidence": 99.95851
+          },
+          {
+            "bounds": {
+              "x": 960,
+              "y": 113,
+              "width": 80,
+              "height": 28
+            },
+            "kind": "text",
+            "content": "数据增补仪",
+            "confidence": 99.77188
+          },
+          {
+            "bounds": {
+              "x": 884,
+              "y": 127,
+              "width": 65,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "23天",
+            "confidence": 99.690704
+          },
+          {
+            "bounds": {
+              "x": 957,
+              "y": 163,
+              "width": 80,
+              "height": 25
+            },
+            "kind": "text",
+            "content": "剩灭战模拟",
+            "confidence": 92.388725
+          },
+          {
+            "bounds": {
+              "x": 953,
+              "y": 180,
+              "width": 99,
+              "height": 32
+            },
+            "kind": "text",
+            "content": "66号航道",
+            "confidence": 99.85644
+          },
+          {
+            "bounds": {
+              "x": 889,
+              "y": 209,
+              "width": 184,
+              "height": 23
+            },
+            "kind": "text",
+            "content": "27天 作战进度",
+            "confidence": 98.51407
+          },
+          {
+            "bounds": {
+              "x": 959,
+              "y": 261,
+              "width": 65,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "集成战略",
+            "confidence": 99.40281
+          },
+          {
+            "bounds": {
+              "x": 956,
+              "y": 276,
+              "width": 131,
+              "height": 32
+            },
+            "kind": "text",
+            "content": "岁的界园志异",
+            "confidence": 99.807495
+          },
+          {
+            "bounds": {
+              "x": 888,
+              "y": 293,
+              "width": 69,
+              "height": 24
+            },
+            "kind": "text",
+            "content": "探索中",
+            "confidence": 99.829025
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 244,
+          "y": 62,
+          "width": 93,
+          "height": 55
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1243,
+          "y": 65,
+          "width": 18,
+          "height": 8
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 19,
+          "y": 68,
+          "width": 18,
+          "height": 7
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 342,
+          "y": 85,
+          "width": 114,
+          "height": 74
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 574,
+          "y": 92,
+          "width": 36,
+          "height": 46
+        },
+        "kind": "icon",
+        "name": "ungroup",
+        "confidence": 0.63697916
+      },
+      {
+        "bounds": {
+          "x": 495,
+          "y": 96,
+          "width": 26,
+          "height": 13
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 514,
+          "y": 115,
+          "width": 47,
+          "height": 56
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 318,
+          "y": 122,
+          "width": 17,
+          "height": 10
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 225,
+          "y": 132,
+          "width": 20,
+          "height": 10
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1118,
+          "y": 215,
+          "width": 17,
+          "height": 6
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 571,
+          "y": 235,
+          "width": 41,
+          "height": 50
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 567,
+              "y": 229,
+              "width": 47,
+              "height": 41
+            },
+            "kind": "text",
+            "content": "山",
+            "confidence": 93.34645
+          },
+          {
+            "bounds": {
+              "x": 575,
+              "y": 272,
+              "width": 33,
+              "height": 11
+            },
+            "kind": "text",
+            "content": "MENDELE",
+            "confidence": 59.16974
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 545,
+          "y": 236,
+          "width": 15,
+          "height": 23
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 210,
+          "y": 273,
+          "width": 10,
+          "height": 12
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 781,
+          "y": 290,
+          "width": 27,
+          "height": 41
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 241,
+          "y": 319,
+          "width": 24,
+          "height": 16
+        },
+        "kind": "icon",
+        "name": "file-tree-outline",
+        "confidence": 0.62177
+      },
+      {
+        "bounds": {
+          "x": 108,
+          "y": 334,
+          "width": 17,
+          "height": 18
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 50,
+          "y": 343,
+          "width": 367,
+          "height": 162
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 66,
+              "y": 414,
+              "width": 50,
+              "height": 61
+            },
+            "kind": "container",
+            "children": [
+              {
+                "bounds": {
+                  "x": 77,
+                  "y": 423,
+                  "width": 29,
+                  "height": 31
+                },
+                "kind": "icon",
+                "name": "shield",
+                "confidence": 0.7081584
+              }
+            ]
+          },
+          {
+            "bounds": {
+              "x": 52,
+              "y": 473,
+              "width": 69,
+              "height": 21
+            },
+            "kind": "text",
+            "content": "2天",
+            "confidence": 98.73312
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 899,
+          "y": 426,
+          "width": 244,
+          "height": 80
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 982,
+              "y": 450,
+              "width": 106,
+              "height": 53
+            },
+            "kind": "container",
+            "children": [
+              {
+                "bounds": {
+                  "x": 1015,
+                  "y": 476,
+                  "width": 119,
+                  "height": 23
+                },
+                "kind": "text",
+                "content": "奸诈者必自食恶果",
+                "confidence": 98.8432
+              }
+            ]
+          },
+          {
+            "bounds": {
+              "x": 904,
+              "y": 425,
+              "width": 112,
+              "height": 25
+            },
+            "kind": "text",
+            "content": "前往上一次作战",
+            "confidence": 99.448814
+          },
+          {
+            "bounds": {
+              "x": 931,
+              "y": 453,
+              "width": 204,
+              "height": 29
+            },
+            "kind": "text",
+            "content": "活动 CF-8",
+            "confidence": 99.62082
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 377,
+          "y": 434,
+          "width": 24,
+          "height": 51
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 139,
+          "y": 437,
+          "width": 157,
+          "height": 17
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 135,
+              "y": 432,
+              "width": 167,
+              "height": 27
+            },
+            "kind": "text",
+            "content": "<落叶逐火>活动已开放",
+            "confidence": 99.23214
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1243,
+          "y": 506,
+          "width": 18,
+          "height": 8
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 19,
+          "y": 509,
+          "width": 18,
+          "height": 8
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 130,
+          "y": 516,
+          "width": 37,
+          "height": 36
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 129,
+              "y": 529,
+              "width": 37,
+              "height": 23
+            },
+            "kind": "text",
+            "content": "终端",
+            "confidence": 98.23341
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 328,
+          "y": 527,
+          "width": 33,
+          "height": 29
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 324,
+              "y": 524,
+              "width": 41,
+              "height": 36
+            },
+            "kind": "text",
+            "content": "山",
+            "confidence": 65.92
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 526,
+          "y": 527,
+          "width": 28,
+          "height": 30
+        },
+        "kind": "icon",
+        "name": "cube",
+        "confidence": 0.7605907
+      },
+      {
+        "bounds": {
+          "x": 723,
+          "y": 527,
+          "width": 27,
+          "height": 30
+        },
+        "kind": "icon",
+        "name": "manjaro",
+        "confidence": 0.69315624
+      },
+      {
+        "bounds": {
+          "x": 1113,
+          "y": 527,
+          "width": 29,
+          "height": 30
+        },
+        "kind": "icon",
+        "name": "decagram",
+        "confidence": 0.7475762
+      },
+      {
+        "bounds": {
+          "x": 917,
+          "y": 531,
+          "width": 30,
+          "height": 22
+        },
+        "kind": "icon",
+        "name": "polymer",
+        "confidence": 0.71386397
+      }
+    ]
+  }
+}

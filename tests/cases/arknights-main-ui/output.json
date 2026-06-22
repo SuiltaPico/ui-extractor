@@ -1,0 +1,837 @@
+{
+  "width": 1920,
+  "height": 873,
+  "root": {
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 873
+    },
+    "kind": "root",
+    "children": [
+      {
+        "bounds": {
+          "x": 613,
+          "y": 0,
+          "width": 408,
+          "height": 322
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1444,
+          "y": 0,
+          "width": 180,
+          "height": 21
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 111,
+          "y": 22,
+          "width": 51,
+          "height": 52
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 118,
+              "y": 32,
+              "width": 34,
+              "height": 32
+            },
+            "kind": "text",
+            "content": "•",
+            "confidence": 91.38032
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 196,
+          "y": 22,
+          "width": 55,
+          "height": 50
+        },
+        "kind": "icon",
+        "name": "triangle",
+        "confidence": 0.8236033
+      },
+      {
+        "bounds": {
+          "x": 1628,
+          "y": 24,
+          "width": 70,
+          "height": 43
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1648,
+              "y": 24,
+              "width": 50,
+              "height": 42
+            },
+            "kind": "text",
+            "content": "+",
+            "confidence": 92.97353
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 284,
+          "y": 25,
+          "width": 62,
+          "height": 45
+        },
+        "kind": "icon",
+        "name": "settings-helper",
+        "confidence": 0.62604654
+      },
+      {
+        "bounds": {
+          "x": 377,
+          "y": 25,
+          "width": 64,
+          "height": 46
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1505,
+          "y": 27,
+          "width": 55,
+          "height": 63
+        },
+        "kind": "icon",
+        "name": "hexagon",
+        "confidence": 0.74422467
+      },
+      {
+        "bounds": {
+          "x": 1578,
+          "y": 33,
+          "width": 48,
+          "height": 39
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1566,
+              "y": 18,
+              "width": 104,
+              "height": 62
+            },
+            "kind": "text",
+            "content": "217",
+            "confidence": 99.803276
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 77,
+          "y": 83,
+          "width": 59,
+          "height": 69
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1865,
+          "y": 99,
+          "width": 25,
+          "height": 10
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 30,
+          "y": 103,
+          "width": 24,
+          "height": 9
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 481,
+          "y": 128,
+          "width": 50,
+          "height": 60
+        },
+        "kind": "icon",
+        "name": "triangle-down",
+        "confidence": 0.7493427
+      },
+      {
+        "bounds": {
+          "x": 153,
+          "y": 151,
+          "width": 93,
+          "height": 135
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 501,
+          "y": 163,
+          "width": 64,
+          "height": 260
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 503,
+              "y": 189,
+              "width": 46,
+              "height": 206
+            },
+            "kind": "container"
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 606,
+          "y": 175,
+          "width": 84,
+          "height": 103
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 608,
+              "y": 203,
+              "width": 62,
+              "height": 70
+            },
+            "kind": "icon",
+            "name": "horse-variant",
+            "confidence": 0.636035
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 921,
+          "y": 187,
+          "width": 36,
+          "height": 37
+        },
+        "kind": "icon",
+        "name": "triangle",
+        "confidence": 0.82497334
+      },
+      {
+        "bounds": {
+          "x": 423,
+          "y": 216,
+          "width": 69,
+          "height": 67
+        },
+        "kind": "icon",
+        "name": "shield",
+        "confidence": 0.7370303
+      },
+      {
+        "bounds": {
+          "x": 876,
+          "y": 220,
+          "width": 127,
+          "height": 65
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 76,
+          "y": 229,
+          "width": 189,
+          "height": 221
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 144,
+              "y": 336,
+              "width": 128,
+              "height": 84
+            },
+            "kind": "text",
+            "content": "90",
+            "confidence": 99.43782
+          },
+          {
+            "bounds": {
+              "x": 192,
+              "y": 412,
+              "width": 36,
+              "height": 26
+            },
+            "kind": "text",
+            "content": "LV",
+            "confidence": 99.77652
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 209,
+          "y": 309,
+          "width": 33,
+          "height": 14
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 429,
+          "y": 309,
+          "width": 80,
+          "height": 124
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 653,
+          "y": 550,
+          "width": 382,
+          "height": 228
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 970,
+              "y": 554,
+              "width": 62,
+              "height": 54
+            },
+            "kind": "icon",
+            "name": "solid",
+            "confidence": 0.60142356
+          },
+          {
+            "bounds": {
+              "x": 900,
+              "y": 565,
+              "width": 85,
+              "height": 53
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 683,
+              "y": 572,
+              "width": 61,
+              "height": 50
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 850,
+              "y": 581,
+              "width": 80,
+              "height": 55
+            },
+            "kind": "container"
+          },
+          {
+            "bounds": {
+              "x": 697,
+              "y": 626,
+              "width": 276,
+              "height": 82
+            },
+            "kind": "container"
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 620,
+          "y": 556,
+          "width": 20,
+          "height": 95
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1171,
+          "y": 575,
+          "width": 183,
+          "height": 58
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1154,
+              "y": 560,
+              "width": 214,
+              "height": 88
+            },
+            "kind": "text",
+            "content": "采购中心",
+            "confidence": 99.589226
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1399,
+          "y": 603,
+          "width": 146,
+          "height": 46
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1388,
+              "y": 592,
+              "width": 166,
+              "height": 66
+            },
+            "kind": "text",
+            "content": "公开招募",
+            "confidence": 99.83435
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 639,
+          "y": 605,
+          "width": 51,
+          "height": 76
+        },
+        "kind": "icon",
+        "name": "square",
+        "confidence": 0.7788524
+      },
+      {
+        "bounds": {
+          "x": 1596,
+          "y": 616,
+          "width": 165,
+          "height": 54
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1586,
+              "y": 602,
+              "width": 186,
+              "height": 74
+            },
+            "kind": "text",
+            "content": "干员寻访",
+            "confidence": 91.46572
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 680,
+          "y": 676,
+          "width": 40,
+          "height": 32
+        },
+        "kind": "icon",
+        "name": "triangle",
+        "confidence": 0.7902504
+      },
+      {
+        "bounds": {
+          "x": 638,
+          "y": 683,
+          "width": 33,
+          "height": 36
+        },
+        "kind": "icon",
+        "name": "wifi-strength-4",
+        "confidence": 0.8011445
+      },
+      {
+        "bounds": {
+          "x": 967,
+          "y": 683,
+          "width": 19,
+          "height": 22
+        },
+        "kind": "icon",
+        "name": "network-strength-4",
+        "confidence": 0.84439665
+      },
+      {
+        "bounds": {
+          "x": 547,
+          "y": 685,
+          "width": 64,
+          "height": 36
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 534,
+              "y": 672,
+              "width": 90,
+              "height": 58
+            },
+            "kind": "text",
+            "content": "好友",
+            "confidence": 99.93346
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1365,
+          "y": 685,
+          "width": 422,
+          "height": 188
+        },
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 1367,
+              "y": 688,
+              "width": 278,
+              "height": 167
+            },
+            "kind": "container",
+            "children": [
+              {
+                "bounds": {
+                  "x": 1381,
+                  "y": 708,
+                  "width": 122,
+                  "height": 73
+                },
+                "kind": "container",
+                "children": [
+                  {
+                    "bounds": {
+                      "x": 1362,
+                      "y": 690,
+                      "width": 162,
+                      "height": 104
+                    },
+                    "kind": "text",
+                    "content": "基建",
+                    "confidence": 99.92977
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "bounds": {
+              "x": 1660,
+              "y": 706,
+              "width": 110,
+              "height": 90
+            },
+            "kind": "text",
+            "content": "仓库 6天",
+            "confidence": 99.65086
+          }
+        ]
+      },
+      {
+        "bounds": {
+          "x": 1767,
+          "y": 753,
+          "width": 4,
+          "height": 120
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1866,
+          "y": 761,
+          "width": 24,
+          "height": 9
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 890,
+          "y": 763,
+          "width": 122,
+          "height": 56
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 30,
+          "y": 764,
+          "width": 25,
+          "height": 10
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 77,
+          "y": 764,
+          "width": 37,
+          "height": 109
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 725,
+          "y": 770,
+          "width": 109,
+          "height": 47
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 614,
+          "y": 807,
+          "width": 27,
+          "height": 9
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 579,
+          "y": 823,
+          "width": 68,
+          "height": 20
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1106,
+          "y": 843,
+          "width": 34,
+          "height": 30
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 514,
+          "y": 853,
+          "width": 58,
+          "height": 20
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 121,
+          "y": 854,
+          "width": 141,
+          "height": 19
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1669,
+          "y": 859,
+          "width": 88,
+          "height": 14
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1218,
+          "y": 869,
+          "width": 231,
+          "height": 4
+        },
+        "kind": "container"
+      },
+      {
+        "bounds": {
+          "x": 1172,
+          "y": 0,
+          "width": 266,
+          "height": 66
+        },
+        "kind": "text",
+        "content": "2026/06/2212:08",
+        "confidence": 97.973076
+      },
+      {
+        "bounds": {
+          "x": 1010,
+          "y": 36,
+          "width": 474,
+          "height": 106
+        },
+        "kind": "text",
+        "content": "润1910668 21105",
+        "confidence": 96.58423
+      },
+      {
+        "bounds": {
+          "x": 166,
+          "y": 82,
+          "width": 104,
+          "height": 64
+        },
+        "kind": "text",
+        "content": "端阳正午 签到活动",
+        "confidence": 99.9086
+      },
+      {
+        "bounds": {
+          "x": 1148,
+          "y": 126,
+          "width": 376,
+          "height": 146
+        },
+        "kind": "text",
+        "content": "441 终端",
+        "confidence": 99.80298
+      },
+      {
+        "bounds": {
+          "x": 1348,
+          "y": 234,
+          "width": 428,
+          "height": 58
+        },
+        "kind": "text",
+        "content": "当前 阵地足球锦标",
+        "confidence": 97.34822
+      },
+      {
+        "bounds": {
+          "x": 1182,
+          "y": 272,
+          "width": 272,
+          "height": 52
+        },
+        "kind": "text",
+        "content": "理智/205 全部完成",
+        "confidence": 99.79106
+      },
+      {
+        "bounds": {
+          "x": 1074,
+          "y": 362,
+          "width": 454,
+          "height": 94
+        },
+        "kind": "text",
+        "content": "编队 干员",
+        "confidence": 98.35788
+      },
+      {
+        "bounds": {
+          "x": 156,
+          "y": 440,
+          "width": 1366,
+          "height": 76
+        },
+        "kind": "text",
+        "content": "Piico 角色管理",
+        "confidence": 96.9072
+      },
+      {
+        "bounds": {
+          "x": 72,
+          "y": 496,
+          "width": 208,
+          "height": 50
+        },
+        "kind": "text",
+        "content": "HODESiD:420786751",
+        "confidence": 91.252525
+      },
+      {
+        "bounds": {
+          "x": 1374,
+          "y": 524,
+          "width": 118,
+          "height": 60
+        },
+        "kind": "text",
+        "content": "招募",
+        "confidence": 99.26307
+      },
+      {
+        "bounds": {
+          "x": 98,
+          "y": 654,
+          "width": 1138,
+          "height": 116
+        },
+        "kind": "text",
+        "content": "BREAKIHG HEHS 任务",
+        "confidence": 95.054474
+      },
+      {
+        "bounds": {
+          "x": 128,
+          "y": 684,
+          "width": 234,
+          "height": 44
+        },
+        "kind": "text",
+        "content": "PACK RHODES SLAND",
+        "confidence": 98.43188
+      },
+      {
+        "bounds": {
+          "x": 230,
+          "y": 718,
+          "width": 400,
+          "height": 82
+        },
+        "kind": "text",
+        "content": "OP 档案",
+        "confidence": 82.02528
+      },
+      {
+        "bounds": {
+          "x": 124,
+          "y": 752,
+          "width": 314,
+          "height": 78
+        },
+        "kind": "text",
+        "content": "礼包限时上架 ￥30",
+        "confidence": 96.36893
+      }
+    ]
+  }
+}

@@ -23,9 +23,8 @@ function Ensure-Pnnx {
         return $cmd.Source
     } catch {
         $candidates = @(
-            Join-Path $Root "third_party\pnnx\pnnx.exe",
-            Join-Path $Root "third_party/pnnx/pnnx.exe",
-            Join-Path $Root "third_party/pnnx/pnnx"
+            (Join-Path $Root "third_party/pnnx/pnnx.exe")
+            (Join-Path $Root "third_party/pnnx/pnnx")
         )
         foreach ($path in $candidates) {
             if (Test-Path $path) { return $path }

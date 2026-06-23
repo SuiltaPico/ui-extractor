@@ -5,11 +5,16 @@ param(
     [switch]$SkipAssets
 )
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "cargo_retry.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 Push-Location $Root
 try {
     if (-not $SkipAssets) {
+        Write-Host "Building host ui-extractor (release)..."
+        Invoke-CargoWithRetry build --release --bin ui-extractor
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
         & (Join-Path $PSScriptRoot "prepare_release_assets.ps1") -Backend ort
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
@@ -31,7 +36,7 @@ try {
         rustup target add $t.Triple 2>&1 | Out-Null
         $ErrorActionPreference = $prevEap
         if ($LASTEXITCODE -ne 0) { throw "rustup target add failed: $($t.Triple)" }
-        cargo build --release --target $t.Triple
+        Invoke-CargoWithRetry build --release --target $t.Triple
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
         $releaseDir = Join-Path $Root "target\$($t.Triple)\release"

@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  CARGO_HTTP_MULTIPLEXING: "false"
+
 jobs:
   build-windows:
     runs-on: windows-latest

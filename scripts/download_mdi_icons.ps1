@@ -11,6 +11,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "cargo_retry.ps1")
 $WorkDir = Join-Path $env:TEMP "ui-extractor-mdi-$Version"
 $SvgSrc = Join-Path $WorkDir "node_modules\@mdi\svg\svg"
 $MetaSrc = Join-Path $WorkDir "node_modules\@mdi\svg\meta.json"
@@ -58,7 +59,7 @@ if ($Rasterize) {
         Write-Host "building ui-extractor (release) ..."
         Push-Location $RepoRoot
         try {
-            cargo build --release --bin ui-extractor
+            Invoke-CargoWithRetry build --release --bin ui-extractor
         } finally {
             Pop-Location
         }

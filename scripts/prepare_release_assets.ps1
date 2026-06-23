@@ -7,6 +7,7 @@ param(
     [string]$PnnxVersion = "20260526"
 )
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "cargo_retry.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 $ModelsDir = Join-Path $Root "models"
@@ -40,8 +41,8 @@ function Ensure-Pnnx {
         throw "pnnx not found (required to convert MobileCLIP2 to ncnn). Install pnnx or run without -SkipDownload."
     }
 
-    $isWindows = $IsWindows -or ($env:OS -match "Windows")
-    $zipName = if ($isWindows) {
+    $runningOnWindows = $IsWindows -or ($env:OS -match "Windows")
+    $zipName = if ($runningOnWindows) {
         "pnnx-$PnnxVersion-windows.zip"
     } else {
         "pnnx-$PnnxVersion-linux.zip"
@@ -125,7 +126,7 @@ function Ensure-Embeddings {
     Write-Host "Building embeddings.bin (this may take a few minutes)..."
     Push-Location $Root
     try {
-        cargo run --release -- icon build-embeddings
+        Invoke-CargoWithRetry run --release -- icon build-embeddings
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     } finally {
         Pop-Location

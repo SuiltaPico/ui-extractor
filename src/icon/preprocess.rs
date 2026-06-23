@@ -1,7 +1,5 @@
 use image::{DynamicImage, GrayImage, Rgb, RgbImage};
 
-use super::library::normalize_query_mask;
-
 pub const INPUT_SIZE: u32 = 256;
 pub const EMBED_DIM: usize = 512;
 
@@ -11,8 +9,8 @@ pub fn icon_crop_to_rgb256(gray_crop: &GrayImage, mask_size: u32) -> RgbImage {
     mask_to_rgb256(&mask, mask_size)
 }
 
-/// Render an MDI PNG (RGBA + alpha) as 256×256 RGB for embedding index build.
-pub fn mdi_png_to_rgb256(img: &DynamicImage, mask_size: u32) -> RgbImage {
+/// Render a template PNG (RGBA + alpha) as 256×256 RGB for embedding index build.
+pub fn template_png_to_rgb256(img: &DynamicImage, mask_size: u32) -> RgbImage {
     let rgba = img.to_rgba8();
     let (w, h) = rgba.dimensions();
     let mut flat = RgbImage::new(w, h);
@@ -74,6 +72,109 @@ pub fn mask_to_rgb256(mask: &[u8], mask_size: u32) -> RgbImage {
     src
 }
 
+/// Resize a grayscale crop and derive an ink mask, trying both polarities.
+pub fn normalize_query_mask(gray_crop: &GrayImage, size: u32) -> (Vec<u8>, bool) {
+    let resized = image::imageops::resize(
+        gray_crop,
+        size,
+        size,
+        image::imageops::FilterType::Triangle,
+    );
+
+    let dark = ink_mask_from_gray(&resized, true);
+    let light = ink_mask_from_gray(&resized, false);
+    let dark_ink = dark.iter().filter(|&&v| v > 0).count();
+    let light_ink = light.iter().filter(|&&v| v > 0).count();
+
+    let total = (size * size) as usize;
+    let dark_ok = ink_ratio_ok(dark_ink, total);
+    let light_ok = ink_ratio_ok(light_ink, total);
+
+    match (dark_ok, light_ok) {
+        (true, true) => {
+            if dark_ink <= light_ink {
+                (dark, true)
+            } else {
+                (light, false)
+            }
+        }
+        (true, false) => (dark, true),
+        (false, true) => (light, false),
+        (false, false) => {
+            if dark_ink.abs_diff(light_ink) <= 8 {
+                (dark, true)
+            } else if dark_ink < light_ink {
+                (dark, true)
+            } else {
+                (light, false)
+            }
+        }
+    }
+}
+
+fn ink_ratio_ok(ink: usize, total: usize) -> bool {
+    if total == 0 {
+        return false;
+    }
+    let ratio = ink as f64 / total as f64;
+    (0.03..=0.72).contains(&ratio)
+}
+
+fn ink_mask_from_gray(img: &GrayImage, dark_icon: bool) -> Vec<u8> {
+    let bg = estimate_background(img);
+    let threshold = adaptive_threshold(img, bg);
+
+    img.pixels()
+        .map(|p| {
+            let v = p.0[0];
+            let ink = if dark_icon {
+                v.saturating_add(threshold) < bg
+            } else {
+                v.saturating_sub(threshold) > bg
+            };
+            ink as u8
+        })
+        .collect()
+}
+
+fn estimate_background(img: &GrayImage) -> u8 {
+    let (w, h) = img.dimensions();
+    if w == 0 || h == 0 {
+        return 255;
+    }
+
+    let mut samples = Vec::new();
+    for x in 0..w {
+        samples.push(img.get_pixel(x, 0).0[0]);
+        samples.push(img.get_pixel(x, h - 1).0[0]);
+    }
+    for y in 1..h.saturating_sub(1) {
+        samples.push(img.get_pixel(0, y).0[0]);
+        samples.push(img.get_pixel(w - 1, y).0[0]);
+    }
+
+    if samples.is_empty() {
+        return 128;
+    }
+    samples.sort_unstable();
+    samples[samples.len() / 2]
+}
+
+fn adaptive_threshold(img: &GrayImage, bg: u8) -> u8 {
+    let values: Vec<u8> = img.pixels().map(|p| p.0[0]).collect();
+    let mut diffs: Vec<u8> = values
+        .iter()
+        .map(|v| v.abs_diff(bg))
+        .filter(|d| *d > 0)
+        .collect();
+    if diffs.is_empty() {
+        return 24;
+    }
+    diffs.sort_unstable();
+    let median = diffs[diffs.len() / 2];
+    median.clamp(12, 48)
+}
+
 /// Convert RGB 256×256 to NCHW float tensor in [0, 1] (CLIP rescale, mean=0 std=1).
 pub fn rgb256_to_nchw(rgb: &RgbImage) -> Vec<f32> {
     debug_assert_eq!(rgb.dimensions(), (INPUT_SIZE, INPUT_SIZE));
@@ -100,6 +201,22 @@ pub fn l2_normalize(v: &mut [f32]) -> f32 {
         }
     }
     norm
+}
+
+/// Truncate to [`EMBED_DIM`] and L2-normalize model output.
+pub fn finalize_embedding(mut embedding: Vec<f32>) -> crate::error::Result<Vec<f32>> {
+    use crate::error::ExtractError;
+    if embedding.len() > EMBED_DIM {
+        embedding.truncate(EMBED_DIM);
+    }
+    if embedding.len() < EMBED_DIM {
+        return Err(ExtractError::Image(format!(
+            "embedding dim {} < expected {EMBED_DIM}",
+            embedding.len()
+        )));
+    }
+    l2_normalize(&mut embedding);
+    Ok(embedding)
 }
 
 /// Cosine similarity between two L2-normalized vectors.
@@ -136,5 +253,18 @@ mod tests {
         assert_eq!(rgb.dimensions(), (INPUT_SIZE, INPUT_SIZE));
         let center = rgb.get_pixel(INPUT_SIZE / 2, INPUT_SIZE / 2).0;
         assert_eq!(center, [0, 0, 0]);
+    }
+
+    #[test]
+    fn normalize_filled_square() {
+        let mut img = GrayImage::from_pixel(32, 32, Luma([255]));
+        for y in 8..24 {
+            for x in 8..24 {
+                img.put_pixel(x, y, Luma([0]));
+            }
+        }
+        let (mask, dark) = normalize_query_mask(&img, 16);
+        assert!(dark);
+        assert!(mask.iter().filter(|&&v| v > 0).count() > 20);
     }
 }

@@ -1,6 +1,14 @@
+mod build;
+mod embed;
 mod embedding;
+#[cfg(feature = "backend-ncnn")]
+mod embedder_ncnn;
+#[cfg(feature = "backend-ort")]
+mod embedder_ort;
 mod library;
+mod pack;
 mod preprocess;
+mod rasterize;
 
 use std::path::PathBuf;
 use std::time::Instant;
@@ -12,26 +20,39 @@ use crate::{
     types::{Bounds, UiElement, UiElementKind},
 };
 
-pub use embedding::{EmbeddingIndex, IconEmbedder};
-pub use library::{IconLibrary, mask_iou, normalize_query_mask};
-pub use preprocess::{icon_crop_to_rgb256, mdi_png_to_rgb256, EMBED_DIM, INPUT_SIZE};
+pub use build::build_embedding_index;
+pub use embed::{build_embeddings_file, BuildEmbeddingsOptions};
+pub use embedding::EmbeddingIndex;
+#[cfg(feature = "backend-ncnn")]
+pub use embedder_ncnn::IconEmbedder;
+#[cfg(feature = "backend-ort")]
+pub use embedder_ort::IconEmbedder;
+pub use rasterize::{rasterize_svg_icons, IconRasterColor, RasterizeSvgOptions};
+pub use library::IconLibrary;
+pub use pack::{IconMatchHit, IconMatchOptions, IconPack};
+pub use preprocess::{icon_crop_to_rgb256, template_png_to_rgb256, EMBED_DIM, INPUT_SIZE};
+
+fn default_vision_model() -> PathBuf {
+    #[cfg(feature = "backend-ort")]
+    {
+        PathBuf::from("models/mobileclip2-s0-vision.onnx")
+    }
+    #[cfg(feature = "backend-ncnn")]
+    {
+        PathBuf::from("models/mobileclip2-s0-vision.ncnn.param")
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct IconConfig {
-    /// Directory of rasterized MDI PNG templates (e.g. `assets/mdi/png-48-black`).
-    pub mdi_png_dir: PathBuf,
-    /// Precomputed embedding index (`embed-mdi` output).
+    /// Precomputed embedding index (e.g. `assets/embeddings.bin`).
     pub embedding_index: PathBuf,
-    /// MobileCLIP2-S0 vision ONNX model path.
+    /// MobileCLIP2-S0 vision model path.
     pub vision_model: PathBuf,
-    /// Template edge length in pixels (must match PNG files).
+    /// Template edge length in pixels for query crop preprocessing.
     pub template_size: u32,
     /// Minimum cosine similarity to accept a match (0–1).
     pub min_cosine: f64,
-    /// Top-k candidates for IoU rerank (0 = embedding only).
-    pub rerank_top_k: usize,
-    /// Minimum mask IoU when reranking (ignored if rerank_top_k <= 1).
-    pub min_iou: f64,
     /// Candidate box shorter side (px).
     pub min_side: i32,
     /// Candidate box longer side (px).
@@ -44,13 +65,10 @@ pub struct IconConfig {
 impl Default for IconConfig {
     fn default() -> Self {
         Self {
-            mdi_png_dir: PathBuf::from("assets/mdi/png-48-black"),
-            embedding_index: PathBuf::from("assets/mdi/embeddings.bin"),
-            vision_model: PathBuf::from("models/mobileclip2-s0-vision.onnx"),
+            embedding_index: PathBuf::from("assets/embeddings.bin"),
+            vision_model: default_vision_model(),
             template_size: 48,
             min_cosine: 0.72,
-            rerank_top_k: 10,
-            min_iou: 0.35,
             min_side: 12,
             max_side: 96,
             min_aspect: 0.55,
@@ -93,9 +111,28 @@ pub fn attach_icons(
     stats
 }
 
+/// Like [`attach_icons`], but reuses a loaded [`IconPack`] (library + embedder).
+pub fn attach_icons_with_pack(
+    root: &mut UiElement,
+    source: &DynamicImage,
+    pack: &mut IconPack,
+    config: &IconConfig,
+) -> IconMatchStats {
+    let match_start = Instant::now();
+    let gray = crate::layout::to_gray(source);
+    let mut stats = IconMatchStats {
+        candidates: 0,
+        matched: 0,
+        timings: IconTimings::default(),
+    };
+
+    walk_mut_pack(root, &gray, pack, config, &mut stats);
+    stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
+    stats
+}
+
 pub fn try_load_library(config: &IconConfig) -> Result<IconLibrary> {
-    let embeddings = EmbeddingIndex::load(&config.embedding_index)?;
-    IconLibrary::load(&config.mdi_png_dir, config.template_size, embeddings)
+    IconLibrary::load(&config.embedding_index)
 }
 
 fn walk_mut(
@@ -120,6 +157,32 @@ fn walk_mut(
             {
                 let bounds = child.bounds;
                 node.children[i] = UiElement::icon(bounds, name, Some(score as f32));
+                stats.matched += 1;
+            }
+        }
+        i += 1;
+    }
+}
+
+fn walk_mut_pack(
+    node: &mut UiElement,
+    gray: &GrayImage,
+    pack: &mut IconPack,
+    config: &IconConfig,
+    stats: &mut IconMatchStats,
+) {
+    for child in &mut node.children {
+        walk_mut_pack(child, gray, pack, config, stats);
+    }
+
+    let mut i = 0;
+    while i < node.children.len() {
+        let child = &node.children[i];
+        if is_icon_candidate(child, config) {
+            stats.candidates += 1;
+            if let Some(hit) = match_candidate_pack(gray, &child.bounds, pack) {
+                let bounds = child.bounds;
+                node.children[i] = UiElement::icon(bounds, hit.name, Some(hit.score as f32));
                 stats.matched += 1;
             }
         }
@@ -163,17 +226,20 @@ fn match_candidate(
     config: &IconConfig,
 ) -> Option<(String, f64)> {
     let crop = crop_gray(gray, bounds)?;
-    let (mask, _) = normalize_query_mask(&crop, library.size);
-    let rgb = icon_crop_to_rgb256(&crop, library.size);
+    let rgb = icon_crop_to_rgb256(&crop, config.template_size);
     let embedding = embedder.embed_rgb256(&rgb).ok()?;
-    let (name, score) = library.best_match(
-        &embedding,
-        &mask,
-        config.min_cosine,
-        config.rerank_top_k,
-        config.min_iou,
-    )?;
-    Some((name, score))
+    library.best_match(&embedding, config.min_cosine)
+}
+
+fn match_candidate_pack(
+    gray: &GrayImage,
+    bounds: &Bounds,
+    pack: &mut IconPack,
+) -> Option<IconMatchHit> {
+    let crop = crop_gray(gray, bounds)?;
+    let rgb = icon_crop_to_rgb256(&crop, pack.template_size);
+    let embedding = pack.embedder.embed_rgb256(&rgb).ok()?;
+    pack.match_embedding(&embedding)
 }
 
 fn crop_gray(gray: &GrayImage, bounds: &Bounds) -> Option<GrayImage> {
@@ -202,6 +268,7 @@ mod tests {
     use std::path::Path;
 
     use super::*;
+
     #[test]
     fn detects_square_leaf_container() {
         let el = UiElement::container(Bounds::new(0, 0, 24, 24), vec![]);
@@ -221,8 +288,8 @@ mod tests {
     }
 
     #[test]
-    fn mdi_png_rgb_differs_between_icons() {
-        let dir = Path::new("assets/mdi/png-48-black");
+    fn template_png_rgb_differs_between_icons() {
+        let dir = Path::new("assets/icons");
         if !dir.is_dir() {
             return;
         }
@@ -231,16 +298,16 @@ mod tests {
         if !home.is_file() || !menu.is_file() {
             return;
         }
-        let home_rgb = mdi_png_to_rgb256(&image::open(home).unwrap(), 48);
-        let menu_rgb = mdi_png_to_rgb256(&image::open(menu).unwrap(), 48);
+        let home_rgb = template_png_to_rgb256(&image::open(home).unwrap(), 48);
+        let menu_rgb = template_png_to_rgb256(&image::open(menu).unwrap(), 48);
         assert_ne!(home_rgb.as_raw(), menu_rgb.as_raw());
     }
 
     #[test]
-    fn mdi_embedding_roundtrip_when_assets_present() {
-        let dir = Path::new("assets/mdi/png-48-black");
-        let model = Path::new("models/mobileclip2-s0-vision.onnx");
-        if !dir.is_dir() || !model.is_file() {
+    fn embedding_roundtrip_when_assets_present() {
+        let index_path = Path::new("assets/embeddings.bin");
+        let model = default_vision_model();
+        if !index_path.is_file() || !model.is_file() {
             return;
         }
 
@@ -250,21 +317,18 @@ mod tests {
             Err(_) => return,
         };
 
+        let dir = Path::new("assets/icons");
         let name = "home";
         let png_path = dir.join(format!("{name}.png"));
         if !png_path.is_file() {
             return;
         }
 
-        let mut embedder = IconEmbedder::load(model).unwrap();
+        let mut embedder = IconEmbedder::load(&model).unwrap();
         let img = image::open(&png_path).unwrap();
-        let rgb = mdi_png_to_rgb256(&img, config.template_size);
+        let rgb = template_png_to_rgb256(&img, config.template_size);
         let embedding = embedder.embed_rgb256(&rgb).unwrap();
-        let gray = crate::layout::to_gray(&img);
-        let (mask, _) = normalize_query_mask(&gray, config.template_size);
-        let (matched, score) = library
-            .best_match(&embedding, &mask, 0.5, 10, 0.0)
-            .unwrap();
+        let (matched, score) = library.best_match(&embedding, 0.5).unwrap();
         assert_eq!(matched, name);
         assert!(score >= 0.85, "self-match score {score}");
     }

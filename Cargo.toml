@@ -4,18 +4,21 @@ version = "0.1.0"
 edition = "2021"
 description = "Extract UI element trees and text from screenshots for text-only LLMs"
 license = "MIT"
+build = "build.rs"
+
+[lib]
+name = "ui_extractor"
+crate-type = ["rlib", "cdylib", "staticlib"]
+path = "src/lib.rs"
 
 [[bin]]
 name = "ui-extractor"
 path = "src/main.rs"
 
-[[bin]]
-name = "rasterize-mdi"
-path = "src/bin/rasterize_mdi.rs"
-
-[[bin]]
-name = "embed-mdi"
-path = "src/bin/embed_mdi.rs"
+[features]
+default = ["backend-ort"]
+backend-ort = ["dep:ort", "dep:oar-ocr"]
+backend-ncnn = ["dep:ncnn-bind"]
 
 [dependencies]
 ab_glyph = "0.2"
@@ -24,13 +27,21 @@ clap = { version = "4", features = ["derive"] }
 image = "0.25"
 imageproc = "0.25"
 ndarray = "0.16"
-oar-ocr = { version = "0.6.3", features = ["download-binaries"] }
-ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray"] }
 rayon = "1"
 resvg = "0.47"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 
+ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray"], optional = true }
+oar-ocr = { version = "0.6.3", features = ["download-binaries"], optional = true }
+ncnn-bind = { path = "crates/ncnn-bind", optional = true }
+
 [dev-dependencies]
 tempfile = "3"
+
+[profile.release]
+strip = true
+lto = true
+opt-level = 'z'
+codegen-units = 1

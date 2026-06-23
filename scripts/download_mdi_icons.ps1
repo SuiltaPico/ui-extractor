@@ -1,8 +1,8 @@
 # Download Material Design Icons (@mdi/svg) for icon similarity matching.
-# SVG is the official distribution; PNG is generated locally via `rasterize-mdi` (Rust + resvg).
+# SVG is the official distribution; PNG is generated locally via `ui-extractor icon rasterize-svg`.
 param(
     [string]$Version = "7.4.47",
-    [string]$OutDir = (Join-Path $PSScriptRoot "..\assets\mdi"),
+    [string]$OutDir = (Join-Path $PSScriptRoot "..\assets"),
     [switch]$Rasterize,
     [int]$Size = 48,
     [ValidateSet("black", "white")]
@@ -16,7 +16,7 @@ $SvgSrc = Join-Path $WorkDir "node_modules\@mdi\svg\svg"
 $MetaSrc = Join-Path $WorkDir "node_modules\@mdi\svg\meta.json"
 $SvgDest = Join-Path $OutDir "svg"
 $MetaDest = Join-Path $OutDir "meta.json"
-$PngDest = Join-Path $OutDir "png-$Size-$Color"
+$PngDest = Join-Path $OutDir "icons"
 
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
@@ -52,21 +52,23 @@ Write-Host "  meta: $MetaDest"
 
 if ($Rasterize) {
     $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-    $RasterBin = Join-Path $RepoRoot "target\release\rasterize-mdi.exe"
-    if (-not (Test-Path $RasterBin)) {
-        Write-Host "building rasterize-mdi (release) ..."
+    $exeName = if ($IsWindows -or ($env:OS -match "Windows")) { "ui-extractor.exe" } else { "ui-extractor" }
+    $CliBin = Join-Path $RepoRoot (Join-Path "target" (Join-Path "release" $exeName))
+    if (-not (Test-Path $CliBin)) {
+        Write-Host "building ui-extractor (release) ..."
         Push-Location $RepoRoot
         try {
-            cargo build --release --bin rasterize-mdi
+            cargo build --release --bin ui-extractor
         } finally {
             Pop-Location
         }
     }
-    if (-not (Test-Path $RasterBin)) {
-        throw "missing rasterizer: $RasterBin"
+    if (-not (Test-Path $CliBin)) {
+        throw "missing ui-extractor: $CliBin"
     }
 
     $RasterArgs = @(
+        "icon", "rasterize-svg",
         "--svg-dir", $SvgDest,
         "--out-dir", $PngDest,
         "--size", $Size,
@@ -77,9 +79,9 @@ if ($Rasterize) {
     }
 
     Write-Host "rasterizing to $PngDest ($Size px, $Color) ..."
-    & $RasterBin @RasterArgs
+    & $CliBin @RasterArgs
     if ($LASTEXITCODE -ne 0) {
-        throw "rasterize-mdi failed with exit code $LASTEXITCODE"
+        throw "ui-extractor icon rasterize-svg failed with exit code $LASTEXITCODE"
     }
     $pngCount = (Get-ChildItem $PngDest -Filter *.png -ErrorAction SilentlyContinue).Count
     Write-Host "png ready: $pngCount files in $PngDest"

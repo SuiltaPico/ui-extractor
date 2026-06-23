@@ -1,7 +1,12 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
-use ui_extractor::{extract_from_path, run_cases, ExtractConfig, IconConfig, LayoutConfig, OcrConfig};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+use image::GrayImage;
+use ui_extractor::{
+    build_embeddings_file, extract_from_path, format_ms, rasterize_svg_icons, render_annotation,
+    run_cases, BuildEmbeddingsOptions, Bounds, ExtractConfig, IconConfig, IconMatchOptions,
+    IconPack, IconRasterColor, LayoutConfig, OcrConfig, RasterizeSvgOptions,
+};
 
 #[derive(Parser)]
 #[command(name = "ui-extractor", about = "Extract UI trees and text from screenshots")]
@@ -30,25 +35,9 @@ enum Command {
         #[arg(long)]
         layout_only: bool,
 
-        /// Skip icon recognition (MDI template matching)
+        /// Skip icon recognition
         #[arg(long)]
         no_icon: bool,
-
-        /// MDI rasterized PNG directory for icon matching
-        #[arg(long, default_value = "assets/mdi/png-48-black")]
-        mdi_dir: PathBuf,
-
-        /// Precomputed MDI embedding index (embed-mdi output)
-        #[arg(long, default_value = "assets/mdi/embeddings.bin")]
-        embedding_index: PathBuf,
-
-        /// MobileCLIP2-S0 vision ONNX model
-        #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
-        icon_model: PathBuf,
-
-        /// Minimum cosine similarity to accept an icon match (0–1)
-        #[arg(long, default_value_t = 0.72)]
-        icon_min_cosine: f64,
 
         /// PP-OCR model directory (det/rec ONNX + dict)
         #[arg(long, default_value = "models")]
@@ -69,6 +58,9 @@ enum Command {
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Json)]
         format: OutputFormat,
+
+        #[command(flatten)]
+        icon: IconExtractArgs,
     },
     /// Process all cases under tests/cases (input image -> output.json + annotated.png + skeleton.html)
     Cases {
@@ -80,25 +72,9 @@ enum Command {
         #[arg(long)]
         layout_only: bool,
 
-        /// Skip icon recognition (MDI template matching)
+        /// Skip icon recognition
         #[arg(long)]
         no_icon: bool,
-
-        /// MDI rasterized PNG directory for icon matching
-        #[arg(long, default_value = "assets/mdi/png-48-black")]
-        mdi_dir: PathBuf,
-
-        /// Precomputed MDI embedding index (embed-mdi output)
-        #[arg(long, default_value = "assets/mdi/embeddings.bin")]
-        embedding_index: PathBuf,
-
-        /// MobileCLIP2-S0 vision ONNX model
-        #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
-        icon_model: PathBuf,
-
-        /// Minimum cosine similarity to accept an icon match (0–1)
-        #[arg(long, default_value_t = 0.72)]
-        icon_min_cosine: f64,
 
         /// PP-OCR model directory (det/rec ONNX + dict)
         #[arg(long, default_value = "models")]
@@ -111,13 +87,192 @@ enum Command {
         /// OCR input long-edge limit in pixels (0 = full resolution)
         #[arg(long, default_value_t = 960)]
         ocr_max_side: u32,
+
+        #[command(flatten)]
+        icon: IconExtractArgs,
     },
+    /// Icon library utilities (embeddings, rasterize, match)
+    Icon {
+        #[command(subcommand)]
+        command: IconCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum IconCommand {
+    /// Build embeddings.bin from a directory of template PNGs
+    BuildEmbeddings {
+        /// Input PNG directory
+        #[arg(long, default_value = "assets/icons")]
+        png_dir: PathBuf,
+
+        /// Output embedding index path
+        #[arg(long, default_value = "assets/embeddings.bin")]
+        out: PathBuf,
+
+        /// MobileCLIP2-S0 vision model
+        #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
+        vision_model: PathBuf,
+
+        /// Template edge length in pixels for preprocessing
+        #[arg(long, default_value_t = 48)]
+        template_size: u32,
+    },
+    /// Rasterize SVG icons to PNG templates
+    RasterizeSvg {
+        /// Input SVG directory
+        #[arg(long, default_value = "assets/svg")]
+        svg_dir: PathBuf,
+
+        /// Output PNG directory
+        #[arg(long, default_value = "assets/icons")]
+        out_dir: PathBuf,
+
+        /// Output edge length in pixels
+        #[arg(long, default_value_t = 48)]
+        size: u32,
+
+        /// Icon color on transparent background
+        #[arg(long, value_enum, default_value_t = RasterColor::Black)]
+        color: RasterColor,
+
+        /// Parallel worker threads (default: CPU count)
+        #[arg(long)]
+        jobs: Option<usize>,
+
+        /// Skip PNGs that already exist
+        #[arg(long)]
+        skip_existing: bool,
+    },
+    /// Match a screenshot crop against the icon library
+    Match {
+        /// Input image path
+        #[arg(short, long)]
+        input: PathBuf,
+
+        #[command(flatten)]
+        region: RegionArgs,
+
+        #[command(flatten)]
+        pack: IconPackArgs,
+    },
+    /// Top-k cosine search against the icon library
+    Search {
+        /// Input image path
+        #[arg(short, long)]
+        input: PathBuf,
+
+        /// Number of hits to return
+        #[arg(long, default_value_t = 5)]
+        top_k: usize,
+
+        #[command(flatten)]
+        region: RegionArgs,
+
+        #[command(flatten)]
+        pack: IconPackArgs,
+    },
+}
+
+#[derive(Args, Clone)]
+struct IconExtractArgs {
+    /// Precomputed embedding index
+    #[arg(long, default_value = "assets/embeddings.bin")]
+    embedding_index: PathBuf,
+
+    /// MobileCLIP2-S0 vision model
+    #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
+    vision_model: PathBuf,
+
+    /// Minimum cosine similarity to accept an icon match (0–1)
+    #[arg(long, default_value_t = 0.72)]
+    min_cosine: f64,
+}
+
+impl IconExtractArgs {
+    fn to_config(&self) -> IconConfig {
+        IconConfig {
+            embedding_index: self.embedding_index.clone(),
+            vision_model: self.vision_model.clone(),
+            min_cosine: self.min_cosine,
+            ..IconConfig::default()
+        }
+    }
+}
+
+#[derive(Args, Clone)]
+struct IconPackArgs {
+    /// Precomputed embedding index
+    #[arg(long, default_value = "assets/embeddings.bin")]
+    embedding_index: PathBuf,
+
+    /// MobileCLIP2-S0 vision model
+    #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
+    vision_model: PathBuf,
+
+    /// Minimum cosine similarity to accept a match (0–1)
+    #[arg(long, default_value_t = 0.72)]
+    min_cosine: f64,
+
+    /// Template edge length in pixels for query preprocessing
+    #[arg(long, default_value_t = 48)]
+    template_size: u32,
+}
+
+impl IconPackArgs {
+    fn load(&self) -> anyhow::Result<IconPack> {
+        Ok(IconPack::load(
+            &self.embedding_index,
+            &self.vision_model,
+            self.template_size,
+            IconMatchOptions {
+                min_cosine: self.min_cosine,
+            },
+        )?)
+    }
+}
+
+#[derive(Args, Clone, Default)]
+struct RegionArgs {
+    #[arg(long)]
+    x: Option<i32>,
+    #[arg(long)]
+    y: Option<i32>,
+    #[arg(long)]
+    width: Option<i32>,
+    #[arg(long)]
+    height: Option<i32>,
+}
+
+impl RegionArgs {
+    fn parse(&self) -> anyhow::Result<Option<Bounds>> {
+        match (self.x, self.y, self.width, self.height) {
+            (None, None, None, None) => Ok(None),
+            (Some(x), Some(y), Some(width), Some(height)) => Ok(Some(Bounds::new(x, y, width, height))),
+            _ => anyhow::bail!("region requires --x, --y, --width, and --height together"),
+        }
+    }
 }
 
 #[derive(Clone, ValueEnum)]
 enum OutputFormat {
     Json,
     Pretty,
+}
+
+#[derive(Clone, ValueEnum)]
+enum RasterColor {
+    Black,
+    White,
+}
+
+impl From<RasterColor> for IconRasterColor {
+    fn from(value: RasterColor) -> Self {
+        match value {
+            RasterColor::Black => IconRasterColor::Black,
+            RasterColor::White => IconRasterColor::White,
+        }
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -130,68 +285,76 @@ fn main() -> anyhow::Result<()> {
             annotate,
             layout_only,
             no_icon,
-            mdi_dir,
-            embedding_index,
-            icon_model,
-            icon_min_cosine,
             model_dir,
             min_area,
             ocr_max_side,
             dump_pipeline,
             format,
+            icon,
         } => run_extract(
             input,
             output,
             annotate,
             layout_only,
             no_icon,
-            mdi_dir,
-            embedding_index,
-            icon_model,
-            icon_min_cosine,
             model_dir,
             min_area,
             ocr_max_side,
             dump_pipeline,
             format,
+            icon,
         ),
         Command::Cases {
             dir,
             layout_only,
             no_icon,
-            mdi_dir,
-            embedding_index,
-            icon_model,
-            icon_min_cosine,
             model_dir,
             min_area,
             ocr_max_side,
+            icon,
         } => run_cases_cmd(
             dir,
             layout_only,
             no_icon,
-            mdi_dir,
-            embedding_index,
-            icon_model,
-            icon_min_cosine,
             model_dir,
             min_area,
             ocr_max_side,
+            icon,
         ),
+        Command::Icon { command } => match command {
+            IconCommand::BuildEmbeddings {
+                png_dir,
+                out,
+                vision_model,
+                template_size,
+            } => run_icon_build_embeddings(png_dir, out, vision_model, template_size),
+            IconCommand::RasterizeSvg {
+                svg_dir,
+                out_dir,
+                size,
+                color,
+                jobs,
+                skip_existing,
+            } => run_icon_rasterize_svg(svg_dir, out_dir, size, color, jobs, skip_existing),
+            IconCommand::Match { input, region, pack } => run_icon_match(input, region, pack),
+            IconCommand::Search {
+                input,
+                top_k,
+                region,
+                pack,
+            } => run_icon_search(input, top_k, region, pack),
+        },
     }
 }
 
 fn build_config(
     layout_only: bool,
     no_icon: bool,
-    mdi_dir: PathBuf,
-    embedding_index: PathBuf,
-    icon_model: PathBuf,
-    icon_min_cosine: f64,
     model_dir: PathBuf,
     min_area: i64,
     ocr_max_side: u32,
     pipeline_dump_dir: Option<PathBuf>,
+    icon: IconExtractArgs,
 ) -> ExtractConfig {
     ExtractConfig {
         layout: LayoutConfig {
@@ -203,13 +366,7 @@ fn build_config(
             max_side: ocr_max_side,
             ..OcrConfig::default()
         },
-        icon: IconConfig {
-            mdi_png_dir: mdi_dir,
-            embedding_index,
-            vision_model: icon_model,
-            min_cosine: icon_min_cosine,
-            ..IconConfig::default()
-        },
+        icon: icon.to_config(),
         run_ocr: !layout_only,
         run_icon: !no_icon,
         pipeline_dump_dir,
@@ -222,15 +379,12 @@ fn run_extract(
     annotate: bool,
     layout_only: bool,
     no_icon: bool,
-    mdi_dir: PathBuf,
-    embedding_index: PathBuf,
-    icon_model: PathBuf,
-    icon_min_cosine: f64,
     model_dir: PathBuf,
     min_area: i64,
     ocr_max_side: u32,
     dump_pipeline: bool,
     format: OutputFormat,
+    icon: IconExtractArgs,
 ) -> anyhow::Result<()> {
     let pipeline_dump_dir = if dump_pipeline {
         Some(pipeline_dump_dir_for_extract(&input, output.as_ref()))
@@ -240,14 +394,11 @@ fn run_extract(
     let config = build_config(
         layout_only,
         no_icon,
-        mdi_dir,
-        embedding_index,
-        icon_model,
-        icon_min_cosine,
         model_dir,
         min_area,
         ocr_max_side,
         pipeline_dump_dir,
+        icon,
     );
     let result = extract_from_path(&input, &config)?;
 
@@ -260,7 +411,7 @@ fn run_extract(
         std::fs::write(&path, &json)?;
         if annotate {
             let img = image::open(&input)?;
-            let annotated = ui_extractor::render_annotation(&img, &result);
+            let annotated = render_annotation(&img, &result);
             let png_path = path.with_extension("png");
             annotated.save(&png_path)?;
             eprintln!("wrote {}", png_path.display());
@@ -283,26 +434,20 @@ fn run_cases_cmd(
     dir: PathBuf,
     layout_only: bool,
     no_icon: bool,
-    mdi_dir: PathBuf,
-    embedding_index: PathBuf,
-    icon_model: PathBuf,
-    icon_min_cosine: f64,
     model_dir: PathBuf,
     min_area: i64,
     ocr_max_side: u32,
+    icon: IconExtractArgs,
 ) -> anyhow::Result<()> {
     let batch_start = std::time::Instant::now();
     let config = build_config(
         layout_only,
         no_icon,
-        mdi_dir,
-        embedding_index,
-        icon_model,
-        icon_min_cosine,
         model_dir,
         min_area,
         ocr_max_side,
         None,
+        icon,
     );
     let summary = run_cases(&dir, &config)?;
 
@@ -310,11 +455,107 @@ fn run_cases_cmd(
     eprintln!(
         "processed {} case(s) in {} | sum {}",
         summary.count,
-        ui_extractor::format_ms(batch_ms),
+        format_ms(batch_ms),
         summary.totals.format_stages()
     );
 
     Ok(())
+}
+
+fn run_icon_build_embeddings(
+    png_dir: PathBuf,
+    out: PathBuf,
+    vision_model: PathBuf,
+    template_size: u32,
+) -> anyhow::Result<()> {
+    build_embeddings_file(&BuildEmbeddingsOptions {
+        png_dir,
+        out,
+        vision_model,
+        template_size,
+    })
+}
+
+fn run_icon_rasterize_svg(
+    svg_dir: PathBuf,
+    out_dir: PathBuf,
+    size: u32,
+    color: RasterColor,
+    jobs: Option<usize>,
+    skip_existing: bool,
+) -> anyhow::Result<()> {
+    rasterize_svg_icons(&RasterizeSvgOptions {
+        svg_dir,
+        out_dir,
+        size,
+        color: color.into(),
+        jobs,
+        skip_existing,
+    })
+}
+
+fn run_icon_match(input: PathBuf, region: RegionArgs, pack: IconPackArgs) -> anyhow::Result<()> {
+    let bounds = region.parse()?;
+    let mut pack = pack.load()?;
+    let img = image::open(&input)?;
+
+    let hit = match bounds {
+        Some(bounds) => pack.match_region(&img, &bounds),
+        None => pack.match_image(&img)?,
+    };
+
+    let json = match hit {
+        Some(hit) => serde_json::to_string_pretty(&hit)?,
+        None => "null".to_string(),
+    };
+    println!("{json}");
+    Ok(())
+}
+
+fn run_icon_search(
+    input: PathBuf,
+    top_k: usize,
+    region: RegionArgs,
+    pack: IconPackArgs,
+) -> anyhow::Result<()> {
+    let bounds = region.parse()?;
+    let mut pack = pack.load()?;
+    let img = image::open(&input)?;
+
+    let embedding = match bounds {
+        Some(bounds) => {
+            let gray = img.to_luma8();
+            let crop = crop_gray(&gray, &bounds)
+                .ok_or_else(|| anyhow::anyhow!("invalid crop region for {}", input.display()))?;
+            pack.embed_query_gray(&crop)?
+        }
+        None => pack.embed_query_image(&img)?,
+    };
+
+    let hits = pack.search_embedding(&embedding, top_k);
+    println!("{}", serde_json::to_string_pretty(&hits)?);
+    Ok(())
+}
+
+fn crop_gray(gray: &GrayImage, bounds: &Bounds) -> Option<GrayImage> {
+    let (img_w, img_h) = gray.dimensions();
+    let x0 = bounds.x.max(0) as u32;
+    let y0 = bounds.y.max(0) as u32;
+    let x1 = bounds.right().min(img_w as i32) as u32;
+    let y1 = bounds.bottom().min(img_h as i32) as u32;
+    if x1 <= x0 || y1 <= y0 {
+        return None;
+    }
+
+    let w = x1 - x0;
+    let h = y1 - y0;
+    let mut out = GrayImage::new(w, h);
+    for y in 0..h {
+        for x in 0..w {
+            out.put_pixel(x, y, *gray.get_pixel(x0 + x, y0 + y));
+        }
+    }
+    Some(out)
 }
 
 fn pipeline_dump_dir_for_extract(input: &PathBuf, output: Option<&PathBuf>) -> PathBuf {

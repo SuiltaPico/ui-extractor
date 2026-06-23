@@ -1441,6 +1441,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ncnn-bind"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
+
+[[package]]
 name = "ndarray"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2777,6 +2784,7 @@ dependencies = [
  "clap",
  "image",
  "imageproc 0.25.1",
+ "ncnn-bind",
  "ndarray 0.16.1",
  "oar-ocr",
  "ort",

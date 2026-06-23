@@ -4,80 +4,56 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 use anyhow::{anyhow, Context, Result};
-use clap::{Parser, ValueEnum};
 use rayon::prelude::*;
 use resvg::{tiny_skia, usvg};
 
-#[derive(Debug, Clone, Parser)]
-#[command(name = "rasterize-mdi", about = "Batch convert MDI SVG icons to PNG")]
-struct Cli {
-    /// Input directory containing .svg files.
-    #[arg(long, default_value = "assets/mdi/svg")]
-    svg_dir: PathBuf,
-
-    /// Output directory for generated .png files.
-    #[arg(long, default_value = "assets/mdi/png-48-black")]
-    out_dir: PathBuf,
-
-    /// PNG width/height in pixels.
-    #[arg(long, default_value_t = 48)]
-    size: u32,
-
-    /// Output icon color.
-    #[arg(long, value_enum, default_value_t = IconColor::Black)]
-    color: IconColor,
-
-    /// Number of worker threads.
-    #[arg(long)]
-    jobs: Option<usize>,
-
-    /// Skip files whose PNG output already exists.
-    #[arg(long)]
-    skip_existing: bool,
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum)]
-enum IconColor {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IconRasterColor {
     Black,
     White,
 }
 
-fn main() -> Result<()> {
-    let cli = Cli::parse();
-    run(cli)
+#[derive(Debug, Clone)]
+pub struct RasterizeSvgOptions {
+    pub svg_dir: PathBuf,
+    pub out_dir: PathBuf,
+    pub size: u32,
+    pub color: IconRasterColor,
+    pub jobs: Option<usize>,
+    pub skip_existing: bool,
 }
 
-fn run(cli: Cli) -> Result<()> {
-    if !cli.svg_dir.is_dir() {
-        return Err(anyhow!("svg dir not found: {}", cli.svg_dir.display()));
+pub fn rasterize_svg_icons(opts: &RasterizeSvgOptions) -> Result<()> {
+    if !opts.svg_dir.is_dir() {
+        return Err(anyhow!("svg dir not found: {}", opts.svg_dir.display()));
     }
-    fs::create_dir_all(&cli.out_dir)
-        .with_context(|| format!("failed to create output dir {}", cli.out_dir.display()))?;
+    fs::create_dir_all(&opts.out_dir)
+        .with_context(|| format!("failed to create output dir {}", opts.out_dir.display()))?;
 
-    let mut files: Vec<PathBuf> = fs::read_dir(&cli.svg_dir)?
+    let mut files: Vec<PathBuf> = fs::read_dir(&opts.svg_dir)?
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .filter(|path| path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("svg")))
         .filter(|path| {
-            if !cli.skip_existing {
+            if !opts.skip_existing {
                 return true;
             }
             let stem = path.file_stem().and_then(|s| s.to_str());
-            stem.is_some_and(|name| !cli.out_dir.join(format!("{name}.png")).is_file())
+            stem.is_some_and(|name| !opts.out_dir.join(format!("{name}.png")).is_file())
         })
         .collect();
     files.sort();
 
     if files.is_empty() {
-        if cli.skip_existing {
-            println!("all png files already exist under {}", cli.out_dir.display());
+        if opts.skip_existing {
+            println!("all png files already exist under {}", opts.out_dir.display());
         } else {
-            println!("no svg files under {}", cli.svg_dir.display());
+            println!("no svg files under {}", opts.svg_dir.display());
         }
         return Ok(());
     }
 
-    let jobs = cli.jobs.unwrap_or_else(default_jobs).max(1);
+    let jobs = opts.jobs.unwrap_or_else(default_jobs).max(1);
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(jobs.min(files.len()))
         .build()
@@ -89,7 +65,7 @@ fn run(cli: Cli) -> Result<()> {
     let started = std::time::Instant::now();
     pool.install(|| {
         files.par_iter().for_each(|path| {
-            if let Err(e) = rasterize_one(path, &cli.out_dir, cli.size, cli.color) {
+            if let Err(e) = rasterize_one(path, &opts.out_dir, opts.size, opts.color) {
                 let mut guard = errors.lock().expect("errors mutex poisoned");
                 guard.push(format!("{}: {e:#}", path.display()));
                 return;
@@ -119,14 +95,14 @@ fn run(cli: Cli) -> Result<()> {
     println!(
         "rasterized {} icons -> {} ({:.2}s, {} jobs)",
         finished,
-        cli.out_dir.display(),
+        opts.out_dir.display(),
         elapsed,
         jobs.min(files.len())
     );
     Ok(())
 }
 
-fn rasterize_one(svg_path: &Path, out_dir: &Path, size: u32, color: IconColor) -> Result<()> {
+fn rasterize_one(svg_path: &Path, out_dir: &Path, size: u32, color: IconRasterColor) -> Result<()> {
     let svg_text = fs::read_to_string(svg_path)
         .with_context(|| format!("failed to read {}", svg_path.display()))?;
     let svg_text = tint_svg(&svg_text, color);
@@ -155,11 +131,10 @@ fn rasterize_one(svg_path: &Path, out_dir: &Path, size: u32, color: IconColor) -
     Ok(())
 }
 
-fn tint_svg(svg: &str, color: IconColor) -> String {
+fn tint_svg(svg: &str, color: IconRasterColor) -> String {
     match color {
-        IconColor::Black => svg.to_owned(),
-        // MDI SVGs generally rely on implicit black fill.
-        IconColor::White => svg.replace("<path ", "<path fill=\"#FFFFFF\" "),
+        IconRasterColor::Black => svg.to_owned(),
+        IconRasterColor::White => svg.replace("<path ", "<path fill=\"#FFFFFF\" "),
     }
 }
 

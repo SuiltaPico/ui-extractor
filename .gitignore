@@ -1,11 +1,26 @@
-/target
+**/target/
+**/.dart_tool/
+**/.packages
+**/build/
+# Legacy: .venv was only used for pip pnnx; portable pnnx is recommended instead
+.venv/
 **/*.rs.bk
 
 # Downloaded ONNX weights (use scripts/download_*.ps1)
 models/*.onnx
+models/*.ncnn.param
+models/*.ncnn.bin
+
+# ncnn prebuilt libs (see android/README.md)
+third_party/
+vendor/
+android/jniLibs/
 
 # MDI SVG/PNG/embeddings (local generate)
-assets/mdi/
+assets/icons/
+assets/svg/
+assets/embeddings.bin
+assets/meta.json
 .tmp-mdi/
 .npm-cache/
 
@@ -13,3 +28,9 @@ assets/mdi/
 tests/cases/*/pipeline/
 tests/cases/*/timing.json
 tests/cases/*/skeleton.html
+
+# Local cargo overrides (scripts/build_android.ps1)
+.cargo/config.local.toml
+
+# Release packages (scripts/build_release_*.ps1)
+dist/

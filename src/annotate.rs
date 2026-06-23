@@ -1,3 +1,4 @@
+use ab_glyph::{Font, FontRef, PxScale, ScaleFont, point};
 use image::{DynamicImage, Rgb, RgbImage};
 use imageproc::drawing::{draw_hollow_rect_mut, draw_text_mut};
 use imageproc::rect::Rect;
@@ -68,7 +69,7 @@ fn draw_label(canvas: &mut RgbImage, bounds: &crate::types::Bounds, text: &str, 
         return;
     };
     let label = truncate_label(text, 24);
-    let scale = ab_glyph::PxScale::from(14.0);
+    let scale = PxScale::from(14.0);
     let x = bounds.x.max(0) as i32;
     let y = (bounds.y - 16).max(0) as i32;
     draw_text_mut(canvas, color, x, y, scale, &font, &label);
@@ -82,44 +83,88 @@ fn truncate_label(text: &str, max_chars: usize) -> String {
     format!("{}…", trimmed.chars().take(max_chars).collect::<String>())
 }
 
-fn load_font() -> Option<ab_glyph::FontRef<'static>> {
-    static FONT: std::sync::OnceLock<Option<Vec<u8>>> = std::sync::OnceLock::new();
-    let data = FONT.get_or_init(|| {
-        #[cfg(windows)]
-        {
-            for path in [
-                "C:/Windows/Fonts/segoeui.ttf",
-                "C:/Windows/Fonts/arial.ttf",
-            ] {
-                if let Ok(bytes) = std::fs::read(path) {
-                    return Some(bytes);
-                }
-            }
-        }
-        #[cfg(target_os = "macos")]
-        {
-            if let Ok(bytes) = std::fs::read("/System/Library/Fonts/Supplemental/Arial.ttf") {
-                return Some(bytes);
-            }
-        }
-        #[cfg(target_os = "linux")]
-        {
-            for path in [
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-                "/usr/share/fonts/TTF/DejaVuSans.ttf",
-            ] {
-                if let Ok(bytes) = std::fs::read(path) {
-                    return Some(bytes);
-                }
-            }
-        }
-        None
-    });
+fn font_search_paths() -> &'static [&'static str] {
+    #[cfg(windows)]
+    {
+        &[
+            // Prefer CJK-capable fonts; Segoe UI / Arial lack most Han glyphs.
+            "C:/Windows/Fonts/msyh.ttc",
+            "C:/Windows/Fonts/msyhl.ttc",
+            "C:/Windows/Fonts/simhei.ttf",
+            "C:/Windows/Fonts/simsun.ttc",
+            "C:/Windows/Fonts/DENG.TTF",
+            "C:/Windows/Fonts/segoeui.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+        ]
+    }
+    #[cfg(target_os = "macos")]
+    {
+        &[
+            "/System/Library/Fonts/PingFang.ttc",
+            "/System/Library/Fonts/STHeiti Light.ttc",
+            "/System/Library/Fonts/Hiragino Sans GB.ttc",
+            "/Library/Fonts/Arial Unicode.ttf",
+            "/System/Library/Fonts/Supplemental/Arial.ttf",
+        ]
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        &[
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/TTF/DejaVuSans.ttf",
+        ]
+    }
+    #[cfg(not(any(windows, target_os = "macos", unix)))]
+    {
+        &[]
+    }
+}
 
-    let bytes = data.as_ref()?;
-    // Font data lives for program lifetime via OnceLock.
-    let leaked: &'static [u8] = Box::leak(bytes.clone().into_boxed_slice());
-    ab_glyph::FontRef::try_from_slice(leaked).ok()
+fn font_can_render_cjk(bytes: &[u8]) -> bool {
+    let Ok(font) = FontRef::try_from_slice(bytes) else {
+        return false;
+    };
+    font_has_outline(&font, '中')
+}
+
+fn font_has_outline(font: &FontRef, ch: char) -> bool {
+    let scale = PxScale::from(12.0);
+    let scaled = font.as_scaled(scale);
+    let glyph_id = scaled.glyph_id(ch);
+    scaled
+        .outline_glyph(glyph_id.with_scale_and_position(scale, point(0.0, 0.0)))
+        .is_some()
+}
+
+fn read_best_font_bytes() -> Option<Vec<u8>> {
+    let mut latin_fallback = None;
+    for path in font_search_paths() {
+        let Ok(bytes) = std::fs::read(path) else {
+            continue;
+        };
+        if FontRef::try_from_slice(&bytes).is_err() {
+            continue;
+        }
+        if font_can_render_cjk(&bytes) {
+            return Some(bytes);
+        }
+        if latin_fallback.is_none() {
+            latin_fallback = Some(bytes);
+        }
+    }
+    latin_fallback
+}
+
+fn load_font() -> Option<FontRef<'static>> {
+    static FONT_BYTES: std::sync::OnceLock<Option<&'static [u8]>> = std::sync::OnceLock::new();
+    let bytes = (*FONT_BYTES.get_or_init(|| {
+        read_best_font_bytes().map(|data| Box::leak(data.into_boxed_slice()) as &'static [u8])
+    }))?;
+    FontRef::try_from_slice(bytes).ok()
 }
 
 #[cfg(test)]
@@ -144,5 +189,16 @@ mod tests {
         };
         let out = render_annotation(&img, &result);
         assert_eq!(out.dimensions(), (100, 100));
+    }
+
+    #[test]
+    fn annotation_font_renders_cjk_when_available() {
+        let Some(font) = load_font() else {
+            return;
+        };
+        assert!(
+            font_has_outline(&font, '中'),
+            "annotation font must include CJK glyphs (check font_search_paths)"
+        );
     }
 }

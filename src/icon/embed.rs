@@ -4,7 +4,7 @@ use std::time::Instant;
 
 use anyhow::{anyhow, Result};
 
-use super::{build_embedding_index, IconEmbedder};
+use super::build_embedding_index;
 
 #[derive(Debug, Clone)]
 pub struct BuildEmbeddingsOptions {
@@ -31,20 +31,24 @@ pub fn build_embeddings_file(opts: &BuildEmbeddingsOptions) -> Result<()> {
         return Err(anyhow!("no png files under {}", opts.png_dir.display()));
     }
 
-    let mut embedder = IconEmbedder::load(&opts.vision_model).map_err(|e| anyhow!("{e}"))?;
-
     let started = Instant::now();
-    let index = build_embedding_index(&opts.png_dir, &mut embedder, opts.template_size)
+    let index = build_embedding_index(&opts.png_dir, &opts.vision_model, opts.template_size)
         .map_err(|e| anyhow!("{e}"))?;
 
     index.save(&opts.out).map_err(|e| anyhow!("{e}"))?;
 
+    let jobs = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .max(1)
+        .min(png_count);
     let elapsed = started.elapsed().as_secs_f64();
     println!(
-        "embedded {} icons -> {} ({:.2}s)",
+        "embedded {} icons -> {} ({:.2}s, {} jobs)",
         index.count(),
         opts.out.display(),
-        elapsed
+        elapsed,
+        jobs
     );
     Ok(())
 }

@@ -43,5 +43,5 @@ tempfile = "3"
 [profile.release]
 strip = true
 lto = true
-opt-level = 'z'
+opt-level = 3
 codegen-units = 1

@@ -20,7 +20,6 @@ void main(List<String> args) async {
 
     final downloadUrl = 'https://github.com/$repo/releases/download/v$version/$assetName.zip';
     final outDir = config.outputDirectory.toFilePath();
-    final zipPath = p.join(outDir, '$assetName.zip');
     final extractDir = p.join(outDir, assetName);
 
     final libName = _getLibName(targetOS);

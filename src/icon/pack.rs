@@ -76,8 +76,9 @@ impl IconPack {
         template_size: u32,
         match_options: IconMatchOptions,
     ) -> Result<Self> {
-        let mut embedder = IconEmbedder::load(vision_model.as_ref())?;
-        let embeddings = build_embedding_index(png_dir.as_ref(), &mut embedder, template_size)?;
+        let embeddings =
+            build_embedding_index(png_dir.as_ref(), vision_model.as_ref(), template_size)?;
+        let embedder = IconEmbedder::load(vision_model.as_ref())?;
         Ok(Self {
             template_size,
             library: IconLibrary::from_index(embeddings),

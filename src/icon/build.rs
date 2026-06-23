@@ -1,7 +1,11 @@
+use std::cell::RefCell;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex;
 
 use image::DynamicImage;
+use rayon::prelude::*;
 
 use crate::error::{ExtractError, Result};
 
@@ -10,12 +14,17 @@ use super::IconEmbedder;
 use super::preprocess::EMBED_DIM;
 use super::preprocess::template_png_to_rgb256;
 
+thread_local! {
+    static THREAD_EMBEDDER: RefCell<Option<(PathBuf, IconEmbedder)>> = const { RefCell::new(None) };
+}
+
 /// Build a precomputed embedding index from a directory of PNG icons.
 ///
 /// Each PNG file name (without extension) becomes the icon label in the index.
+/// Embeddings are computed in parallel using one model session per worker thread.
 pub fn build_embedding_index(
     png_dir: &Path,
-    embedder: &mut IconEmbedder,
+    vision_model: &Path,
     template_size: u32,
 ) -> Result<EmbeddingIndex> {
     if !png_dir.is_dir() {
@@ -40,20 +49,44 @@ pub fn build_embedding_index(
         )));
     }
 
-    let mut names = Vec::with_capacity(paths.len());
-    let mut vectors = Vec::with_capacity(paths.len() * EMBED_DIM);
-    let mut errors = Vec::new();
+    let jobs = default_jobs().max(1).min(paths.len());
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(jobs)
+        .build()
+        .map_err(|e| ExtractError::Image(e.to_string()))?;
 
-    for path in &paths {
-        match embed_one(path, embedder, template_size) {
-            Ok((name, embedding)) => {
-                names.push(name);
-                vectors.extend(embedding);
-            }
-            Err(e) => errors.push(format!("{}: {e}", path.display())),
-        }
-    }
+    let errors: Mutex<Vec<String>> = Mutex::new(vec![]);
+    let done = AtomicUsize::new(0);
+    let total = paths.len();
+    let vision_model = vision_model.to_path_buf();
 
+    let mut results: Vec<(usize, String, Vec<f32>)> = pool.install(|| {
+        paths
+            .par_iter()
+            .enumerate()
+            .filter_map(|(idx, path)| {
+                let result = with_thread_embedder(&vision_model, |embedder| {
+                    embed_one(path, embedder, template_size)
+                });
+                match result {
+                    Ok((name, embedding)) => {
+                        let n = done.fetch_add(1, Ordering::Relaxed) + 1;
+                        if n % 500 == 0 || n == total {
+                            eprintln!("embedded {n}/{total}");
+                        }
+                        Some((idx, name, embedding))
+                    }
+                    Err(e) => {
+                        let mut guard = errors.lock().expect("errors mutex poisoned");
+                        guard.push(format!("{}: {e}", path.display()));
+                        None
+                    }
+                }
+            })
+            .collect()
+    });
+
+    let errors = errors.into_inner().expect("errors mutex poisoned");
     if !errors.is_empty() {
         return Err(ExtractError::Image(format!(
             "embedding failed for {} file(s): {}",
@@ -62,10 +95,39 @@ pub fn build_embedding_index(
         )));
     }
 
+    results.sort_by_key(|(idx, _, _)| *idx);
+
+    let mut names = Vec::with_capacity(results.len());
+    let mut vectors = Vec::with_capacity(results.len() * EMBED_DIM);
+    for (_, name, embedding) in results {
+        names.push(name);
+        vectors.extend(embedding);
+    }
+
     Ok(EmbeddingIndex {
         dim: EMBED_DIM as u32,
         names,
         vectors,
+    })
+}
+
+fn with_thread_embedder<R>(
+    vision_model: &Path,
+    f: impl FnOnce(&mut IconEmbedder) -> Result<R>,
+) -> Result<R> {
+    THREAD_EMBEDDER.with(|cell| {
+        let mut guard = cell.borrow_mut();
+        let needs_load = match guard.as_ref() {
+            None => true,
+            Some((path, _)) => path != vision_model,
+        };
+        if needs_load {
+            *guard = Some((
+                vision_model.to_path_buf(),
+                IconEmbedder::load(vision_model)?,
+            ));
+        }
+        f(&mut guard.as_mut().unwrap().1)
     })
 }
 
@@ -98,4 +160,10 @@ pub fn embed_png_image(
         })?
         .to_string();
     Ok((name, embedding))
+}
+
+fn default_jobs() -> usize {
+    std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
 }

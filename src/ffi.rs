@@ -13,7 +13,7 @@ use image::DynamicImage;
 use serde::Deserialize;
 
 use crate::engine::ExtractEngine;
-use crate::icon::{build_embedding_index, IconEmbedder, IconMatchOptions, IconPack, EMBED_DIM};
+use crate::icon::{build_embedding_index, IconMatchOptions, IconPack, EMBED_DIM};
 use crate::pipeline::ExtractConfig;
 use crate::types::Bounds;
 use crate::{ExtractError, IconConfig, LayoutConfig, OcrConfig};
@@ -631,9 +631,12 @@ pub extern "C" fn ui_icon_build_embeddings_file(
         let png_dir = read_path(png_dir)?;
         let vision_model = read_path(vision_model)?;
         let out_path = read_path(out_path)?;
-        let mut embedder = IconEmbedder::load(Path::new(vision_model)).map_err(map_extract_error)?;
-        let index = build_embedding_index(Path::new(png_dir), &mut embedder, template_size)
-            .map_err(map_extract_error)?;
+        let index = build_embedding_index(
+            Path::new(png_dir),
+            Path::new(vision_model),
+            template_size,
+        )
+        .map_err(map_extract_error)?;
         index.save(Path::new(out_path)).map_err(map_extract_error)?;
         Ok(())
     })

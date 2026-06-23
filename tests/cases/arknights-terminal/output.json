@@ -26,7 +26,9 @@
           "width": 28,
           "height": 35
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:resize-bottom-right",
+        "confidence": 0.8394199
       },
       {
         "bounds": {
@@ -73,7 +75,7 @@
                 },
                 "kind": "text",
                 "content": "相变临界",
-                "confidence": 99.888145
+                "confidence": 99.88809
               }
             ]
           },
@@ -95,7 +97,7 @@
             },
             "kind": "text",
             "content": "ATTENTION",
-            "confidence": 97.27571
+            "confidence": 97.27565
           },
           {
             "bounds": {
@@ -106,7 +108,7 @@
             },
             "kind": "text",
             "content": "阵地足球锦标",
-            "confidence": 96.95947
+            "confidence": 96.958694
           },
           {
             "bounds": {
@@ -117,7 +119,7 @@
             },
             "kind": "text",
             "content": "PFC? 作战已结束",
-            "confidence": 80.95094
+            "confidence": 80.95084
           },
           {
             "bounds": {
@@ -128,7 +130,7 @@
             },
             "kind": "text",
             "content": "2天",
-            "confidence": 99.045906
+            "confidence": 99.04561
           },
           {
             "bounds": {
@@ -139,7 +141,7 @@
             },
             "kind": "text",
             "content": "进度",
-            "confidence": 99.22373
+            "confidence": 99.22365
           },
           {
             "bounds": {
@@ -150,7 +152,7 @@
             },
             "kind": "text",
             "content": "全部完成",
-            "confidence": 99.691925
+            "confidence": 99.69186
           }
         ]
       },
@@ -162,8 +164,8 @@
           "height": 29
         },
         "kind": "icon",
-        "name": "less-than",
-        "confidence": 0.7179727
+        "name": "fa-solid:less-than",
+        "confidence": 0.9504865
       },
       {
         "bounds": {
@@ -228,7 +230,7 @@
                 },
                 "kind": "text",
                 "content": "0160",
-                "confidence": 86.01912
+                "confidence": 86.01897
               },
               {
                 "bounds": {
@@ -239,7 +241,7 @@
                 },
                 "kind": "text",
                 "content": "0/24",
-                "confidence": 78.75086
+                "confidence": 78.75073
               }
             ]
           },
@@ -250,7 +252,9 @@
               "width": 53,
               "height": 46
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:handshake-outline",
+            "confidence": 0.7337923
           },
           {
             "bounds": {
@@ -270,7 +274,7 @@
             },
             "kind": "text",
             "content": "TO-0O LST",
-            "confidence": 84.20561
+            "confidence": 84.20549
           },
           {
             "bounds": {
@@ -281,7 +285,7 @@
             },
             "kind": "text",
             "content": "数据增补条",
-            "confidence": 99.95851
+            "confidence": 99.958496
           },
           {
             "bounds": {
@@ -292,7 +296,7 @@
             },
             "kind": "text",
             "content": "数据增补仪",
-            "confidence": 99.77188
+            "confidence": 99.77184
           },
           {
             "bounds": {
@@ -303,7 +307,7 @@
             },
             "kind": "text",
             "content": "23天",
-            "confidence": 99.690704
+            "confidence": 99.690674
           },
           {
             "bounds": {
@@ -314,7 +318,7 @@
             },
             "kind": "text",
             "content": "剩灭战模拟",
-            "confidence": 92.388725
+            "confidence": 92.38836
           },
           {
             "bounds": {
@@ -325,7 +329,7 @@
             },
             "kind": "text",
             "content": "66号航道",
-            "confidence": 99.85644
+            "confidence": 99.85641
           },
           {
             "bounds": {
@@ -336,7 +340,7 @@
             },
             "kind": "text",
             "content": "27天 作战进度",
-            "confidence": 98.51407
+            "confidence": 98.51376
           },
           {
             "bounds": {
@@ -347,7 +351,7 @@
             },
             "kind": "text",
             "content": "集成战略",
-            "confidence": 99.40281
+            "confidence": 99.40268
           },
           {
             "bounds": {
@@ -358,7 +362,7 @@
             },
             "kind": "text",
             "content": "岁的界园志异",
-            "confidence": 99.807495
+            "confidence": 99.80747
           },
           {
             "bounds": {
@@ -369,7 +373,7 @@
             },
             "kind": "text",
             "content": "探索中",
-            "confidence": 99.829025
+            "confidence": 99.82893
           }
         ]
       },
@@ -380,7 +384,9 @@
           "width": 93,
           "height": 55
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "tabler:wifi-0",
+        "confidence": 0.7237094
       },
       {
         "bounds": {
@@ -417,8 +423,8 @@
           "height": 46
         },
         "kind": "icon",
-        "name": "ungroup",
-        "confidence": 0.63697916
+        "name": "mdi:space-invaders",
+        "confidence": 0.7618988
       },
       {
         "bounds": {
@@ -483,7 +489,7 @@
             },
             "kind": "text",
             "content": "山",
-            "confidence": 93.34645
+            "confidence": 93.343796
           },
           {
             "bounds": {
@@ -494,7 +500,7 @@
             },
             "kind": "text",
             "content": "MENDELE",
-            "confidence": 59.16974
+            "confidence": 59.169655
           }
         ]
       },
@@ -505,7 +511,9 @@
           "width": 15,
           "height": 23
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.83838964
       },
       {
         "bounds": {
@@ -533,8 +541,8 @@
           "height": 16
         },
         "kind": "icon",
-        "name": "file-tree-outline",
-        "confidence": 0.62177
+        "name": "mdi:square-wave",
+        "confidence": 0.7454859
       },
       {
         "bounds": {
@@ -543,7 +551,9 @@
           "width": 17,
           "height": 18
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:settings-helper",
+        "confidence": 0.8358244
       },
       {
         "bounds": {
@@ -571,8 +581,8 @@
                   "height": 31
                 },
                 "kind": "icon",
-                "name": "shield",
-                "confidence": 0.7081584
+                "name": "tabler:brand-cake",
+                "confidence": 0.74938095
               }
             ]
           },
@@ -585,7 +595,7 @@
             },
             "kind": "text",
             "content": "2天",
-            "confidence": 98.73312
+            "confidence": 98.73288
           }
         ]
       },
@@ -616,7 +626,7 @@
                 },
                 "kind": "text",
                 "content": "奸诈者必自食恶果",
-                "confidence": 98.8432
+                "confidence": 98.843124
               }
             ]
           },
@@ -629,7 +639,7 @@
             },
             "kind": "text",
             "content": "前往上一次作战",
-            "confidence": 99.448814
+            "confidence": 99.4485
           },
           {
             "bounds": {
@@ -640,7 +650,7 @@
             },
             "kind": "text",
             "content": "活动 CF-8",
-            "confidence": 99.62082
+            "confidence": 99.620804
           }
         ]
       },
@@ -671,7 +681,7 @@
             },
             "kind": "text",
             "content": "<落叶逐火>活动已开放",
-            "confidence": 99.23214
+            "confidence": 99.23209
           }
         ]
       },
@@ -711,7 +721,7 @@
             },
             "kind": "text",
             "content": "终端",
-            "confidence": 98.23341
+            "confidence": 98.233345
           }
         ]
       },
@@ -733,7 +743,7 @@
             },
             "kind": "text",
             "content": "山",
-            "confidence": 65.92
+            "confidence": 65.92109
           }
         ]
       },
@@ -745,8 +755,8 @@
           "height": 30
         },
         "kind": "icon",
-        "name": "cube",
-        "confidence": 0.7605907
+        "name": "mdi:cube",
+        "confidence": 0.80886906
       },
       {
         "bounds": {
@@ -756,8 +766,8 @@
           "height": 30
         },
         "kind": "icon",
-        "name": "manjaro",
-        "confidence": 0.69315624
+        "name": "mdi:chart-tree",
+        "confidence": 0.75490916
       },
       {
         "bounds": {
@@ -767,8 +777,8 @@
           "height": 30
         },
         "kind": "icon",
-        "name": "decagram",
-        "confidence": 0.7475762
+        "name": "fa-solid:bahai",
+        "confidence": 0.82684606
       },
       {
         "bounds": {
@@ -778,8 +788,8 @@
           "height": 22
         },
         "kind": "icon",
-        "name": "polymer",
-        "confidence": 0.71386397
+        "name": "mdi:polymer",
+        "confidence": 0.79625964
       }
     ]
   }

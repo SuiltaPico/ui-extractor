@@ -13,6 +13,8 @@ pub mod skeleton;
 pub mod error;
 #[cfg(feature = "backend-ncnn")]
 pub mod inference;
+#[cfg(feature = "backend-ort")]
+mod ort_runtime;
 pub mod icon;
 pub mod layout;
 pub mod ocr;

@@ -82,13 +82,17 @@ pub fn extract_words_from_rgb_timed(
 
     if needs_rebuild {
         let init_start = Instant::now();
-        let engine = OAROCRBuilder::new(
+        let mut builder = OAROCRBuilder::new(
             config.det_model(),
             config.rec_model(),
             config.dict_path(),
-        )
-        .build()
-        .map_err(|e| ExtractError::Ocr(e.to_string()))?;
+        );
+        if let Some(ort_config) = crate::ort_runtime::oar_session_config("OCR") {
+            builder = builder.ort_session(ort_config);
+        }
+        let engine = builder
+            .build()
+            .map_err(|e| ExtractError::Ocr(e.to_string()))?;
         timings.init_ms = ms_since(init_start);
         *guard = Some(CachedOcr { key, engine });
     }

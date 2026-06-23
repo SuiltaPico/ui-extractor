@@ -44,7 +44,9 @@
           "width": 42,
           "height": 51
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:ungroup",
+        "confidence": 0.79850686
       },
       {
         "bounds": {
@@ -73,7 +75,7 @@
             },
             "kind": "text",
             "content": "L",
-            "confidence": 78.34332
+            "confidence": 78.34359
           }
         ]
       },
@@ -84,7 +86,9 @@
           "width": 48,
           "height": 62
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.783355
       },
       {
         "bounds": {
@@ -93,7 +97,9 @@
           "width": 85,
           "height": 63
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "tabler:wifi-0",
+        "confidence": 0.7205356
       },
       {
         "bounds": {
@@ -129,7 +135,9 @@
           "width": 52,
           "height": 35
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.8274225
       },
       {
         "bounds": {
@@ -138,7 +146,9 @@
           "width": 59,
           "height": 63
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:star-half",
+        "confidence": 0.76738405
       },
       {
         "bounds": {
@@ -148,8 +158,8 @@
           "height": 13
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.71683073
+        "name": "fa-solid:mound",
+        "confidence": 0.78468883
       },
       {
         "bounds": {
@@ -158,7 +168,9 @@
           "width": 27,
           "height": 29
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.7867333
       },
       {
         "bounds": {
@@ -186,8 +198,8 @@
           "height": 26
         },
         "kind": "icon",
-        "name": "settings-helper",
-        "confidence": 0.6250102
+        "name": "fluent:cellular_data_5",
+        "confidence": 0.90822303
       },
       {
         "bounds": {
@@ -196,7 +208,9 @@
           "width": 44,
           "height": 63
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.79250306
       },
       {
         "bounds": {
@@ -205,7 +219,9 @@
           "width": 28,
           "height": 37
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:settings-helper",
+        "confidence": 0.7481005
       },
       {
         "bounds": {
@@ -214,7 +230,9 @@
           "width": 16,
           "height": 24
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "tabler:letter-t-small",
+        "confidence": 0.790116
       },
       {
         "bounds": {
@@ -224,8 +242,8 @@
           "height": 37
         },
         "kind": "icon",
-        "name": "vanish-quarter",
-        "confidence": 0.65063125
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.883978
       },
       {
         "bounds": {
@@ -279,7 +297,9 @@
               "width": 58,
               "height": 44
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "tabler:loader-quarter",
+            "confidence": 0.7938926
           },
           {
             "bounds": {
@@ -299,7 +319,7 @@
                 },
                 "kind": "text",
                 "content": "CF-ST-2",
-                "confidence": 91.47678
+                "confidence": 91.47673
               }
             ]
           },
@@ -310,7 +330,9 @@
               "width": 74,
               "height": 60
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:vanish-quarter",
+            "confidence": 0.7487729
           },
           {
             "bounds": {
@@ -319,7 +341,9 @@
               "width": 50,
               "height": 40
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:surround-sound-5-1",
+            "confidence": 0.8300315
           },
           {
             "bounds": {
@@ -339,7 +363,7 @@
                 },
                 "kind": "text",
                 "content": "CF-7",
-                "confidence": 98.864746
+                "confidence": 98.86473
               }
             ]
           },
@@ -351,8 +375,8 @@
               "height": 50
             },
             "kind": "icon",
-            "name": "solid",
-            "confidence": 0.60142356
+            "name": "fluent:cellular_data_5",
+            "confidence": 0.8705365
           },
           {
             "bounds": {
@@ -363,7 +387,7 @@
             },
             "kind": "text",
             "content": "CF-6 CF-8",
-            "confidence": 95.7919
+            "confidence": 95.79187
           },
           {
             "bounds": {
@@ -374,7 +398,7 @@
             },
             "kind": "text",
             "content": "CF-ST-3",
-            "confidence": 99.04884
+            "confidence": 99.0488
           },
           {
             "bounds": {
@@ -385,7 +409,7 @@
             },
             "kind": "text",
             "content": "CF-5",
-            "confidence": 93.755974
+            "confidence": 93.7559
           }
         ]
       },
@@ -414,7 +438,9 @@
           "width": 66,
           "height": 54
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.7887971
       },
       {
         "bounds": {
@@ -442,8 +468,8 @@
           "height": 56
         },
         "kind": "icon",
-        "name": "tree",
-        "confidence": 0.6638772
+        "name": "mdi:tree",
+        "confidence": 0.7242184
       },
       {
         "bounds": {
@@ -452,7 +478,9 @@
           "width": 37,
           "height": 39
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.8343998
       },
       {
         "bounds": {
@@ -489,8 +517,8 @@
           "height": 33
         },
         "kind": "icon",
-        "name": "view-week",
-        "confidence": 0.6314861
+        "name": "fa-solid:lines-leaning",
+        "confidence": 0.8045359
       },
       {
         "bounds": {
@@ -508,7 +536,9 @@
           "width": 79,
           "height": 51
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "tabler:loader-quarter",
+        "confidence": 0.83619976
       },
       {
         "bounds": {
@@ -528,7 +558,7 @@
             },
             "kind": "text",
             "content": "CF-9",
-            "confidence": 99.80231
+            "confidence": 99.80228
           }
         ]
       },
@@ -539,7 +569,9 @@
           "width": 28,
           "height": 26
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.7620351
       },
       {
         "bounds": {
@@ -577,7 +609,9 @@
           "width": 20,
           "height": 28
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:alpha-t",
+        "confidence": 0.83348215
       },
       {
         "bounds": {
@@ -596,8 +630,8 @@
           "height": 48
         },
         "kind": "icon",
-        "name": "vanish-quarter",
-        "confidence": 0.62098587
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.85789007
       },
       {
         "bounds": {
@@ -606,7 +640,9 @@
           "width": 32,
           "height": 32
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:settings-helper",
+        "confidence": 0.756851
       },
       {
         "bounds": {
@@ -624,7 +660,9 @@
               "width": 74,
               "height": 46
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "fa-solid:jet-fighter",
+            "confidence": 0.77508456
           },
           {
             "bounds": {
@@ -654,8 +692,8 @@
           "height": 69
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.6809506
+        "name": "mdi:triangle-small-up",
+        "confidence": 0.8217627
       },
       {
         "bounds": {
@@ -664,7 +702,9 @@
           "width": 43,
           "height": 35
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:settings-helper",
+        "confidence": 0.81380844
       },
       {
         "bounds": {
@@ -673,7 +713,9 @@
           "width": 45,
           "height": 37
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.7483579
       },
       {
         "bounds": {
@@ -701,8 +743,8 @@
           "height": 18
         },
         "kind": "icon",
-        "name": "ellipse",
-        "confidence": 0.6136855
+        "name": "fluent:wifi_4",
+        "confidence": 0.7704912
       },
       {
         "bounds": {
@@ -712,8 +754,8 @@
           "height": 35
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.8126688
+        "name": "mdi:triangle",
+        "confidence": 0.86102015
       },
       {
         "bounds": {
@@ -732,8 +774,8 @@
           "height": 26
         },
         "kind": "icon",
-        "name": "comma",
-        "confidence": 0.64872473
+        "name": "mdi:cursor-text",
+        "confidence": 0.7355078
       },
       {
         "bounds": {
@@ -761,8 +803,8 @@
           "height": 35
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.8432479
+        "name": "mdi:triangle",
+        "confidence": 0.89525336
       },
       {
         "bounds": {
@@ -790,8 +832,8 @@
           "height": 25
         },
         "kind": "icon",
-        "name": "settings-helper",
-        "confidence": 0.66533375
+        "name": "mdi:settings-helper",
+        "confidence": 0.8801312
       },
       {
         "bounds": {
@@ -809,7 +851,9 @@
               "width": 53,
               "height": 40
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:settings-helper",
+            "confidence": 0.7877995
           },
           {
             "bounds": {
@@ -820,7 +864,7 @@
             },
             "kind": "text",
             "content": "🌙💖🚀",
-            "confidence": 62.686054
+            "confidence": 62.68571
           }
         ]
       },
@@ -832,8 +876,8 @@
           "height": 25
         },
         "kind": "icon",
-        "name": "settings-helper",
-        "confidence": 0.62752026
+        "name": "mdi:settings-helper",
+        "confidence": 0.89604366
       },
       {
         "bounds": {
@@ -843,8 +887,8 @@
           "height": 80
         },
         "kind": "icon",
-        "name": "settings-helper",
-        "confidence": 0.63444966
+        "name": "mdi:settings-helper",
+        "confidence": 0.85218406
       },
       {
         "bounds": {
@@ -872,8 +916,8 @@
           "height": 61
         },
         "kind": "icon",
-        "name": "settings-helper",
-        "confidence": 0.598403
+        "name": "mdi:settings-helper",
+        "confidence": 0.85467327
       },
       {
         "bounds": {
@@ -891,7 +935,9 @@
           "width": 44,
           "height": 50
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:devices",
+        "confidence": 0.739422
       },
       {
         "bounds": {
@@ -901,8 +947,8 @@
           "height": 50
         },
         "kind": "icon",
-        "name": "star-four-points-box",
-        "confidence": 0.6549484
+        "name": "mdi:star-four-points-box-outline",
+        "confidence": 0.7534166
       },
       {
         "bounds": {
@@ -911,7 +957,9 @@
           "width": 45,
           "height": 49
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:image-size-select-small",
+        "confidence": 0.72840506
       },
       {
         "bounds": {
@@ -930,8 +978,8 @@
           "height": 49
         },
         "kind": "icon",
-        "name": "integrated-circuit-chip",
-        "confidence": 0.6348899
+        "name": "mdi:image-size-select-small",
+        "confidence": 0.7378315
       },
       {
         "bounds": {
@@ -960,7 +1008,7 @@
             },
             "kind": "text",
             "content": "前往",
-            "confidence": 98.86032
+            "confidence": 98.86027
           }
         ]
       },
@@ -980,7 +1028,9 @@
           "width": 62,
           "height": 49
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:settings-helper",
+        "confidence": 0.72291875
       },
       {
         "bounds": {

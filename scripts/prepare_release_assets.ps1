@@ -109,8 +109,8 @@ function Ensure-Embeddings {
         $iconCount = (Get-ChildItem $iconsDir -Filter *.png -ErrorAction SilentlyContinue).Count
     }
     if ($iconCount -eq 0) {
-        Write-Host "Building icon PNG templates from MDI..."
-        & (Join-Path $PSScriptRoot "download_mdi_icons.ps1") -Rasterize
+        Write-Host "Building icon PNG templates (MDI + Fluent + Tabler + Font Awesome)..."
+        & (Join-Path $PSScriptRoot "download_icons.ps1") -Rasterize
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 

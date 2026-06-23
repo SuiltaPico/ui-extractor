@@ -15,9 +15,9 @@ $ErrorActionPreference = "Stop"
 $WorkDir = Join-Path (Get-ScratchDir) "ui-extractor-mdi-$Version"
 $SvgSrc = Join-Path $WorkDir "node_modules\@mdi\svg\svg"
 $MetaSrc = Join-Path $WorkDir "node_modules\@mdi\svg\meta.json"
-$SvgDest = Join-Path $OutDir "svg"
+$SvgDest = Join-Path $OutDir "svg/mdi"
 $MetaDest = Join-Path $OutDir "meta.json"
-$PngDest = Join-Path $OutDir "icons"
+$PngDest = Join-Path $OutDir "icons/mdi"
 
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 

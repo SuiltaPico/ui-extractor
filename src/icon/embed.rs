@@ -1,10 +1,9 @@
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Instant;
 
 use anyhow::{anyhow, Result};
 
-use super::build_embedding_index;
+use super::build::{build_embedding_index, collect_png_embed_jobs, embedding_worker_jobs};
 
 #[derive(Debug, Clone)]
 pub struct BuildEmbeddingsOptions {
@@ -26,10 +25,8 @@ pub fn build_embeddings_file(opts: &BuildEmbeddingsOptions) -> Result<()> {
         ));
     }
 
-    let png_count = count_pngs(&opts.png_dir)?;
-    if png_count == 0 {
-        return Err(anyhow!("no png files under {}", opts.png_dir.display()));
-    }
+    let jobs = collect_png_embed_jobs(&opts.png_dir).map_err(|e| anyhow!("{e}"))?;
+    let png_count = jobs.len();
 
     let started = Instant::now();
     let index = build_embedding_index(&opts.png_dir, &opts.vision_model, opts.template_size)
@@ -37,31 +34,27 @@ pub fn build_embeddings_file(opts: &BuildEmbeddingsOptions) -> Result<()> {
 
     index.save(&opts.out).map_err(|e| anyhow!("{e}"))?;
 
-    let jobs = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(4)
-        .max(1)
-        .min(png_count);
+    let worker_jobs = embedding_worker_jobs(png_count);
     let elapsed = started.elapsed().as_secs_f64();
+    let namespaces: Vec<_> = index
+        .names
+        .iter()
+        .filter_map(|name| name.split_once(':').map(|(ns, _)| ns))
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect();
+    let ns_summary = if namespaces.is_empty() {
+        String::new()
+    } else {
+        format!(", namespaces: {}", namespaces.join(", "))
+    };
     println!(
-        "embedded {} icons -> {} ({:.2}s, {} jobs)",
+        "embedded {} icons -> {} ({:.2}s, {} jobs{})",
         index.count(),
         opts.out.display(),
         elapsed,
-        jobs
+        worker_jobs,
+        ns_summary
     );
     Ok(())
-}
-
-fn count_pngs(dir: &Path) -> Result<usize> {
-    let count = fs::read_dir(dir)?
-        .filter_map(|entry| entry.ok())
-        .filter(|entry| {
-            entry
-                .path()
-                .extension()
-                .is_some_and(|ext| ext == "png")
-        })
-        .count();
-    Ok(count)
 }

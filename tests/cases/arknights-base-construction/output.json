@@ -46,7 +46,7 @@
                     },
                     "kind": "text",
                     "content": "贸易站",
-                    "confidence": 99.96879
+                    "confidence": 99.968735
                   }
                 ]
               },
@@ -59,7 +59,7 @@
                 },
                 "kind": "text",
                 "content": "13/3",
-                "confidence": 75.65139
+                "confidence": 75.65111
               }
             ]
           },
@@ -90,7 +90,7 @@
                     },
                     "kind": "text",
                     "content": "贸易站",
-                    "confidence": 99.94307
+                    "confidence": 99.943016
                   },
                   {
                     "bounds": {
@@ -101,7 +101,7 @@
                     },
                     "kind": "text",
                     "content": "联取中",
-                    "confidence": 90.41596
+                    "confidence": 90.41575
                   }
                 ]
               },
@@ -114,7 +114,7 @@
                 },
                 "kind": "text",
                 "content": "13/3",
-                "confidence": 71.20817
+                "confidence": 71.20804
               }
             ]
           },
@@ -127,7 +127,7 @@
             },
             "kind": "text",
             "content": "100",
-            "confidence": 83.399376
+            "confidence": 83.399
           },
           {
             "bounds": {
@@ -138,7 +138,7 @@
             },
             "kind": "text",
             "content": "13",
-            "confidence": 77.18067
+            "confidence": 77.17976
           }
         ]
       },
@@ -178,7 +178,7 @@
                     },
                     "kind": "text",
                     "content": "控制中枢 5.0",
-                    "confidence": 98.76539
+                    "confidence": 98.76531
                   }
                 ]
               },
@@ -200,7 +200,7 @@
                 },
                 "kind": "text",
                 "content": "54/235 +",
-                "confidence": 88.482414
+                "confidence": 88.48192
               }
             ]
           },
@@ -213,7 +213,7 @@
             },
             "kind": "text",
             "content": "770/810 1910668",
-            "confidence": 99.05528
+            "confidence": 99.05524
           },
           {
             "bounds": {
@@ -224,7 +224,7 @@
             },
             "kind": "text",
             "content": "8",
-            "confidence": 94.98464
+            "confidence": 94.98443
           },
           {
             "bounds": {
@@ -235,7 +235,7 @@
             },
             "kind": "text",
             "content": "i1",
-            "confidence": 88.85106
+            "confidence": 88.85077
           },
           {
             "bounds": {
@@ -246,7 +246,7 @@
             },
             "kind": "text",
             "content": "i1",
-            "confidence": 82.75186
+            "confidence": 82.75176
           }
         ]
       },
@@ -267,8 +267,8 @@
           "height": 65
         },
         "kind": "icon",
-        "name": "information-slab-circle",
-        "confidence": 0.7708977
+        "name": "mdi:information-slab-circle-outline",
+        "confidence": 0.8554118
       },
       {
         "bounds": {
@@ -288,7 +288,7 @@
             },
             "kind": "text",
             "content": "i",
-            "confidence": 70.68348
+            "confidence": 70.684235
           }
         ]
       },
@@ -336,8 +336,8 @@
               "height": 55
             },
             "kind": "icon",
-            "name": "human-capacity-decrease",
-            "confidence": 0.6651422
+            "name": "tabler:replace-user",
+            "confidence": 0.8873494
           },
           {
             "bounds": {
@@ -357,7 +357,7 @@
                 },
                 "kind": "text",
                 "content": "进驻总览",
-                "confidence": 99.9001
+                "confidence": 99.90003
               }
             ]
           }
@@ -408,7 +408,7 @@
             },
             "kind": "text",
             "content": "会客室",
-            "confidence": 99.74069
+            "confidence": 99.74055
           },
           {
             "bounds": {
@@ -419,7 +419,7 @@
             },
             "kind": "text",
             "content": "招待中",
-            "confidence": 82.760796
+            "confidence": 82.76057
           }
         ]
       },
@@ -440,8 +440,8 @@
           "height": 81
         },
         "kind": "icon",
-        "name": "plus-thick",
-        "confidence": 0.6715839
+        "name": "mdi:multiplication",
+        "confidence": 0.7974426
       },
       {
         "bounds": {
@@ -451,8 +451,8 @@
           "height": 23
         },
         "kind": "icon",
-        "name": "solid",
-        "confidence": 0.60142356
+        "name": "fluent:cellular_data_5",
+        "confidence": 0.8705365
       },
       {
         "bounds": {
@@ -490,7 +490,7 @@
                 },
                 "kind": "text",
                 "content": "OFF",
-                "confidence": 96.7102
+                "confidence": 96.710014
               }
             ]
           },
@@ -512,7 +512,7 @@
                 },
                 "kind": "text",
                 "content": "建造模式",
-                "confidence": 99.96914
+                "confidence": 99.969124
               }
             ]
           }
@@ -536,7 +536,7 @@
             },
             "kind": "text",
             "content": "3",
-            "confidence": 93.639145
+            "confidence": 93.63874
           }
         ]
       },
@@ -567,7 +567,7 @@
             },
             "kind": "text",
             "content": "发电站",
-            "confidence": 99.779434
+            "confidence": 99.77928
           },
           {
             "bounds": {
@@ -578,7 +578,7 @@
             },
             "kind": "text",
             "content": "发电中 11/1",
-            "confidence": 84.64679
+            "confidence": 84.646515
           }
         ]
       },
@@ -609,7 +609,7 @@
                 },
                 "kind": "text",
                 "content": "宿舍",
-                "confidence": 98.817696
+                "confidence": 98.817535
               },
               {
                 "bounds": {
@@ -620,7 +620,7 @@
                 },
                 "kind": "text",
                 "content": "休息中",
-                "confidence": 99.283676
+                "confidence": 99.283585
               }
             ]
           },
@@ -633,7 +633,7 @@
             },
             "kind": "text",
             "content": "15/5",
-            "confidence": 84.67132
+            "confidence": 84.67123
           }
         ]
       },
@@ -655,7 +655,7 @@
             },
             "kind": "text",
             "content": "制造站",
-            "confidence": 99.67979
+            "confidence": 99.67971
           },
           {
             "bounds": {
@@ -666,7 +666,7 @@
             },
             "kind": "text",
             "content": "生产中",
-            "confidence": 99.49554
+            "confidence": 99.495476
           }
         ]
       },
@@ -677,7 +677,9 @@
           "width": 51,
           "height": 77
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:ungroup",
+        "confidence": 0.79307926
       },
       {
         "bounds": {
@@ -687,8 +689,8 @@
           "height": 77
         },
         "kind": "icon",
-        "name": "border-inside",
-        "confidence": 0.6709729
+        "name": "mdi:border-inside",
+        "confidence": 0.79911274
       },
       {
         "bounds": {
@@ -708,7 +710,7 @@
             },
             "kind": "text",
             "content": "加工站",
-            "confidence": 99.9485
+            "confidence": 99.948456
           }
         ]
       },
@@ -739,7 +741,7 @@
                 },
                 "kind": "text",
                 "content": "44",
-                "confidence": 63.35628
+                "confidence": 63.356792
               }
             ]
           },
@@ -792,7 +794,7 @@
                 },
                 "kind": "text",
                 "content": "44",
-                "confidence": 66.80343
+                "confidence": 66.802826
               }
             ]
           },
@@ -845,7 +847,7 @@
             },
             "kind": "text",
             "content": "宿舍",
-            "confidence": 99.45568
+            "confidence": 99.455574
           },
           {
             "bounds": {
@@ -856,7 +858,7 @@
             },
             "kind": "text",
             "content": "休息中",
-            "confidence": 97.68713
+            "confidence": 97.68688
           },
           {
             "bounds": {
@@ -867,7 +869,7 @@
             },
             "kind": "text",
             "content": "15/5",
-            "confidence": 77.20774
+            "confidence": 77.20769
           }
         ]
       },
@@ -898,7 +900,7 @@
                 },
                 "kind": "text",
                 "content": "发电站",
-                "confidence": 99.78077
+                "confidence": 99.7806
               },
               {
                 "bounds": {
@@ -909,7 +911,7 @@
                 },
                 "kind": "text",
                 "content": "发电中",
-                "confidence": 99.88137
+                "confidence": 99.88133
               }
             ]
           },
@@ -922,7 +924,7 @@
             },
             "kind": "text",
             "content": "i1",
-            "confidence": 93.0795
+            "confidence": 93.079315
           }
         ]
       },
@@ -944,7 +946,7 @@
             },
             "kind": "text",
             "content": "发电站",
-            "confidence": 99.75898
+            "confidence": 99.758835
           },
           {
             "bounds": {
@@ -955,7 +957,7 @@
             },
             "kind": "text",
             "content": "发电中",
-            "confidence": 99.73351
+            "confidence": 99.733406
           }
         ]
       },
@@ -966,7 +968,9 @@
           "width": 52,
           "height": 81
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:form-textarea",
+        "confidence": 0.76173043
       },
       {
         "bounds": {
@@ -975,7 +979,9 @@
           "width": 52,
           "height": 80
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:border-inside",
+        "confidence": 0.78453445
       },
       {
         "bounds": {
@@ -995,7 +1001,7 @@
             },
             "kind": "text",
             "content": "办公室",
-            "confidence": 99.948006
+            "confidence": 99.94796
           },
           {
             "bounds": {
@@ -1006,7 +1012,7 @@
             },
             "kind": "text",
             "content": "联维中",
-            "confidence": 70.82327
+            "confidence": 70.82274
           }
         ]
       },
@@ -1026,7 +1032,9 @@
               "width": 47,
               "height": 60
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:vanish-quarter",
+            "confidence": 0.8082345
           },
           {
             "bounds": {
@@ -1077,7 +1085,7 @@
                 },
                 "kind": "text",
                 "content": "4",
-                "confidence": 58.00596
+                "confidence": 58.006298
               }
             ]
           },
@@ -1119,7 +1127,9 @@
               "width": 46,
               "height": 60
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:vanish-quarter",
+            "confidence": 0.8326407
           },
           {
             "bounds": {
@@ -1161,7 +1171,7 @@
             },
             "kind": "text",
             "content": "3",
-            "confidence": 96.35184
+            "confidence": 96.351616
           }
         ]
       },
@@ -1183,7 +1193,7 @@
             },
             "kind": "text",
             "content": "制造站",
-            "confidence": 99.64323
+            "confidence": 99.6431
           },
           {
             "bounds": {
@@ -1194,7 +1204,7 @@
             },
             "kind": "text",
             "content": "主产中",
-            "confidence": 83.74362
+            "confidence": 83.74345
           },
           {
             "bounds": {
@@ -1205,7 +1215,7 @@
             },
             "kind": "text",
             "content": "13/3",
-            "confidence": 71.87387
+            "confidence": 71.87367
           }
         ]
       },
@@ -1245,7 +1255,7 @@
                 },
                 "kind": "text",
                 "content": "宿舍",
-                "confidence": 97.54376
+                "confidence": 97.54365
               },
               {
                 "bounds": {
@@ -1256,7 +1266,7 @@
                 },
                 "kind": "text",
                 "content": "休息中",
-                "confidence": 89.09936
+                "confidence": 89.098885
               }
             ]
           },
@@ -1269,7 +1279,7 @@
             },
             "kind": "text",
             "content": "i5/5",
-            "confidence": 77.62913
+            "confidence": 77.628975
           }
         ]
       },
@@ -1281,8 +1291,8 @@
           "height": 81
         },
         "kind": "icon",
-        "name": "border-inside",
-        "confidence": 0.6896137
+        "name": "mdi:border-inside",
+        "confidence": 0.823401
       },
       {
         "bounds": {
@@ -1292,8 +1302,8 @@
           "height": 81
         },
         "kind": "icon",
-        "name": "plus-thick",
-        "confidence": 0.723726
+        "name": "fluent:add",
+        "confidence": 0.84914637
       },
       {
         "bounds": {
@@ -1313,7 +1323,7 @@
             },
             "kind": "text",
             "content": "制造站",
-            "confidence": 99.751785
+            "confidence": 99.751755
           },
           {
             "bounds": {
@@ -1324,7 +1334,7 @@
             },
             "kind": "text",
             "content": "生产中",
-            "confidence": 99.62258
+            "confidence": 99.62252
           }
         ]
       },
@@ -1346,7 +1356,7 @@
             },
             "kind": "text",
             "content": "训练室",
-            "confidence": 99.90642
+            "confidence": 99.906364
           }
         ]
       },
@@ -1366,7 +1376,9 @@
               "width": 47,
               "height": 59
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:vanish-quarter",
+            "confidence": 0.8269341
           },
           {
             "bounds": {
@@ -1417,7 +1429,7 @@
                 },
                 "kind": "text",
                 "content": "44",
-                "confidence": 71.33772
+                "confidence": 71.33774
               }
             ]
           },
@@ -1461,7 +1473,7 @@
             },
             "kind": "text",
             "content": "12/2",
-            "confidence": 58.939926
+            "confidence": 58.939724
           }
         ]
       },
@@ -1501,7 +1513,7 @@
                 },
                 "kind": "text",
                 "content": "宿舍",
-                "confidence": 99.722984
+                "confidence": 99.722885
               },
               {
                 "bounds": {
@@ -1512,7 +1524,7 @@
                 },
                 "kind": "text",
                 "content": "空闲中",
-                "confidence": 98.14944
+                "confidence": 98.149345
               }
             ]
           },
@@ -1525,7 +1537,7 @@
             },
             "kind": "text",
             "content": "13/5",
-            "confidence": 82.82025
+            "confidence": 82.82032
           }
         ]
       },
@@ -1536,7 +1548,9 @@
           "width": 34,
           "height": 45
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:currency-twd",
+        "confidence": 0.84046084
       },
       {
         "bounds": {
@@ -1545,7 +1559,9 @@
           "width": 31,
           "height": 46
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:form-textarea",
+        "confidence": 0.777816
       },
       {
         "bounds": {
@@ -1563,7 +1579,9 @@
               "width": 46,
               "height": 60
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:vanish-quarter",
+            "confidence": 0.83066034
           },
           {
             "bounds": {

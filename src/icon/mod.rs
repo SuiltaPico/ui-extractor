@@ -20,7 +20,10 @@ use crate::{
     types::{Bounds, UiElement, UiElementKind},
 };
 
-pub use build::build_embedding_index;
+pub use build::{
+    build_embedding_index, build_embedding_index_from_jobs, collect_png_embed_jobs,
+    embedding_worker_jobs, PngEmbedJob,
+};
 pub use embed::{build_embeddings_file, BuildEmbeddingsOptions};
 pub use embedding::EmbeddingIndex;
 #[cfg(feature = "backend-ncnn")]
@@ -289,7 +292,7 @@ mod tests {
 
     #[test]
     fn template_png_rgb_differs_between_icons() {
-        let dir = Path::new("assets/icons");
+        let dir = Path::new("assets/icons/mdi");
         if !dir.is_dir() {
             return;
         }
@@ -317,9 +320,9 @@ mod tests {
             Err(_) => return,
         };
 
-        let dir = Path::new("assets/icons");
-        let name = "home";
-        let png_path = dir.join(format!("{name}.png"));
+        let dir = Path::new("assets/icons/mdi");
+        let name = "mdi:home";
+        let png_path = dir.join("home.png");
         if !png_path.is_file() {
             return;
         }

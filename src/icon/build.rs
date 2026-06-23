@@ -18,73 +18,173 @@ thread_local! {
     static THREAD_EMBEDDER: RefCell<Option<(PathBuf, IconEmbedder)>> = const { RefCell::new(None) };
 }
 
+/// One PNG template and its label in the merged embedding index.
+#[derive(Debug, Clone)]
+pub struct PngEmbedJob {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+/// Collect PNG templates under `root`.
+///
+/// Layout with namespace subdirectories (recommended):
+///
+/// ```text
+/// assets/icons/mdi/home.png       -> mdi:home
+/// assets/icons/tabler/home.png    -> tabler:home
+/// ```
+///
+/// Legacy flat layout (no PNG subdirectories): `home.png` -> `home`.
+pub fn collect_png_embed_jobs(root: &Path) -> Result<Vec<PngEmbedJob>> {
+    if !root.is_dir() {
+        return Err(ExtractError::Image(format!(
+            "PNG directory not found: {}",
+            root.display()
+        )));
+    }
+
+    let mut namespace_dirs: Vec<(String, PathBuf)> = Vec::new();
+    let mut root_pngs: Vec<PathBuf> = Vec::new();
+
+    for entry in fs::read_dir(root).map_err(|e| ExtractError::Image(e.to_string()))? {
+        let entry = entry.map_err(|e| ExtractError::Image(e.to_string()))?;
+        let path = entry.path();
+        if path.is_dir() {
+            let Some(ns) = path.file_name().and_then(|s| s.to_str()) else {
+                continue;
+            };
+            let pngs = list_png_files(&path)?;
+            if !pngs.is_empty() {
+                namespace_dirs.push((ns.to_string(), path));
+            }
+        } else if path.extension().is_some_and(|ext| ext == "png") {
+            root_pngs.push(path);
+        }
+    }
+
+    let mut jobs = Vec::new();
+    if namespace_dirs.is_empty() {
+        for path in root_pngs {
+            let name = png_label_from_path(&path, None)?;
+            jobs.push(PngEmbedJob { name, path });
+        }
+    } else {
+        namespace_dirs.sort_by(|a, b| a.0.cmp(&b.0));
+        for (namespace, dir) in namespace_dirs {
+            let mut pngs = list_png_files(&dir)?;
+            pngs.sort();
+            for path in pngs {
+                let name = png_label_from_path(&path, Some(&namespace))?;
+                jobs.push(PngEmbedJob { name, path });
+            }
+        }
+    }
+
+    jobs.sort_by(|a, b| a.name.cmp(&b.name));
+
+    let mut seen = std::collections::HashSet::new();
+    for job in &jobs {
+        if !seen.insert(&job.name) {
+            return Err(ExtractError::Image(format!(
+                "duplicate icon label in embedding index: {}",
+                job.name
+            )));
+        }
+    }
+
+    if jobs.is_empty() {
+        return Err(ExtractError::Image(format!(
+            "no PNG files under {} (expected flat *.png or <namespace>/*.png)",
+            root.display()
+        )));
+    }
+
+    Ok(jobs)
+}
+
+fn list_png_files(dir: &Path) -> Result<Vec<PathBuf>> {
+    let mut paths: Vec<PathBuf> = fs::read_dir(dir)
+        .map_err(|e| ExtractError::Image(e.to_string()))?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file() && path.extension().is_some_and(|ext| ext == "png"))
+        .collect();
+    paths.sort();
+    Ok(paths)
+}
+
+fn png_label_from_path(path: &Path, namespace: Option<&str>) -> Result<String> {
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .ok_or_else(|| {
+            ExtractError::Image(format!("invalid PNG file name: {}", path.display()))
+        })?;
+    Ok(match namespace {
+        Some(ns) => format!("{ns}:{stem}"),
+        None => stem.to_string(),
+    })
+}
+
 /// Build a precomputed embedding index from a directory of PNG icons.
 ///
-/// Each PNG file name (without extension) becomes the icon label in the index.
+/// Supports flat PNGs or namespace subdirectories; see [`collect_png_embed_jobs`].
 /// Embeddings are computed in parallel using one model session per worker thread.
 pub fn build_embedding_index(
     png_dir: &Path,
     vision_model: &Path,
     template_size: u32,
 ) -> Result<EmbeddingIndex> {
-    if !png_dir.is_dir() {
-        return Err(ExtractError::Image(format!(
-            "PNG directory not found: {}",
-            png_dir.display()
-        )));
-    }
+    let jobs = collect_png_embed_jobs(png_dir)?;
+    build_embedding_index_from_jobs(&jobs, vision_model, template_size)
+}
 
-    let mut paths: Vec<PathBuf> = fs::read_dir(png_dir)
-        .map_err(|e| ExtractError::Image(e.to_string()))?
-        .filter_map(|entry| entry.ok())
-        .map(|entry| entry.path())
-        .filter(|path| path.extension().is_some_and(|ext| ext == "png"))
-        .collect();
-    paths.sort();
-
-    if paths.is_empty() {
-        return Err(ExtractError::Image(format!(
-            "no PNG files under {}",
-            png_dir.display()
-        )));
-    }
-
-    let jobs = default_jobs().max(1).min(paths.len());
+pub fn build_embedding_index_from_jobs(
+    jobs: &[PngEmbedJob],
+    vision_model: &Path,
+    template_size: u32,
+) -> Result<EmbeddingIndex> {
+    let worker_jobs = embedding_worker_jobs(jobs.len());
     let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(jobs)
+        .num_threads(worker_jobs)
         .build()
         .map_err(|e| ExtractError::Image(e.to_string()))?;
 
     let errors: Mutex<Vec<String>> = Mutex::new(vec![]);
     let done = AtomicUsize::new(0);
-    let total = paths.len();
+    let total = jobs.len();
     let vision_model = vision_model.to_path_buf();
 
     let mut results: Vec<(usize, String, Vec<f32>)> = pool.install(|| {
-        paths
+        jobs
             .par_iter()
             .enumerate()
-            .filter_map(|(idx, path)| {
+            .filter_map(|(idx, job)| {
                 let result = with_thread_embedder(&vision_model, |embedder| {
-                    embed_one(path, embedder, template_size)
+                    embed_one(&job.path, embedder, template_size)
                 });
                 match result {
-                    Ok((name, embedding)) => {
+                    Ok((_, embedding)) => {
                         let n = done.fetch_add(1, Ordering::Relaxed) + 1;
                         if n % 500 == 0 || n == total {
                             eprintln!("embedded {n}/{total}");
                         }
-                        Some((idx, name, embedding))
+                        Some((idx, job.name.clone(), embedding))
                     }
                     Err(e) => {
                         let mut guard = errors.lock().expect("errors mutex poisoned");
-                        guard.push(format!("{}: {e}", path.display()));
+                        guard.push(format!("{}: {e}", job.path.display()));
                         None
                     }
                 }
             })
             .collect()
     });
+
+    // Drop ONNX sessions on worker threads before joining the pool. Without this,
+    // Windows + ORT can hang indefinitely during thread-local destructors (0% CPU).
+    eprintln!("releasing embedder sessions...");
+    drop_thread_embedders(&pool);
 
     let errors = errors.into_inner().expect("errors mutex poisoned");
     if !errors.is_empty() {
@@ -104,11 +204,11 @@ pub fn build_embedding_index(
         vectors.extend(embedding);
     }
 
-    Ok(EmbeddingIndex {
-        dim: EMBED_DIM as u32,
+    Ok(EmbeddingIndex::from_float_vectors(
+        EMBED_DIM as u32,
         names,
         vectors,
-    })
+    )?)
 }
 
 fn with_thread_embedder<R>(
@@ -162,8 +262,68 @@ pub fn embed_png_image(
     Ok((name, embedding))
 }
 
+pub fn embedding_worker_jobs(png_count: usize) -> usize {
+    default_jobs().max(1).min(png_count)
+}
+
 fn default_jobs() -> usize {
+    #[cfg(feature = "backend-ort")]
+    if crate::ort_runtime::prefer_gpu_single_session() {
+        return 1;
+    }
     std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(4)
+}
+
+fn drop_thread_embedders(pool: &rayon::ThreadPool) {
+    pool.broadcast(|_| {
+        THREAD_EMBEDDER.with(|cell| {
+            *cell.borrow_mut() = None;
+        });
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn collect_png_jobs_namespace_layout() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        fs::create_dir_all(root.join("mdi")).unwrap();
+        fs::create_dir_all(root.join("tabler")).unwrap();
+        fs::write(root.join("mdi/home.png"), b"png").unwrap();
+        fs::write(root.join("tabler/home.png"), b"png").unwrap();
+
+        let jobs = collect_png_embed_jobs(root).unwrap();
+        assert_eq!(jobs.len(), 2);
+        assert_eq!(jobs[0].name, "mdi:home");
+        assert_eq!(jobs[1].name, "tabler:home");
+    }
+
+    #[test]
+    fn collect_png_jobs_flat_layout() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        fs::write(root.join("home.png"), b"png").unwrap();
+
+        let jobs = collect_png_embed_jobs(root).unwrap();
+        assert_eq!(jobs.len(), 1);
+        assert_eq!(jobs[0].name, "home");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn collect_png_jobs_rejects_duplicate_labels() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        fs::create_dir_all(root.join("mdi")).unwrap();
+        fs::write(root.join("mdi/home.png"), b"png").unwrap();
+        fs::write(root.join("mdi/Home.png"), b"png").unwrap();
+
+        let err = collect_png_embed_jobs(root).unwrap_err().to_string();
+        assert!(err.contains("duplicate icon label"));
+    }
 }

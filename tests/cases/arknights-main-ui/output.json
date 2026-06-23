@@ -46,7 +46,7 @@
             },
             "kind": "text",
             "content": "•",
-            "confidence": 91.38032
+            "confidence": 91.38019
           }
         ]
       },
@@ -58,8 +58,8 @@
           "height": 50
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.8236033
+        "name": "mdi:triangle",
+        "confidence": 0.89108914
       },
       {
         "bounds": {
@@ -79,7 +79,7 @@
             },
             "kind": "text",
             "content": "+",
-            "confidence": 92.97353
+            "confidence": 92.97303
           }
         ]
       },
@@ -91,8 +91,8 @@
           "height": 45
         },
         "kind": "icon",
-        "name": "settings-helper",
-        "confidence": 0.62604654
+        "name": "fluent:cellular_data_5",
+        "confidence": 0.92853725
       },
       {
         "bounds": {
@@ -101,7 +101,9 @@
           "width": 64,
           "height": 46
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:calendar-month",
+        "confidence": 0.8475561
       },
       {
         "bounds": {
@@ -111,8 +113,8 @@
           "height": 63
         },
         "kind": "icon",
-        "name": "hexagon",
-        "confidence": 0.74422467
+        "name": "mdi:cube",
+        "confidence": 0.83904815
       },
       {
         "bounds": {
@@ -132,7 +134,7 @@
             },
             "kind": "text",
             "content": "217",
-            "confidence": 99.803276
+            "confidence": 99.80326
           }
         ]
       },
@@ -143,7 +145,9 @@
           "width": 59,
           "height": 69
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "mdi:package-variant-closed-minus",
+        "confidence": 0.7296315
       },
       {
         "bounds": {
@@ -171,8 +175,8 @@
           "height": 60
         },
         "kind": "icon",
-        "name": "triangle-down",
-        "confidence": 0.7493427
+        "name": "mdi:vuejs",
+        "confidence": 0.8369927
       },
       {
         "bounds": {
@@ -220,8 +224,8 @@
               "height": 70
             },
             "kind": "icon",
-            "name": "horse-variant",
-            "confidence": 0.636035
+            "name": "mdi:horse-variant",
+            "confidence": 0.7252381
           }
         ]
       },
@@ -233,8 +237,8 @@
           "height": 37
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.82497334
+        "name": "mdi:triangle",
+        "confidence": 0.8971901
       },
       {
         "bounds": {
@@ -244,8 +248,8 @@
           "height": 67
         },
         "kind": "icon",
-        "name": "shield",
-        "confidence": 0.7370303
+        "name": "mdi:shield-half",
+        "confidence": 0.8544392
       },
       {
         "bounds": {
@@ -274,7 +278,7 @@
             },
             "kind": "text",
             "content": "90",
-            "confidence": 99.43782
+            "confidence": 99.43771
           },
           {
             "bounds": {
@@ -285,7 +289,7 @@
             },
             "kind": "text",
             "content": "LV",
-            "confidence": 99.77652
+            "confidence": 99.77648
           }
         ]
       },
@@ -324,8 +328,8 @@
               "height": 54
             },
             "kind": "icon",
-            "name": "solid",
-            "confidence": 0.60142356
+            "name": "fluent:cellular_data_5",
+            "confidence": 0.8705365
           },
           {
             "bounds": {
@@ -334,7 +338,9 @@
               "width": 85,
               "height": 53
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "tabler:loader-quarter",
+            "confidence": 0.79127795
           },
           {
             "bounds": {
@@ -343,7 +349,9 @@
               "width": 61,
               "height": 50
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:slash-forward",
+            "confidence": 0.812438
           },
           {
             "bounds": {
@@ -352,7 +360,9 @@
               "width": 80,
               "height": 55
             },
-            "kind": "container"
+            "kind": "icon",
+            "name": "mdi:slash-forward",
+            "confidence": 0.8489329
           },
           {
             "bounds": {
@@ -392,7 +402,7 @@
             },
             "kind": "text",
             "content": "采购中心",
-            "confidence": 99.589226
+            "confidence": 99.58919
           }
         ]
       },
@@ -414,7 +424,7 @@
             },
             "kind": "text",
             "content": "公开招募",
-            "confidence": 99.83435
+            "confidence": 99.83426
           }
         ]
       },
@@ -426,8 +436,8 @@
           "height": 76
         },
         "kind": "icon",
-        "name": "square",
-        "confidence": 0.7788524
+        "name": "mdi:square",
+        "confidence": 0.80995214
       },
       {
         "bounds": {
@@ -447,7 +457,7 @@
             },
             "kind": "text",
             "content": "干员寻访",
-            "confidence": 91.46572
+            "confidence": 91.465744
           }
         ]
       },
@@ -459,8 +469,8 @@
           "height": 32
         },
         "kind": "icon",
-        "name": "triangle",
-        "confidence": 0.7902504
+        "name": "mdi:network-strength-4",
+        "confidence": 0.91689223
       },
       {
         "bounds": {
@@ -470,8 +480,8 @@
           "height": 36
         },
         "kind": "icon",
-        "name": "wifi-strength-4",
-        "confidence": 0.8011445
+        "name": "mdi:wifi-strength-4",
+        "confidence": 0.86302793
       },
       {
         "bounds": {
@@ -481,8 +491,8 @@
           "height": 22
         },
         "kind": "icon",
-        "name": "network-strength-4",
-        "confidence": 0.84439665
+        "name": "mdi:network-strength-4",
+        "confidence": 0.9081008
       },
       {
         "bounds": {
@@ -502,7 +512,7 @@
             },
             "kind": "text",
             "content": "好友",
-            "confidence": 99.93346
+            "confidence": 99.93345
           }
         ]
       },
@@ -557,7 +567,7 @@
             },
             "kind": "text",
             "content": "仓库 6天",
-            "confidence": 99.65086
+            "confidence": 99.65054
           }
         ]
       },
@@ -640,7 +650,9 @@
           "width": 34,
           "height": 30
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "fa-solid:slash",
+        "confidence": 0.88009316
       },
       {
         "bounds": {
@@ -687,7 +699,7 @@
         },
         "kind": "text",
         "content": "2026/06/2212:08",
-        "confidence": 97.973076
+        "confidence": 97.97304
       },
       {
         "bounds": {
@@ -698,7 +710,7 @@
         },
         "kind": "text",
         "content": "润1910668 21105",
-        "confidence": 96.58423
+        "confidence": 96.58426
       },
       {
         "bounds": {
@@ -709,7 +721,7 @@
         },
         "kind": "text",
         "content": "端阳正午 签到活动",
-        "confidence": 99.9086
+        "confidence": 99.90855
       },
       {
         "bounds": {
@@ -720,7 +732,7 @@
         },
         "kind": "text",
         "content": "441 终端",
-        "confidence": 99.80298
+        "confidence": 99.80293
       },
       {
         "bounds": {
@@ -731,7 +743,7 @@
         },
         "kind": "text",
         "content": "当前 阵地足球锦标",
-        "confidence": 97.34822
+        "confidence": 97.347946
       },
       {
         "bounds": {
@@ -742,7 +754,7 @@
         },
         "kind": "text",
         "content": "理智/205 全部完成",
-        "confidence": 99.79106
+        "confidence": 99.79103
       },
       {
         "bounds": {
@@ -753,7 +765,7 @@
         },
         "kind": "text",
         "content": "编队 干员",
-        "confidence": 98.35788
+        "confidence": 98.3578
       },
       {
         "bounds": {
@@ -764,7 +776,7 @@
         },
         "kind": "text",
         "content": "Piico 角色管理",
-        "confidence": 96.9072
+        "confidence": 96.90716
       },
       {
         "bounds": {
@@ -775,7 +787,7 @@
         },
         "kind": "text",
         "content": "HODESiD:420786751",
-        "confidence": 91.252525
+        "confidence": 91.25248
       },
       {
         "bounds": {
@@ -786,7 +798,7 @@
         },
         "kind": "text",
         "content": "招募",
-        "confidence": 99.26307
+        "confidence": 99.26283
       },
       {
         "bounds": {
@@ -797,7 +809,7 @@
         },
         "kind": "text",
         "content": "BREAKIHG HEHS 任务",
-        "confidence": 95.054474
+        "confidence": 95.054276
       },
       {
         "bounds": {
@@ -808,7 +820,7 @@
         },
         "kind": "text",
         "content": "PACK RHODES SLAND",
-        "confidence": 98.43188
+        "confidence": 98.431854
       },
       {
         "bounds": {
@@ -819,7 +831,7 @@
         },
         "kind": "text",
         "content": "OP 档案",
-        "confidence": 82.02528
+        "confidence": 82.02516
       },
       {
         "bounds": {
@@ -830,7 +842,7 @@
         },
         "kind": "text",
         "content": "礼包限时上架 ￥30",
-        "confidence": 96.36893
+        "confidence": 96.3688
       }
     ]
   }

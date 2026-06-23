@@ -24,8 +24,9 @@ impl IconEmbedder {
             )));
         }
 
-        let session = Session::builder()
-            .map_err(|e| ExtractError::Image(e.to_string()))?
+        let mut builder = Session::builder().map_err(|e| ExtractError::Image(e.to_string()))?;
+        builder = crate::ort_runtime::apply_session_builder(builder, "icon embedder")?;
+        let session = builder
             .commit_from_file(model_path)
             .map_err(|e| ExtractError::Image(e.to_string()))?;
 

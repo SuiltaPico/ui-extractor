@@ -18,8 +18,8 @@
           "height": 40
         },
         "kind": "icon",
-        "name": "google",
-        "confidence": 0.6620074
+        "name": "mdi:google",
+        "confidence": 0.7729184
       },
       {
         "bounds": {
@@ -39,7 +39,7 @@
             },
             "kind": "text",
             "content": "S",
-            "confidence": 84.4879
+            "confidence": 84.48875
           }
         ]
       },
@@ -51,8 +51,8 @@
           "height": 20
         },
         "kind": "icon",
-        "name": "dots-grid",
-        "confidence": 0.78332335
+        "name": "mdi:dots-grid",
+        "confidence": 0.9234985
       },
       {
         "bounds": {
@@ -72,7 +72,7 @@
             },
             "kind": "text",
             "content": "全部",
-            "confidence": 99.9271
+            "confidence": 99.927055
           }
         ]
       },
@@ -94,7 +94,7 @@
             },
             "kind": "text",
             "content": "图片",
-            "confidence": 97.50115
+            "confidence": 97.499954
           }
         ]
       },
@@ -116,7 +116,7 @@
             },
             "kind": "text",
             "content": "购物",
-            "confidence": 99.99837
+            "confidence": 99.99836
           }
         ]
       },
@@ -138,7 +138,7 @@
             },
             "kind": "text",
             "content": "视频",
-            "confidence": 91.87384
+            "confidence": 91.87228
           }
         ]
       },
@@ -160,7 +160,7 @@
             },
             "kind": "text",
             "content": "更多、",
-            "confidence": 91.93307
+            "confidence": 91.93332
           }
         ]
       },
@@ -182,7 +182,7 @@
             },
             "kind": "text",
             "content": "↓升级",
-            "confidence": 70.93947
+            "confidence": 70.93965
           }
         ]
       },
@@ -204,7 +204,7 @@
             },
             "kind": "text",
             "content": "AI模式",
-            "confidence": 88.74535
+            "confidence": 88.744965
           }
         ]
       },
@@ -215,7 +215,9 @@
           "width": 35,
           "height": 23
         },
-        "kind": "container"
+        "kind": "icon",
+        "name": "tabler:letter-o",
+        "confidence": 0.7511748
       },
       {
         "bounds": {
@@ -244,7 +246,7 @@
             },
             "kind": "text",
             "content": "=",
-            "confidence": 83.17074
+            "confidence": 83.17095
           }
         ]
       },
@@ -266,7 +268,7 @@
             },
             "kind": "text",
             "content": "mdi图标库png 格式",
-            "confidence": 97.31128
+            "confidence": 97.31133
           }
         ]
       },
@@ -297,7 +299,7 @@
             },
             "kind": "text",
             "content": "Pictograr",
-            "confidence": 90.87035
+            "confidence": 90.87426
           }
         ]
       },
@@ -319,7 +321,7 @@
             },
             "kind": "text",
             "content": "Material Design Icons - Icon Library",
-            "confidence": 95.998505
+            "confidence": 95.998535
           },
           {
             "bounds": {
@@ -342,8 +344,8 @@
           "height": 23
         },
         "kind": "icon",
-        "name": "square-edit-outline",
-        "confidence": 0.7774716
+        "name": "mdi:square-edit-outline",
+        "confidence": 0.90780324
       },
       {
         "bounds": {
@@ -363,7 +365,7 @@
             },
             "kind": "text",
             "content": "获取 Material Design Icons (MDI)的PNG 格式图标，主要有以下几种最方便的渠道和下载方",
-            "confidence": 95.29293
+            "confidence": 95.29285
           }
         ]
       },
@@ -405,7 +407,7 @@
             },
             "kind": "text",
             "content": "developers. We're .",
-            "confidence": 92.59479
+            "confidence": 92.594734
           }
         ]
       },
@@ -427,7 +429,7 @@
             },
             "kind": "text",
             "content": "式：",
-            "confidence": 73.80415
+            "confidence": 73.799225
           }
         ]
       },
@@ -449,7 +451,7 @@
             },
             "kind": "text",
             "content": "@ Pictogrammers",
-            "confidence": 92.47299
+            "confidence": 92.47208
           }
         ]
       },
@@ -471,7 +473,7 @@
             },
             "kind": "text",
             "content": "1.在线图标库直接导出PNG（最推荐单张下载)",
-            "confidence": 96.31651
+            "confidence": 96.31644
           }
         ]
       },
@@ -513,7 +515,7 @@
             },
             "kind": "text",
             "content": "483 icons - OpenMoji 4297 icons - Twitter Emoji. 3668 icons..",
-            "confidence": 95.60562
+            "confidence": 95.6057
           }
         ]
       },
@@ -535,7 +537,7 @@
             },
             "kind": "text",
             "content": "许多在线图标整合平台支持将MDI图标一键转换为PNG格式下载，支持自定义颜色和大",
-            "confidence": 99.59998
+            "confidence": 99.5999
           }
         ]
       },
@@ -584,7 +586,7 @@
             },
             "kind": "text",
             "content": "小：",
-            "confidence": 93.58582
+            "confidence": 93.58512
           }
         ]
       },
@@ -596,8 +598,8 @@
           "height": 17
         },
         "kind": "icon",
-        "name": "power-off",
-        "confidence": 0.66636187
+        "name": "mdi:source-commit-end-local",
+        "confidence": 0.7895766
       },
       {
         "bounds": {
@@ -617,7 +619,7 @@
             },
             "kind": "text",
             "content": "δ JS.ORG",
-            "confidence": 88.69962
+            "confidence": 88.699814
           }
         ]
       },
@@ -639,7 +641,7 @@
             },
             "kind": "text",
             "content": "•lcones平台：",
-            "confidence": 86.52317
+            "confidence": 86.52307
           }
         ]
       },
@@ -661,7 +663,7 @@
             },
             "kind": "text",
             "content": "一个极简且强大的图标搜索网站。",
-            "confidence": 99.756294
+            "confidence": 99.756256
           }
         ]
       },
@@ -683,7 +685,7 @@
             },
             "kind": "text",
             "content": "Material Design Icons 6.9.96 npm install @mdi/",
-            "confidence": 98.054504
+            "confidence": 98.05449
           }
         ]
       },
@@ -705,7 +707,7 @@
             },
             "kind": "text",
             "content": "font",
-            "confidence": 97.78166
+            "confidence": 97.7815
           }
         ]
       },
@@ -717,8 +719,8 @@
           "height": 43
         },
         "kind": "icon",
-        "name": "currency-twd",
-        "confidence": 0.6611687
+        "name": "mdi:currency-twd",
+        "confidence": 0.8864995
       },
       {
         "bounds": {
@@ -756,7 +758,7 @@
             },
             "kind": "text",
             "content": "。操作：搜索你需要的MDI图标，点击图标，在右侧弹窗中直接点击PNG按钮即可下",
-            "confidence": 99.69945
+            "confidence": 99.69936
           }
         ]
       },
@@ -778,7 +780,7 @@
             },
             "kind": "text",
             "content": "Click the icon, hex codepoint, or name below to copy the val..",
-            "confidence": 96.784195
+            "confidence": 96.784004
           }
         ]
       },
@@ -800,7 +802,7 @@
             },
             "kind": "text",
             "content": "载。 JS.ORG",
-            "confidence": 83.73172
+            "confidence": 83.729485
           }
         ]
       },
@@ -822,7 +824,7 @@
             },
             "kind": "text",
             "content": "©GitHub",
-            "confidence": 85.49853
+            "confidence": 85.49749
           }
         ]
       },
@@ -844,7 +846,7 @@
             },
             "kind": "text",
             "content": "Icons)。",
-            "confidence": 96.05111
+            "confidence": 96.05108
           }
         ]
       },
@@ -866,7 +868,7 @@
             },
             "kind": "text",
             "content": "Google Fonts Icons 官方库：Google 官方的 Material 变体(Material Symbols/",
-            "confidence": 94.77799
+            "confidence": 94.777916
           }
         ]
       },
@@ -888,7 +890,7 @@
             },
             "kind": "text",
             "content": "全部显示",
-            "confidence": 90.347115
+            "confidence": 90.34773
           }
         ]
       },
@@ -900,8 +902,8 @@
           "height": 43
         },
         "kind": "icon",
-        "name": "currency-twd",
-        "confidence": 0.66514695
+        "name": "tabler:brand-taobao",
+        "confidence": 0.9129673
       },
       {
         "bounds": {
@@ -921,7 +923,7 @@
             },
             "kind": "text",
             "content": "。操作：点击任意图标，右侧侧边栏会提供Download PNG选项，并支持切换三种不同",
-            "confidence": 98.39286
+            "confidence": 98.39275
           }
         ]
       },
@@ -961,7 +963,7 @@
             },
             "kind": "text",
             "content": "尺寸。Gitut+2$",
-            "confidence": 74.860405
+            "confidence": 74.86021
           }
         ]
       },
@@ -1005,7 +1007,7 @@
             },
             "kind": "text",
             "content": "+",
-            "confidence": 92.847824
+            "confidence": 92.84764
           }
         ]
       },
@@ -1018,7 +1020,7 @@
         },
         "kind": "text",
         "content": "回ô8个网站",
-        "confidence": 77.99773
+        "confidence": 77.997635
       }
     ]
   }

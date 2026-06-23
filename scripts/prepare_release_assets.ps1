@@ -49,7 +49,7 @@ function Ensure-Pnnx {
     }
     $url = "https://github.com/pnnx/pnnx/releases/download/$PnnxVersion/$zipName"
     $destDir = Join-Path $Root "third_party/pnnx/pnnx-$PnnxVersion"
-    $zipPath = Join-Path $env:TEMP $zipName
+    $zipPath = Join-Path (Get-ScratchDir) $zipName
 
     Write-Host "Downloading pnnx: $url"
     Invoke-WebRequest -Uri $url -OutFile $zipPath

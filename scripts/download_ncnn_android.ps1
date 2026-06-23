@@ -5,6 +5,7 @@ param(
     [string]$Abi = "all"
 )
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "cargo_retry.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 $NcnnRoot = Join-Path $Root "third_party\ncnn\android"
@@ -24,8 +25,8 @@ if ($missing.Count -eq 0) {
     return
 }
 
-$zipPath = Join-Path $env:TEMP "ncnn-$Version-android.zip"
-$extractRoot = Join-Path $env:TEMP "ncnn-$Version-android-extract"
+$zipPath = Join-Path (Get-ScratchDir) "ncnn-$Version-android.zip"
+$extractRoot = Join-Path (Get-ScratchDir) "ncnn-$Version-android-extract"
 
 Write-Host "Downloading ncnn $Version for Android..."
 Invoke-WebRequest -Uri $Url -OutFile $zipPath

@@ -3,6 +3,12 @@ if (-not $env:CARGO_HTTP_MULTIPLEXING) {
     $env:CARGO_HTTP_MULTIPLEXING = "false"
 }
 
+function Get-ScratchDir {
+    if ($env:TEMP) { return $env:TEMP }
+    if ($env:TMPDIR) { return $env:TMPDIR }
+    return "/tmp"
+}
+
 function Invoke-CargoWithRetry {
     param(
         [Parameter(ValueFromRemainingArguments = $true)]

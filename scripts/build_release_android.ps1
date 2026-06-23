@@ -6,6 +6,7 @@ param(
     [switch]$SkipAssets
 )
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "cargo_retry.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 Push-Location $Root
@@ -73,7 +74,7 @@ See docs/android.md for JNI config JSON.
         $so = Join-Path $Root "android\jniLibs\$($abi.Name)\libui_extractor.so"
         if (-not (Test-Path $so)) { throw "Missing build output: $so" }
 
-        $stage = Join-Path $env:TEMP "ui-extractor-$($abi.Label)"
+        $stage = Join-Path (Get-ScratchDir) "ui-extractor-$($abi.Label)"
         if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
         $includeDir = Join-Path $stage "include"
         New-Item -ItemType Directory -Force -Path $includeDir | Out-Null

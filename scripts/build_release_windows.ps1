@@ -97,7 +97,7 @@ Run the CLI from the extracted directory so default model paths resolve.
     )
 
     foreach ($item in $built) {
-        $stage = Join-Path $env:TEMP "ui-extractor-$($item.Label)"
+        $stage = Join-Path (Get-ScratchDir) "ui-extractor-$($item.Label)"
         if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
         $includeDir = Join-Path $stage "include"
         New-Item -ItemType Directory -Force -Path $includeDir | Out-Null

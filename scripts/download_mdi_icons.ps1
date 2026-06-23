@@ -12,7 +12,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
-$WorkDir = Join-Path $env:TEMP "ui-extractor-mdi-$Version"
+$WorkDir = Join-Path (Get-ScratchDir) "ui-extractor-mdi-$Version"
 $SvgSrc = Join-Path $WorkDir "node_modules\@mdi\svg\svg"
 $MetaSrc = Join-Path $WorkDir "node_modules\@mdi\svg\meta.json"
 $SvgDest = Join-Path $OutDir "svg"

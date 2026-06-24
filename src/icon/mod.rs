@@ -1,10 +1,9 @@
 mod build;
 mod embed;
 mod embedding;
+mod embedder_ort;
 #[cfg(feature = "backend-ncnn")]
 mod embedder_ncnn;
-#[cfg(feature = "backend-ort")]
-mod embedder_ort;
 mod library;
 mod pack;
 mod preprocess;
@@ -26,41 +25,33 @@ pub use build::{
 };
 pub use embed::{build_embeddings_file, BuildEmbeddingsOptions};
 pub use embedding::EmbeddingIndex;
-#[cfg(feature = "backend-ncnn")]
-pub use embedder_ncnn::IconEmbedder;
-#[cfg(feature = "backend-ort")]
 pub use embedder_ort::IconEmbedder;
+#[cfg(feature = "backend-ncnn")]
+pub use embedder_ncnn::IconEmbedder as NcnnIconEmbedder;
 pub use rasterize::{rasterize_svg_icons, IconRasterColor, RasterizeSvgOptions};
 pub use library::IconLibrary;
 pub use pack::{IconMatchHit, IconMatchOptions, IconPack};
 pub use preprocess::{icon_crop_to_rgb256, template_png_to_rgb256, EMBED_DIM, INPUT_SIZE};
 
 fn default_vision_model() -> PathBuf {
-    #[cfg(feature = "backend-ort")]
-    {
-        PathBuf::from("models/mobileclip2-s0-vision.onnx")
-    }
     #[cfg(feature = "backend-ncnn")]
     {
-        PathBuf::from("models/mobileclip2-s0-vision.ncnn.param")
+        let ncnn = PathBuf::from("models/mobileclip2-s0-vision.ncnn.param");
+        if ncnn.is_file() {
+            return ncnn;
+        }
     }
+    PathBuf::from("models/mobileclip2-s0-vision.onnx")
 }
 
 #[derive(Debug, Clone)]
 pub struct IconConfig {
-    /// Precomputed embedding index (e.g. `assets/embeddings.bin`).
     pub embedding_index: PathBuf,
-    /// MobileCLIP2-S0 vision model path.
     pub vision_model: PathBuf,
-    /// Template edge length in pixels for query crop preprocessing.
     pub template_size: u32,
-    /// Minimum cosine similarity to accept a match (0–1).
     pub min_cosine: f64,
-    /// Candidate box shorter side (px).
     pub min_side: i32,
-    /// Candidate box longer side (px).
     pub max_side: i32,
-    /// Width / height ratio limits.
     pub min_aspect: f64,
     pub max_aspect: f64,
 }
@@ -93,7 +84,6 @@ pub struct IconMatchStats {
     pub timings: IconTimings,
 }
 
-/// Identify icon candidates in the layout tree and replace matches with `kind: icon`.
 pub fn attach_icons(
     root: &mut UiElement,
     source: &DynamicImage,
@@ -114,7 +104,6 @@ pub fn attach_icons(
     stats
 }
 
-/// Like [`attach_icons`], but reuses a loaded [`IconPack`] (library + embedder).
 pub fn attach_icons_with_pack(
     root: &mut UiElement,
     source: &DynamicImage,

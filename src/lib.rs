@@ -1,10 +1,3 @@
-#[cfg(all(feature = "backend-ort", feature = "backend-ncnn"))]
-compile_error!(
-    "Enable only one inference backend. For Android/ncnn use:\n\
-     cargo build --no-default-features --features backend-ncnn\n\
-     (Do not pass --features backend-ncnn without --no-default-features — default includes backend-ort.)"
-);
-
 pub mod annotate;
 pub mod cases;
 pub mod engine;
@@ -13,8 +6,6 @@ pub mod skeleton;
 pub mod error;
 #[cfg(feature = "backend-ncnn")]
 pub mod inference;
-#[cfg(feature = "backend-ort")]
-mod ort_runtime;
 pub mod icon;
 pub mod layout;
 pub mod ocr;

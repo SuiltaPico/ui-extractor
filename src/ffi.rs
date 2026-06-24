@@ -637,7 +637,9 @@ pub extern "C" fn ui_icon_build_embeddings_file(
             template_size,
         )
         .map_err(map_extract_error)?;
-        index.save(Path::new(out_path)).map_err(map_extract_error)?;
+        index
+            .save(Path::new(out_path))
+            .map_err(|e| map_extract_error(ExtractError::Image(e.to_string())))?;
         Ok(())
     })
 }

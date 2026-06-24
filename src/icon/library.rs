@@ -13,7 +13,8 @@ pub struct IconLibrary {
 impl IconLibrary {
     pub fn load(path: &Path) -> Result<Self> {
         Ok(Self {
-            embeddings: EmbeddingIndex::load(path)?,
+            embeddings: EmbeddingIndex::load(path)
+                .map_err(|e| crate::error::ExtractError::Image(e.to_string()))?,
         })
     }
 
@@ -21,7 +22,6 @@ impl IconLibrary {
         Self { embeddings }
     }
 
-    /// Best cosine match above `min_cosine`.
     pub fn best_match(
         &self,
         query_embedding: &[f32],

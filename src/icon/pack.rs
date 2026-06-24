@@ -89,7 +89,10 @@ impl IconPack {
 
     /// Persist the in-memory embedding index (`embed-mdi` equivalent output).
     pub fn save_embeddings(&self, path: impl AsRef<Path>) -> Result<()> {
-        self.library.embeddings.save(path.as_ref())
+        self.library
+            .embeddings
+            .save(path.as_ref())
+            .map_err(|e| ExtractError::Image(e.to_string()))
     }
 
     /// Embed a template PNG using the library path (color composited on white).

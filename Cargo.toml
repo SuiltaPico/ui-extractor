@@ -16,8 +16,7 @@ name = "ui-extractor"
 path = "src/main.rs"
 
 [features]
-default = ["backend-ort"]
-backend-ort = ["dep:ort", "dep:oar-ocr"]
+default = []
 backend-ncnn = ["dep:ncnn-bind"]
 
 [dependencies]
@@ -26,15 +25,13 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 image = "0.25"
 imageproc = "0.25"
+infer-core = { path = "../local-infer-core/crates/infer-core" }
 ndarray = "0.16"
 rayon = "1"
 resvg = "0.47"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
-
-ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray", "directml"], optional = true }
-oar-ocr = { version = "0.6.3", features = ["download-binaries", "directml"], optional = true }
 ncnn-bind = { path = "crates/ncnn-bind", optional = true }
 
 [dev-dependencies]

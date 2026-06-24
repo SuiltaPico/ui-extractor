@@ -208,7 +208,8 @@ pub fn build_embedding_index_from_jobs(
         EMBED_DIM as u32,
         names,
         vectors,
-    )?)
+    )
+    .map_err(|e| ExtractError::Image(e.to_string()))?)
 }
 
 fn with_thread_embedder<R>(
@@ -267,8 +268,7 @@ pub fn embedding_worker_jobs(png_count: usize) -> usize {
 }
 
 fn default_jobs() -> usize {
-    #[cfg(feature = "backend-ort")]
-    if crate::ort_runtime::prefer_gpu_single_session() {
+    if infer_core::RuntimeConfig::from_env_or_default().prefer_gpu_single_session() {
         return 1;
     }
     std::thread::available_parallelism()

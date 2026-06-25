@@ -1,6 +1,7 @@
 # MDI 图标库
 
 [Material Design Icons](https://pictogrammers.com/library/mdi/)（MDI）本地资源，供**离线**建 `embeddings.bin` 使用（运行时只需索引文件）。
+当前推荐流程：用 MDI 生成 PNG 素材后，调用 `local-infer-core` 的 `icon-index-build` 生成最终索引包。
 
 图标匹配架构见 [icon-matching.md](./icon-matching.md)。
 
@@ -18,7 +19,7 @@ assets/
 
 以上路径均在 `.gitignore` 中，需本地生成。
 
-`models/mobileclip2-s0-vision.onnx` 由 `scripts/download_mobileclip2.ps1` 下载。
+`vision` 模型建议从 `local-infer-core` 的 embed pack 获取。
 
 ## 一键准备
 
@@ -26,21 +27,21 @@ assets/
 # 1. MDI SVG + PNG
 powershell -ExecutionPolicy Bypass -File scripts/download_mdi_icons.ps1 -Rasterize
 
-# 2. MobileCLIP2-S0 vision ONNX
-powershell -ExecutionPolicy Bypass -File scripts/download_mobileclip2.ps1
-
-# 3. 预计算嵌入索引
-cargo run --release -- icon build-embeddings
+# 2. 预计算嵌入索引（在 local-infer-core 仓库）
+cargo run -p infer-core --bin icon-index-build -- `
+  --png-dir assets/icons `
+  --vision-model <path-to-embed-pack-vision-model> `
+  --out assets/embeddings.bin
 ```
 
-第 3 步约 7400 图标 / 2–3 分钟（CPU release）。PNG 有增删时需重新运行。
+第 2 步约 7400 图标 / 2–3 分钟（CPU release）。PNG 有增删时需重新运行。
 
 ## 前置依赖
 
 | 依赖 | 用途 |
 |------|------|
 | Node.js + npm | `download_mdi_icons.ps1` 拉取 `@mdi/svg` |
-| Rust toolchain | `ui-extractor`（栅格化、建索引、提取） |
+| Rust toolchain | `ui-extractor`（栅格化）+ `local-infer-core`（建索引） |
 
 ## 下载 + 栅格化
 
@@ -89,27 +90,25 @@ cargo run --release -- icon rasterize-svg -- `
 
 参考性能（release，8 线程）：~7400 图标 / 3 秒。
 
-## icon build-embeddings
+## icon-index-build（infer-core）
 
 ```powershell
-cargo run --release -- icon build-embeddings
+cargo run -p infer-core --bin icon-index-build -- `
+  --png-dir assets/icons `
+  --vision-model <path-to-embed-pack-vision-model> `
+  --out assets/embeddings.bin
 ```
 
 | 参数 | 说明 | 默认 |
 |------|------|------|
-| `--png-dir` | 输入 PNG 目录 | `assets/icons` |
-| `--out` | 输出索引 | `assets/embeddings.bin` |
-| `--vision-model` | vision 模型 | `models/mobileclip2-s0-vision.onnx` |
+| `--png-dir` | 输入 PNG 目录 | 无 |
+| `--out` | 输出索引 | 无 |
+| `--vision-model` | vision 模型路径 | 无 |
 | `--template-size` | 中间 mask 尺寸 | `48` |
 
 模板 PNG 使用 **RGBA alpha 合成白底**（`mdi_png_to_rgb256`），再缩放到 256×256。索引约 15 MB。
 
-Android 建索引：
-
-```powershell
-cargo run --release --no-default-features --features backend-ncnn -- icon build-embeddings `
-  --vision-model models/mobileclip2-s0-vision.ncnn.param
-```
+Android / MNN 或桌面 / ONNX 由 infer-core runtime 配置决定，命令入口一致。
 
 ## meta.json
 
@@ -126,7 +125,7 @@ JSON 数组，每项包含：
 MDI 仅覆盖 Material Design 风格。后续可按 namespace 增加目录，对每个目录：
 
 1. 准备统一规格 PNG（透明底、单色 icon）
-2. 用 `icon build-embeddings` 生成独立 `embeddings.bin`
+2. 用 `icon-index-build` 生成独立索引文件
 3. 检索层按库分别匹配（见 [icon-matching.md](./icon-matching.md)）
 
 ## 数据来源

@@ -36,7 +36,7 @@
   └─ pipeline/        ui-extractor（坐标关联、JSON 序列化）
 ```
 
-ui-extractor **依赖** `infer-core`（Rust rlib）；Release 仍附带同版本 `infer_core.dll` 供外部/Mauchat 单独使用 OCR。
+ui-extractor **运行时依赖** `infer_core.dll`（编译期链 `infer_core.lib`）；Release 打包含同版本 `infer_core.dll` 供 Mauchat 等成对部署。
 
 ---
 
@@ -70,7 +70,7 @@ ui-extractor **依赖** `infer-core`（Rust rlib）；Release 仍附带同版本
   "run_icon": true,
   "models_dir": "/path/to/models",
   "ocr_pack": "ocr.paddle.ppocr6-tiny.onnx.fp32",
-  "embed_pack": "embed.mobileclip2-s0.onnx.int8",
+  "embed_pack": "embed.mobileclip2-s0.onnx.fp32",
   "icon_index_pack": "icons.bundled.v1.mobileclip2-s0.int8",
   "layout": { "min_area": 100 }
 }

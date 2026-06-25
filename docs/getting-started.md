@@ -1,13 +1,14 @@
-# 桌面端快速开始
+# 快速开始
 
 ## 前置依赖
 
 | 依赖 | 用途 |
 |------|------|
 | Rust stable + Cargo | 编译与运行 |
-| Node.js + npm | 可选，仅 `download_mdi_icons.ps1` 拉取 MDI SVG |
+| `local-infer-core` 模型目录 | OCR / embed / icon_index pack 来源 |
+| `infer_core.dll` / `libinfer_core.so` | `ui-extractor` 运行时推理动态库 |
 
-Android / ncnn 相关见 [models.md](models.md) 与 [android.md](android.md)。
+`ui-extractor` 不再负责模型下载与离线建索引；这些工作已迁移到 `local-infer-core`。
 
 ## 构建
 
@@ -15,67 +16,69 @@ Android / ncnn 相关见 [models.md](models.md) 与 [android.md](android.md)。
 cargo build --release
 ```
 
-默认启用 `backend-ort`（ONNX Runtime）。首次编译时 `ort` / `oar-ocr` 会自动下载 ONNX Runtime 二进制。
+运行时推理由 `infer_core.dll` / `libinfer_core.so` 提供，`ui-extractor` 仅负责编排与 UI 树生成。
 
-## 首次设置（四步）
-
-仓库**不包含**模型权重与图标资源。克隆后按顺序执行：
+## 首次可用链路（Windows）
 
 ```powershell
-# 1. OCR 模型（~21 MB）
-powershell -ExecutionPolicy Bypass -File scripts/download_models.ps1
+# A. 构建 infer_core.dll
+cd ..\local-infer-core
+cargo build -p infer-core-ffi
 
-# 2. 图标嵌入模型 MobileCLIP2-S0（~46 MB）
-powershell -ExecutionPolicy Bypass -File scripts/download_mobileclip2.ps1
+# B. 回到 ui-extractor，安装模型包到 ./models
+cd ..\ui-extractor
+powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
 
-# 3. 示例图标库：MDI SVG → PNG（需 Node.js；写入 assets/）
-powershell -ExecutionPolicy Bypass -File scripts/download_mdi_icons.ps1 -Rasterize
-
-# 4. 预计算嵌入索引（~7400 图标，CPU release 约 2–3 分钟）
-cargo run --release -- icon build-embeddings
+# C. 复制动态库到 ui-extractor 二进制目录（避免 STATUS_DLL_NOT_FOUND）
+Copy-Item -Force ..\local-infer-core\target\debug\infer_core.dll .\target\debug\infer_core.dll
 ```
 
-完成后目录应包含：
+## 首次设置
+
+先准备一个符合 manifest 目录布局的 `models_dir`（推荐直接使用 `local-infer-core` 的 pack 下载脚本）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ..\local-infer-core\scripts\download_all_packs.ps1
+```
+
+目录示例：
 
 | 路径 | 说明 |
 |------|------|
-| `models/pp-ocrv5_mobile_det.onnx` | OCR 检测 |
-| `models/pp-ocrv5_mobile_rec.onnx` | OCR 识别 |
-| `models/ppocrv5_dict.txt` | 字形表 |
-| `models/mobileclip2-s0-vision.onnx` | 图标嵌入 |
-| `assets/svg/` | MDI SVG 源（可选） |
-| `assets/icons/` | 模板 PNG（48×48，**仅离线建索引**） |
-| `assets/embeddings.bin` | 预计算索引 |
+| `{models_dir}/ocr.paddle.ppocr6-tiny.onnx.fp32/` | OCR pack |
+| `{models_dir}/embed.mobileclip2-s0.onnx.fp32/` | embed pack |
+| `{models_dir}/icons.bundled.v1.mobileclip2-s0.int8/` | icon_index pack |
 
-第 3 步必须带 `-Rasterize`，否则没有 PNG，第 4 步会失败。也可自备任意 PNG 目录，跳过 MDI 脚本。
-
-仅布局树、不需要 OCR 时：`ui-extractor extract --layout-only …`  
-缺图标资源时会 warning 并跳过图标识别，不影响布局与 OCR。
+仅布局树、不需要 OCR 时：`ui-extractor extract --layout-only ...`  
+缺某个 pack 时会在对应阶段报错（例如 OCR 或 icon 匹配），布局阶段仍可独立工作。
 
 ## 基本用法
 
 ```bash
 # 完整提取（布局 + OCR + 图标）
-ui-extractor extract --input screenshot.png --format pretty
+cargo run --bin ui-extractor -- extract --input screenshot.png --format pretty `
+  --models-dir ..\local-infer-core\crates\infer-core\tests\fixtures `
+  --ocr-pack ocr.paddle.ppocr6-tiny.onnx.fp32 `
+  --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8
 
 # 输出 JSON + 标注 PNG（蓝=容器，绿=文本，橙=图标）
-ui-extractor extract --input screenshot.png -o out.json --annotate
+cargo run --bin ui-extractor -- extract --input screenshot.png -o out.json --annotate
 
 # 跳过图标
-ui-extractor extract --input screenshot.png --no-icon
+cargo run --bin ui-extractor -- extract --input screenshot.png --no-icon
 
 # 批量回归 tests/cases
-ui-extractor cases
-ui-extractor cases --dir tests/cases
+powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1
+cargo run --bin ui-extractor -- cases --dir tests/cases
 ```
 
 ### Case 目录约定
 
 ```
 tests/cases/<name>/
-  input.png          # 输入（提交）
+  input.png          # 原始输入（建议提交；历史 case 可能缺失）
   output.json        # golden 输出（提交）
-  annotated.png      # 标注图（提交）
+  annotated.png      # 标注图（提交，可作为回归输入）
   pipeline/          # --dump-pipeline 生成（gitignore）
   skeleton.html      # cases 生成（gitignore）
   timing.json        # cases 生成（gitignore）
@@ -114,7 +117,6 @@ tests/cases/<name>/
 |--------|------|
 | `extract` | 单张截图：布局 + OCR + 图标 |
 | `cases` | 批量处理 `tests/cases` |
-| `icon build-embeddings` | PNG 目录 → `embeddings.bin` |
 | `icon rasterize-svg` | SVG 批量栅格化为 PNG |
 | `icon match` | 单图/区域匹配图标库 |
 | `icon search` | 单图/区域 top-k 检索 |
@@ -133,13 +135,13 @@ C ABI（Android / 其他语言）：见 [`include/ui_extractor.h`](../include/ui
 
 ## 图标识别参数
 
-默认路径：`assets/embeddings.bin`、`models/mobileclip2-s0-vision.onnx`。
+图标匹配依赖 `icon_index_pack` 与其 `embed_model_id`（由 `manifest.json` 关联）。
 
 ```powershell
-ui-extractor extract --input screenshot.png `
-  --embedding-index assets/embeddings.bin `
-  --vision-model models/mobileclip2-s0-vision.onnx `
+cargo run --bin ui-extractor -- extract --input screenshot.png `
+  --models-dir ..\local-infer-core\crates\infer-core\tests\fixtures `
+  --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8 `
   --min-cosine 0.72
 ```
 
-详见 [dev/icon-matching.md](dev/icon-matching.md)。
+离线“PNG -> embeddings.bin”构建入口已迁移到 `local-infer-core`（`icon-index-build`）。

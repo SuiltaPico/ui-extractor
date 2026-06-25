@@ -47,10 +47,20 @@ function Copy-FlattenSvg {
     param(
         [string[]]$SourceFiles,
         [string]$DestDir,
-        [scriptblock]$NameSelector
+        [scriptblock]$NameSelector,
+        [switch]$Append
     )
-    Reset-Dir $DestDir
+    if (-not $Append) {
+        Reset-Dir $DestDir
+    } else {
+        New-Item -ItemType Directory -Force -Path $DestDir | Out-Null
+    }
     $seen = @{}
+    if ($Append) {
+        Get-ChildItem $DestDir -Filter *.svg -ErrorAction SilentlyContinue | ForEach-Object {
+            $seen[$_.BaseName] = $true
+        }
+    }
     foreach ($src in $SourceFiles) {
         $name = & $NameSelector $src
         if (-not $name) { continue }
@@ -164,7 +174,7 @@ $TablerCount = Copy-FlattenSvg -SourceFiles $TablerFiles -DestDir $TablerDest -N
 }
 Write-Host "tabler ready: $TablerCount icons -> $TablerDest"
 
-# Font Awesome Free — solid + regular SVG sets.
+# Font Awesome Free — solid + regular under namespace `fa` (prefix solid-/regular-).
 $FaWork = Join-Path (Get-ScratchDir) "ui-extractor-fa-$FaVersion"
 Write-Host "installing @fortawesome/fontawesome-free@$FaVersion ..."
 Ensure-NpmPackage -WorkDir $FaWork -PackageSpec "@fortawesome/fontawesome-free@$FaVersion"
@@ -174,25 +184,33 @@ $FaRegularSrc = Join-Path $FaPkg "svgs\regular"
 if (-not (Test-Path $FaSolidSrc)) { throw "Font Awesome solid SVG source not found: $FaSolidSrc" }
 if (-not (Test-Path $FaRegularSrc)) { throw "Font Awesome regular SVG source not found: $FaRegularSrc" }
 
-$FaSolidDest = Join-Path $SvgRoot "fa-solid"
+$FaDest = Join-Path $SvgRoot "fa"
 $FaSolidCount = Copy-FlattenSvg `
     -SourceFiles ((Get-ChildItem $FaSolidSrc -Filter *.svg | ForEach-Object { $_.FullName })) `
-    -DestDir $FaSolidDest `
-    -NameSelector { param($Path) [System.IO.Path]::GetFileNameWithoutExtension($Path) }
-Write-Host "fa-solid ready: $FaSolidCount icons -> $FaSolidDest"
+    -DestDir $FaDest `
+    -NameSelector {
+        param($Path)
+        $stem = [System.IO.Path]::GetFileNameWithoutExtension($Path)
+        return "solid-$stem"
+    }
+Write-Host "fa (solid) ready: $FaSolidCount icons -> $FaDest"
 
-$FaRegularDest = Join-Path $SvgRoot "fa-regular"
-$FaRegularCount = Copy-FlattenSvg `
+$FaRegularAdded = Copy-FlattenSvg `
     -SourceFiles ((Get-ChildItem $FaRegularSrc -Filter *.svg | ForEach-Object { $_.FullName })) `
-    -DestDir $FaRegularDest `
-    -NameSelector { param($Path) [System.IO.Path]::GetFileNameWithoutExtension($Path) }
-Write-Host "fa-regular ready: $FaRegularCount icons -> $FaRegularDest"
+    -DestDir $FaDest `
+    -Append `
+    -NameSelector {
+        param($Path)
+        $stem = [System.IO.Path]::GetFileNameWithoutExtension($Path)
+        return "regular-$stem"
+    }
+Write-Host "fa (regular) added: $FaRegularAdded total in $FaDest"
 
 Write-Host "icon libraries ready under $SvgRoot"
 
 if ($Rasterize) {
     $CliBin = Ensure-UiExtractor
-    foreach ($ns in @("fluent", "tabler", "fa-solid", "fa-regular")) {
+    foreach ($ns in @("fluent", "tabler", "fa")) {
         Invoke-RasterizeNamespace -CliBin $CliBin -Namespace $ns -Size $Size -Color $Color -Jobs $Jobs
     }
 }

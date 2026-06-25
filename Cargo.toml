@@ -17,7 +17,6 @@ path = "src/main.rs"
 
 [features]
 default = []
-backend-ncnn = ["dep:ncnn-bind"]
 
 [dependencies]
 ab_glyph = "0.2"
@@ -25,14 +24,13 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 image = "0.25"
 imageproc = "0.25"
-infer-core = { path = "../local-infer-core/crates/infer-core" }
 ndarray = "0.16"
 rayon = "1"
 resvg = "0.47"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tempfile = "3"
 thiserror = "2"
-ncnn-bind = { path = "crates/ncnn-bind", optional = true }
 
 [dev-dependencies]
 tempfile = "3"

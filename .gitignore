@@ -6,7 +6,9 @@
 .venv/
 **/*.rs.bk
 
-# Downloaded ONNX weights (use scripts/download_*.ps1)
+# Manifest model packs (scripts/install_packs.ps1)
+models/*/
+# Legacy flat weights (removed)
 models/*.onnx
 models/*.ncnn.param
 models/*.ncnn.bin

@@ -39,14 +39,14 @@
         "children": [
           {
             "bounds": {
-              "x": 118,
-              "y": 32,
-              "width": 34,
-              "height": 32
+              "x": 106,
+              "y": 20,
+              "width": 56,
+              "height": 54
             },
             "kind": "text",
-            "content": "•",
-            "confidence": 91.38019
+            "content": "女",
+            "confidence": 62.365704
           }
         ]
       },
@@ -59,7 +59,7 @@
         },
         "kind": "icon",
         "name": "mdi:triangle",
-        "confidence": 0.89108914
+        "confidence": 0.8910892
       },
       {
         "bounds": {
@@ -72,14 +72,14 @@
         "children": [
           {
             "bounds": {
-              "x": 1648,
-              "y": 24,
-              "width": 50,
-              "height": 42
+              "x": 1558,
+              "y": 16,
+              "width": 144,
+              "height": 64
             },
             "kind": "text",
-            "content": "+",
-            "confidence": 92.97303
+            "content": "2170",
+            "confidence": 92.34038
           }
         ]
       },
@@ -92,7 +92,7 @@
         },
         "kind": "icon",
         "name": "fluent:cellular_data_5",
-        "confidence": 0.92853725
+        "confidence": 0.9285371
       },
       {
         "bounds": {
@@ -101,9 +101,20 @@
           "width": 64,
           "height": 46
         },
-        "kind": "icon",
-        "name": "mdi:calendar-month",
-        "confidence": 0.8475561
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 370,
+              "y": 20,
+              "width": 74,
+              "height": 52
+            },
+            "kind": "text",
+            "content": "画",
+            "confidence": 66.779625
+          }
+        ]
       },
       {
         "bounds": {
@@ -114,7 +125,7 @@
         },
         "kind": "icon",
         "name": "mdi:cube",
-        "confidence": 0.83904815
+        "confidence": 0.83904845
       },
       {
         "bounds": {
@@ -123,20 +134,9 @@
           "width": 48,
           "height": 39
         },
-        "kind": "container",
-        "children": [
-          {
-            "bounds": {
-              "x": 1566,
-              "y": 18,
-              "width": 104,
-              "height": 62
-            },
-            "kind": "text",
-            "content": "217",
-            "confidence": 99.80326
-          }
-        ]
+        "kind": "icon",
+        "name": "mdi:vanish-quarter",
+        "confidence": 0.8558641
       },
       {
         "bounds": {
@@ -147,7 +147,7 @@
         },
         "kind": "icon",
         "name": "mdi:package-variant-closed-minus",
-        "confidence": 0.7296315
+        "confidence": 0.72963166
       },
       {
         "bounds": {
@@ -176,7 +176,7 @@
         },
         "kind": "icon",
         "name": "mdi:vuejs",
-        "confidence": 0.8369927
+        "confidence": 0.83699304
       },
       {
         "bounds": {
@@ -225,7 +225,7 @@
             },
             "kind": "icon",
             "name": "mdi:horse-variant",
-            "confidence": 0.7252381
+            "confidence": 0.7252383
           }
         ]
       },
@@ -238,7 +238,7 @@
         },
         "kind": "icon",
         "name": "mdi:triangle",
-        "confidence": 0.8971901
+        "confidence": 0.89719003
       },
       {
         "bounds": {
@@ -249,7 +249,7 @@
         },
         "kind": "icon",
         "name": "mdi:shield-half",
-        "confidence": 0.8544392
+        "confidence": 0.8544391
       },
       {
         "bounds": {
@@ -271,25 +271,25 @@
         "children": [
           {
             "bounds": {
-              "x": 144,
-              "y": 336,
-              "width": 128,
-              "height": 84
+              "x": 162,
+              "y": 348,
+              "width": 44,
+              "height": 52
             },
             "kind": "text",
-            "content": "90",
-            "confidence": 99.43771
+            "content": "9",
+            "confidence": 58.0188
           },
           {
             "bounds": {
-              "x": 192,
+              "x": 194,
               "y": 412,
-              "width": 36,
-              "height": 26
+              "width": 30,
+              "height": 24
             },
             "kind": "text",
             "content": "LV",
-            "confidence": 99.77648
+            "confidence": 99.68041
           }
         ]
       },
@@ -340,7 +340,7 @@
             },
             "kind": "icon",
             "name": "tabler:loader-quarter",
-            "confidence": 0.79127795
+            "confidence": 0.79127806
           },
           {
             "bounds": {
@@ -351,7 +351,7 @@
             },
             "kind": "icon",
             "name": "mdi:slash-forward",
-            "confidence": 0.812438
+            "confidence": 0.8124382
           },
           {
             "bounds": {
@@ -362,7 +362,7 @@
             },
             "kind": "icon",
             "name": "mdi:slash-forward",
-            "confidence": 0.8489329
+            "confidence": 0.848933
           },
           {
             "bounds": {
@@ -395,14 +395,14 @@
         "children": [
           {
             "bounds": {
-              "x": 1154,
-              "y": 560,
-              "width": 214,
-              "height": 88
+              "x": 1162,
+              "y": 568,
+              "width": 198,
+              "height": 72
             },
             "kind": "text",
             "content": "采购中心",
-            "confidence": 99.58919
+            "confidence": 99.96512
           }
         ]
       },
@@ -417,14 +417,14 @@
         "children": [
           {
             "bounds": {
-              "x": 1388,
-              "y": 592,
-              "width": 166,
-              "height": 66
+              "x": 1390,
+              "y": 596,
+              "width": 160,
+              "height": 58
             },
             "kind": "text",
             "content": "公开招募",
-            "confidence": 99.83426
+            "confidence": 99.99752
           }
         ]
       },
@@ -437,7 +437,7 @@
         },
         "kind": "icon",
         "name": "mdi:square",
-        "confidence": 0.80995214
+        "confidence": 0.8099519
       },
       {
         "bounds": {
@@ -450,14 +450,14 @@
         "children": [
           {
             "bounds": {
-              "x": 1586,
-              "y": 602,
-              "width": 186,
-              "height": 74
+              "x": 1592,
+              "y": 604,
+              "width": 178,
+              "height": 68
             },
             "kind": "text",
-            "content": "干员寻访",
-            "confidence": 91.465744
+            "content": "千员寻访",
+            "confidence": 98.28603
           }
         ]
       },
@@ -481,7 +481,7 @@
         },
         "kind": "icon",
         "name": "mdi:wifi-strength-4",
-        "confidence": 0.86302793
+        "confidence": 0.86302775
       },
       {
         "bounds": {
@@ -492,7 +492,7 @@
         },
         "kind": "icon",
         "name": "mdi:network-strength-4",
-        "confidence": 0.9081008
+        "confidence": 0.90810096
       },
       {
         "bounds": {
@@ -505,14 +505,14 @@
         "children": [
           {
             "bounds": {
-              "x": 534,
-              "y": 672,
-              "width": 90,
-              "height": 58
+              "x": 542,
+              "y": 680,
+              "width": 70,
+              "height": 42
             },
             "kind": "text",
             "content": "好友",
-            "confidence": 99.93345
+            "confidence": 99.83482
           }
         ]
       },
@@ -546,28 +546,39 @@
                   {
                     "bounds": {
                       "x": 1362,
-                      "y": 690,
-                      "width": 162,
-                      "height": 104
+                      "y": 692,
+                      "width": 154,
+                      "height": 96
                     },
                     "kind": "text",
                     "content": "基建",
-                    "confidence": 99.92977
+                    "confidence": 99.92066
                   }
                 ]
+              },
+              {
+                "bounds": {
+                  "x": 1582,
+                  "y": 704,
+                  "width": 50,
+                  "height": 32
+                },
+                "kind": "text",
+                "content": "7",
+                "confidence": 95.987144
               }
             ]
           },
           {
             "bounds": {
               "x": 1660,
-              "y": 706,
-              "width": 110,
+              "y": 704,
+              "width": 114,
               "height": 90
             },
             "kind": "text",
             "content": "仓库 6天",
-            "confidence": 99.65054
+            "confidence": 99.85733
           }
         ]
       },
@@ -651,8 +662,8 @@
           "height": 30
         },
         "kind": "icon",
-        "name": "fa-solid:slash",
-        "confidence": 0.88009316
+        "name": "fa:solid-slash",
+        "confidence": 0.8800931
       },
       {
         "bounds": {
@@ -692,157 +703,168 @@
       },
       {
         "bounds": {
-          "x": 1172,
-          "y": 0,
-          "width": 266,
-          "height": 66
-        },
-        "kind": "text",
-        "content": "2026/06/2212:08",
-        "confidence": 97.97304
-      },
-      {
-        "bounds": {
-          "x": 1010,
-          "y": 36,
-          "width": 474,
-          "height": 106
-        },
-        "kind": "text",
-        "content": "润1910668 21105",
-        "confidence": 96.58426
-      },
-      {
-        "bounds": {
-          "x": 166,
-          "y": 82,
-          "width": 104,
-          "height": 64
-        },
-        "kind": "text",
-        "content": "端阳正午 签到活动",
-        "confidence": 99.90855
-      },
-      {
-        "bounds": {
-          "x": 1148,
-          "y": 126,
-          "width": 376,
-          "height": 146
-        },
-        "kind": "text",
-        "content": "441 终端",
-        "confidence": 99.80293
-      },
-      {
-        "bounds": {
-          "x": 1348,
-          "y": 234,
-          "width": 428,
+          "x": 1178,
+          "y": 4,
+          "width": 254,
           "height": 58
         },
         "kind": "text",
-        "content": "当前 阵地足球锦标",
-        "confidence": 97.347946
+        "content": "2026/06/22 12:08",
+        "confidence": 98.66058
       },
       {
         "bounds": {
-          "x": 1182,
-          "y": 272,
-          "width": 272,
-          "height": 52
+          "x": 1104,
+          "y": 40,
+          "width": 376,
+          "height": 80
         },
         "kind": "text",
-        "content": "理智/205 全部完成",
-        "confidence": 99.79103
+        "content": "1910668 211050",
+        "confidence": 98.12826
       },
       {
         "bounds": {
-          "x": 1074,
-          "y": 362,
-          "width": 454,
-          "height": 94
+          "x": 168,
+          "y": 74,
+          "width": 922,
+          "height": 54
         },
         "kind": "text",
-        "content": "编队 干员",
-        "confidence": 98.3578
+        "content": "端阳正午 润",
+        "confidence": 80.581665
       },
       {
         "bounds": {
-          "x": 156,
-          "y": 440,
-          "width": 1366,
-          "height": 76
+          "x": 164,
+          "y": 106,
+          "width": 106,
+          "height": 42
         },
         "kind": "text",
-        "content": "Piico 角色管理",
-        "confidence": 96.90716
+        "content": "签到活动",
+        "confidence": 99.95793
       },
       {
         "bounds": {
-          "x": 72,
-          "y": 496,
-          "width": 208,
+          "x": 1334,
+          "y": 138,
+          "width": 178,
+          "height": 98
+        },
+        "kind": "text",
+        "content": "终端",
+        "confidence": 99.92456
+      },
+      {
+        "bounds": {
+          "x": 1170,
+          "y": 164,
+          "width": 146,
+          "height": 90
+        },
+        "kind": "text",
+        "content": "441",
+        "confidence": 99.9986
+      },
+      {
+        "bounds": {
+          "x": 1354,
+          "y": 236,
+          "width": 418,
           "height": 50
         },
         "kind": "text",
-        "content": "HODESiD:420786751",
-        "confidence": 91.25248
+        "content": "当前 阵地足球锦标",
+        "confidence": 95.09387
       },
       {
         "bounds": {
-          "x": 1374,
-          "y": 524,
-          "width": 118,
-          "height": 60
+          "x": 1184,
+          "y": 278,
+          "width": 510,
+          "height": 42
         },
         "kind": "text",
-        "content": "招募",
-        "confidence": 99.26283
+        "content": "理智/205 全部完成 NcI000Il",
+        "confidence": 85.114365
       },
       {
         "bounds": {
-          "x": 98,
-          "y": 654,
-          "width": 1138,
-          "height": 116
+          "x": 1076,
+          "y": 366,
+          "width": 446,
+          "height": 80
         },
         "kind": "text",
-        "content": "BREAKIHG HEHS 任务",
-        "confidence": 95.054276
+        "content": "编队 干员",
+        "confidence": 95.71796
       },
       {
         "bounds": {
-          "x": 128,
-          "y": 684,
-          "width": 234,
-          "height": 44
+          "x": 78,
+          "y": 442,
+          "width": 1440,
+          "height": 76
         },
         "kind": "text",
-        "content": "PACK RHODES SLAND",
-        "confidence": 98.431854
+        "content": "TPiicO 角色管理",
+        "confidence": 93.32211
       },
       {
         "bounds": {
-          "x": 230,
-          "y": 718,
-          "width": 400,
-          "height": 82
+          "x": 76,
+          "y": 502,
+          "width": 1414,
+          "height": 78
         },
         "kind": "text",
-        "content": "OP 档案",
-        "confidence": 82.02516
+        "content": "HODES iD:420786751 无招募",
+        "confidence": 90.60713
+      },
+      {
+        "bounds": {
+          "x": 100,
+          "y": 668,
+          "width": 1122,
+          "height": 90
+        },
+        "kind": "text",
+        "content": "BRERKIHC HEHS 任务",
+        "confidence": 95.829666
+      },
+      {
+        "bounds": {
+          "x": 130,
+          "y": 704,
+          "width": 56,
+          "height": 22
+        },
+        "kind": "text",
+        "content": "PACK",
+        "confidence": 99.94923
+      },
+      {
+        "bounds": {
+          "x": 260,
+          "y": 744,
+          "width": 362,
+          "height": 54
+        },
+        "kind": "text",
+        "content": "A 档案",
+        "confidence": 93.53479
       },
       {
         "bounds": {
           "x": 124,
-          "y": 752,
-          "width": 314,
-          "height": 78
+          "y": 782,
+          "width": 164,
+          "height": 46
         },
         "kind": "text",
-        "content": "礼包限时上架 ￥30",
-        "confidence": 96.3688
+        "content": "礼包限时上架",
+        "confidence": 99.99576
       }
     ]
   }

@@ -1,31 +1,42 @@
 use std::path::Path;
 
 use image::DynamicImage;
+use crate::infer::{OcrEngine, Registry};
 
 use crate::{
     error::Result,
     icon::{attach_icons_with_pack, IconPack},
-    pipeline::{extract_from_image_timed, ExtractConfig, ExtractTimings},
+    pipeline::{extract_from_image_timed_with_engine, ExtractConfig, ExtractTimings},
     types::ExtractResult,
 };
 
-/// Stateful extractor: loads icon models once, reuses them across extractions.
+/// Stateful extractor: loads models once via infer-core registry, reuses across extractions.
 pub struct ExtractEngine {
+    registry: Registry,
     config: ExtractConfig,
+    ocr: Option<OcrEngine>,
     icon_pack: Option<IconPack>,
 }
 
 impl ExtractEngine {
-    /// Create an engine and eagerly load icon resources when `config.run_icon` is true.
-    pub fn new(config: ExtractConfig) -> Result<Self> {
+    /// Open registry and optionally preload icon resources when `config.run_icon` is true.
+    pub fn open(config: ExtractConfig) -> Result<Self> {
+        let registry = Registry::open(&config.models_dir, config.runtime.clone())
+            .map_err(|e| crate::error::ExtractError::Ocr(e.to_string()))?;
         let mut engine = Self {
+            registry,
             config: config.clone(),
+            ocr: None,
             icon_pack: None,
         };
         if config.run_icon {
             engine.reload_icon_pack()?;
         }
         Ok(engine)
+    }
+
+    pub fn registry(&self) -> &Registry {
+        &self.registry
     }
 
     pub fn config(&self) -> &ExtractConfig {
@@ -44,7 +55,7 @@ impl ExtractEngine {
         self.icon_pack.as_mut()
     }
 
-    /// Reload icon embeddings from paths in `config.icon`.
+    /// Reload icon index + embed pack from registry.
     pub fn reload_icon_pack(&mut self) -> Result<()> {
         if !self.config.run_icon {
             self.icon_pack = None;
@@ -52,11 +63,11 @@ impl ExtractEngine {
         }
 
         let icon = &self.config.icon;
-        self.icon_pack = Some(IconPack::load(
-            &icon.embedding_index,
-            &icon.vision_model,
+        self.icon_pack = Some(IconPack::from_registry(
+            &self.registry,
+            &self.config.icon_index_pack,
             icon.template_size,
-            icon.into(),
+            icon.clone(),
         )?);
         Ok(())
     }
@@ -65,13 +76,14 @@ impl ExtractEngine {
         &mut self,
         path: &Path,
     ) -> Result<(ExtractResult, ExtractTimings)> {
-        let img =
-            image::open(path).map_err(|_| crate::error::ExtractError::ImageRead(path.display().to_string()))?;
+        let img = image::open(path)
+            .map_err(|_| crate::error::ExtractError::ImageRead(path.display().to_string()))?;
         self.extract_from_image(&img)
     }
 
     pub fn extract_from_bytes(&mut self, bytes: &[u8]) -> Result<(ExtractResult, ExtractTimings)> {
-        let img = image::load_from_memory(bytes).map_err(|e| crate::error::ExtractError::Image(e.to_string()))?;
+        let img = image::load_from_memory(bytes)
+            .map_err(|e| crate::error::ExtractError::Image(e.to_string()))?;
         self.extract_from_image(&img)
     }
 
@@ -81,7 +93,25 @@ impl ExtractEngine {
     ) -> Result<(ExtractResult, ExtractTimings)> {
         let mut pipeline_config = self.config.clone();
         pipeline_config.run_icon = false;
-        let (mut result, mut timings) = extract_from_image_timed(img, &pipeline_config)?;
+
+        if pipeline_config.run_ocr && self.ocr.is_none() {
+            self.ocr = Some(crate::ocr::load_ocr_engine(
+                &self.registry,
+                &self.config.ocr_pack,
+                &self.config.ocr,
+            )?);
+        }
+
+        let registry = &self.registry;
+        let ocr_ref = self.ocr.as_ref();
+
+        let (mut result, mut timings) = extract_from_image_timed_with_engine(
+            img,
+            &pipeline_config,
+            registry,
+            ocr_ref,
+            None,
+        )?;
 
         if self.config.run_icon {
             if let Some(pack) = self.icon_pack.as_mut() {
@@ -89,7 +119,7 @@ impl ExtractEngine {
                     &mut result.root,
                     img,
                     pack,
-                    &self.config.icon,
+                    &pack.match_config(),
                 );
                 timings.icon = stats;
             }

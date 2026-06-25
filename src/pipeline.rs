@@ -1,13 +1,15 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use image::DynamicImage;
+use crate::infer::{OcrEngine, Registry, RuntimeConfig};
 
 use crate::{
     error::{ExtractError, Result},
-    icon::{attach_icons, try_load_library, IconConfig, IconEmbedder, IconMatchStats},
+    icon::{attach_icons_with_pack, IconConfig, IconMatchStats, IconPack},
     layout::{extract_layout_with_stages, LayoutConfig, LayoutStages},
-    ocr::{extract_words_from_image_timed, OcrConfig, OcrTimings, OcrWord},
+    ocr::{extract_words_from_image_timed, load_ocr_engine, OcrConfig, OcrTimings, OcrWord},
+    packs::{resolve_models_dir, DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK},
     types::{Bounds, ExtractResult, UiElement},
 };
 
@@ -42,18 +44,26 @@ impl ExtractTimings {
 
 #[derive(Debug, Clone)]
 pub struct ExtractConfig {
+    pub models_dir: PathBuf,
+    pub runtime: RuntimeConfig,
+    pub ocr_pack: String,
+    pub icon_index_pack: String,
     pub layout: LayoutConfig,
     pub ocr: OcrConfig,
     pub icon: IconConfig,
     pub run_ocr: bool,
     pub run_icon: bool,
     /// When set, write intermediate layout pipeline images under this directory.
-    pub pipeline_dump_dir: Option<std::path::PathBuf>,
+    pub pipeline_dump_dir: Option<PathBuf>,
 }
 
 impl Default for ExtractConfig {
     fn default() -> Self {
         Self {
+            models_dir: resolve_models_dir(None),
+            runtime: RuntimeConfig::from_env_or_default(),
+            ocr_pack: DEFAULT_OCR_PACK.to_string(),
+            icon_index_pack: DEFAULT_ICON_INDEX_PACK.to_string(),
             layout: LayoutConfig::default(),
             ocr: OcrConfig::default(),
             icon: IconConfig::default(),
@@ -65,8 +75,8 @@ impl Default for ExtractConfig {
 }
 
 pub fn extract_from_path(path: &Path, config: &ExtractConfig) -> Result<ExtractResult> {
-    let img = image::open(path).map_err(|_| ExtractError::ImageRead(path.display().to_string()))?;
-    extract_from_image(&img, config)
+    let mut engine = crate::ExtractEngine::open(config.clone())?;
+    engine.extract_from_path(path).map(|(result, _)| result)
 }
 
 pub fn extract_from_image(img: &DynamicImage, config: &ExtractConfig) -> Result<ExtractResult> {
@@ -77,16 +87,28 @@ pub fn extract_from_image_timed(
     img: &DynamicImage,
     config: &ExtractConfig,
 ) -> Result<(ExtractResult, ExtractTimings)> {
+    let mut engine = crate::ExtractEngine::open(config.clone())?;
+    engine.extract_from_image(img)
+}
+
+pub(crate) fn extract_from_image_timed_with_engine(
+    img: &DynamicImage,
+    config: &ExtractConfig,
+    registry: &Registry,
+    ocr: Option<&OcrEngine>,
+    icon_pack: Option<&mut IconPack>,
+) -> Result<(ExtractResult, ExtractTimings)> {
     if config.run_ocr {
-        extract_with_parallel_ocr(img, config)
+        extract_with_parallel_ocr(img, config, registry, ocr)
     } else {
-        extract_layout_only(img, config)
+        extract_layout_only(img, config, icon_pack)
     }
 }
 
 fn extract_layout_only(
     img: &DynamicImage,
     config: &ExtractConfig,
+    icon_pack: Option<&mut IconPack>,
 ) -> Result<(ExtractResult, ExtractTimings)> {
     let mut timings = ExtractTimings::default();
 
@@ -108,7 +130,7 @@ fn extract_layout_only(
     drop(stages);
 
     if config.run_icon {
-        run_icon_pass(img, &mut root, &config.icon, &mut timings);
+        run_icon_pass(img, &mut root, icon_pack, &mut timings);
     }
 
     Ok((ExtractResult { width, height, root }, timings))
@@ -117,15 +139,29 @@ fn extract_layout_only(
 fn extract_with_parallel_ocr(
     img: &DynamicImage,
     config: &ExtractConfig,
+    _registry: &Registry,
+    ocr: Option<&OcrEngine>,
 ) -> Result<(ExtractResult, ExtractTimings)> {
     let parallel_start = Instant::now();
-    let ocr_config = config.ocr.clone();
     let layout_config = config.layout.clone();
     let dump_dir = config.pipeline_dump_dir.clone();
+    let ocr_config = config.ocr.clone();
+    let ocr_pack = config.ocr_pack.clone();
+    let models_dir = config.models_dir.clone();
+    let runtime = config.runtime.clone();
 
     let (mut root, width, height, branch_timings, ocr_result) =
         std::thread::scope(|scope| -> Result<_> {
-            let ocr_handle = scope.spawn(|| extract_words_from_image_timed(img, &ocr_config));
+            let ocr_handle = scope.spawn(|| {
+                if let Some(engine) = ocr {
+                    extract_words_from_image_timed(img, engine)
+                } else {
+                    let registry = Registry::open(&models_dir, runtime.clone())
+                        .map_err(|e| ExtractError::Ocr(e.to_string()))?;
+                    let engine = load_ocr_engine(&registry, &ocr_pack, &ocr_config)?;
+                    extract_words_from_image_timed(img, &engine)
+                }
+            });
 
             let mut branch_timings = ExtractTimings::default();
 
@@ -169,10 +205,6 @@ fn extract_with_parallel_ocr(
         }
     }
 
-    if config.run_icon {
-        run_icon_pass(img, &mut root, &config.icon, &mut timings);
-    }
-
     Ok((ExtractResult { width, height, root }, timings))
 }
 
@@ -183,28 +215,18 @@ fn ms_since(start: Instant) -> f64 {
 fn run_icon_pass(
     img: &DynamicImage,
     root: &mut UiElement,
-    icon_config: &IconConfig,
+    icon_pack: Option<&mut IconPack>,
     timings: &mut ExtractTimings,
 ) {
-    let load_start = Instant::now();
-    let library = match try_load_library(icon_config) {
-        Ok(lib) => lib,
-        Err(e) => {
-            eprintln!("warning: icon recognition skipped ({e})");
-            return;
-        }
+    let Some(pack) = icon_pack else {
+        eprintln!("warning: icon recognition skipped (pack not loaded)");
+        return;
     };
 
-    let mut embedder = match IconEmbedder::load(&icon_config.vision_model) {
-        Ok(e) => e,
-        Err(e) => {
-            eprintln!("warning: icon recognition skipped ({e})");
-            return;
-        }
-    };
+    let load_start = Instant::now();
     timings.icon.timings.load_ms = ms_since(load_start);
 
-    let stats = attach_icons(root, img, &library, &mut embedder, icon_config);
+    let stats = attach_icons_with_pack(root, img, pack, &pack.match_config());
     timings.icon = stats;
 }
 

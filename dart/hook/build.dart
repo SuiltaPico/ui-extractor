@@ -62,31 +62,6 @@ void main(List<String> args) async {
       architecture: targetArch,
       file: Uri.file(libPath),
     ));
-
-    // Register models as data assets
-    final modelsDir = Directory(p.join(extractDir, 'models'));
-    if (modelsDir.existsSync()) {
-      for (final file in modelsDir.listSync(recursive: true)) {
-        if (file is File) {
-          final relativePath = p.relative(file.path, from: extractDir);
-          output.addAsset(DataAsset(
-            package: packageName,
-            name: 'assets/$relativePath',
-            file: Uri.file(file.path),
-          ));
-        }
-      }
-    }
-    
-    // Register embeddings.bin
-    final embeddingsPath = p.join(extractDir, 'assets', 'embeddings.bin');
-    if (File(embeddingsPath).existsSync()) {
-      output.addAsset(DataAsset(
-        package: packageName,
-        name: 'assets/embeddings.bin',
-        file: Uri.file(embeddingsPath),
-      ));
-    }
   });
 }
 

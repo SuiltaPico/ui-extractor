@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use image::GrayImage;
 use ui_extractor::{
-    build_embeddings_file, extract_from_path, format_ms, rasterize_svg_icons, render_annotation,
-    run_cases, BuildEmbeddingsOptions, Bounds, ExtractConfig, IconConfig, IconMatchOptions,
+    format_ms, rasterize_svg_icons, render_annotation, run_cases, resolve_models_dir, Bounds, ExtractConfig, IconConfig,
     IconPack, IconRasterColor, LayoutConfig, OcrConfig, RasterizeSvgOptions,
+    DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK, ExtractEngine,
 };
 
 #[derive(Parser)]
@@ -39,9 +39,17 @@ enum Command {
         #[arg(long)]
         no_icon: bool,
 
-        /// PP-OCR model directory (det/rec ONNX + dict)
+        /// Manifest pack root (`{models_dir}/{pack_id}/`)
         #[arg(long, default_value = "models")]
-        model_dir: PathBuf,
+        models_dir: PathBuf,
+
+        /// OCR model pack id
+        #[arg(long, default_value = DEFAULT_OCR_PACK)]
+        ocr_pack: String,
+
+        /// Icon index pack id
+        #[arg(long, default_value = DEFAULT_ICON_INDEX_PACK)]
+        icon_index_pack: String,
 
         /// Minimum contour area in pixels
         #[arg(long, default_value_t = 100)]
@@ -76,9 +84,17 @@ enum Command {
         #[arg(long)]
         no_icon: bool,
 
-        /// PP-OCR model directory (det/rec ONNX + dict)
+        /// Manifest pack root
         #[arg(long, default_value = "models")]
-        model_dir: PathBuf,
+        models_dir: PathBuf,
+
+        /// OCR model pack id
+        #[arg(long, default_value = DEFAULT_OCR_PACK)]
+        ocr_pack: String,
+
+        /// Icon index pack id
+        #[arg(long, default_value = DEFAULT_ICON_INDEX_PACK)]
+        icon_index_pack: String,
 
         /// Minimum contour area in pixels
         #[arg(long, default_value_t = 100)]
@@ -91,7 +107,7 @@ enum Command {
         #[command(flatten)]
         icon: IconExtractArgs,
     },
-    /// Icon library utilities (embeddings, rasterize, match)
+    /// Icon library utilities (rasterize, match, search)
     Icon {
         #[command(subcommand)]
         command: IconCommand,
@@ -100,24 +116,6 @@ enum Command {
 
 #[derive(Subcommand)]
 enum IconCommand {
-    /// Build embeddings.bin from a directory of template PNGs
-    BuildEmbeddings {
-        /// Input PNG directory
-        #[arg(long, default_value = "assets/icons")]
-        png_dir: PathBuf,
-
-        /// Output embedding index path
-        #[arg(long, default_value = "assets/embeddings.bin")]
-        out: PathBuf,
-
-        /// MobileCLIP2-S0 vision model
-        #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
-        vision_model: PathBuf,
-
-        /// Template edge length in pixels for preprocessing
-        #[arg(long, default_value_t = 48)]
-        template_size: u32,
-    },
     /// Rasterize SVG icons to PNG templates
     RasterizeSvg {
         /// Input SVG directory
@@ -176,14 +174,6 @@ enum IconCommand {
 
 #[derive(Args, Clone)]
 struct IconExtractArgs {
-    /// Precomputed embedding index
-    #[arg(long, default_value = "assets/embeddings.bin")]
-    embedding_index: PathBuf,
-
-    /// MobileCLIP2-S0 vision model
-    #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
-    vision_model: PathBuf,
-
     /// Minimum cosine similarity to accept an icon match (0–1)
     #[arg(long, default_value_t = 0.72)]
     min_cosine: f64,
@@ -192,8 +182,6 @@ struct IconExtractArgs {
 impl IconExtractArgs {
     fn to_config(&self) -> IconConfig {
         IconConfig {
-            embedding_index: self.embedding_index.clone(),
-            vision_model: self.vision_model.clone(),
             min_cosine: self.min_cosine,
             ..IconConfig::default()
         }
@@ -202,13 +190,13 @@ impl IconExtractArgs {
 
 #[derive(Args, Clone)]
 struct IconPackArgs {
-    /// Precomputed embedding index
-    #[arg(long, default_value = "assets/embeddings.bin")]
-    embedding_index: PathBuf,
+    /// Manifest pack root
+    #[arg(long, default_value = "models")]
+    models_dir: PathBuf,
 
-    /// MobileCLIP2-S0 vision model
-    #[arg(long, default_value = "models/mobileclip2-s0-vision.onnx")]
-    vision_model: PathBuf,
+    /// Icon index pack id
+    #[arg(long, default_value = DEFAULT_ICON_INDEX_PACK)]
+    icon_index_pack: String,
 
     /// Minimum cosine similarity to accept a match (0–1)
     #[arg(long, default_value_t = 0.72)]
@@ -221,13 +209,23 @@ struct IconPackArgs {
 
 impl IconPackArgs {
     fn load(&self) -> anyhow::Result<IconPack> {
-        Ok(IconPack::load(
-            &self.embedding_index,
-            &self.vision_model,
-            self.template_size,
-            IconMatchOptions {
+        let config = ExtractConfig {
+            models_dir: resolve_models_dir(Some(&self.models_dir)),
+            icon_index_pack: self.icon_index_pack.clone(),
+            icon: IconConfig {
+                template_size: self.template_size,
                 min_cosine: self.min_cosine,
+                ..IconConfig::default()
             },
+            run_icon: true,
+            ..ExtractConfig::default()
+        };
+        let registry = ui_extractor::infer::Registry::open(&config.models_dir, config.runtime.clone())?;
+        Ok(IconPack::from_registry(
+            &registry,
+            &config.icon_index_pack,
+            self.template_size,
+            config.icon,
         )?)
     }
 }
@@ -248,7 +246,9 @@ impl RegionArgs {
     fn parse(&self) -> anyhow::Result<Option<Bounds>> {
         match (self.x, self.y, self.width, self.height) {
             (None, None, None, None) => Ok(None),
-            (Some(x), Some(y), Some(width), Some(height)) => Ok(Some(Bounds::new(x, y, width, height))),
+            (Some(x), Some(y), Some(width), Some(height)) => {
+                Ok(Some(Bounds::new(x, y, width, height)))
+            }
             _ => anyhow::bail!("region requires --x, --y, --width, and --height together"),
         }
     }
@@ -285,7 +285,9 @@ fn main() -> anyhow::Result<()> {
             annotate,
             layout_only,
             no_icon,
-            model_dir,
+            models_dir,
+            ocr_pack,
+            icon_index_pack,
             min_area,
             ocr_max_side,
             dump_pipeline,
@@ -297,7 +299,9 @@ fn main() -> anyhow::Result<()> {
             annotate,
             layout_only,
             no_icon,
-            model_dir,
+            models_dir,
+            ocr_pack,
+            icon_index_pack,
             min_area,
             ocr_max_side,
             dump_pipeline,
@@ -308,7 +312,9 @@ fn main() -> anyhow::Result<()> {
             dir,
             layout_only,
             no_icon,
-            model_dir,
+            models_dir,
+            ocr_pack,
+            icon_index_pack,
             min_area,
             ocr_max_side,
             icon,
@@ -316,18 +322,14 @@ fn main() -> anyhow::Result<()> {
             dir,
             layout_only,
             no_icon,
-            model_dir,
+            models_dir,
+            ocr_pack,
+            icon_index_pack,
             min_area,
             ocr_max_side,
             icon,
         ),
         Command::Icon { command } => match command {
-            IconCommand::BuildEmbeddings {
-                png_dir,
-                out,
-                vision_model,
-                template_size,
-            } => run_icon_build_embeddings(png_dir, out, vision_model, template_size),
             IconCommand::RasterizeSvg {
                 svg_dir,
                 out_dir,
@@ -350,19 +352,23 @@ fn main() -> anyhow::Result<()> {
 fn build_config(
     layout_only: bool,
     no_icon: bool,
-    model_dir: PathBuf,
+    models_dir: PathBuf,
+    ocr_pack: String,
+    icon_index_pack: String,
     min_area: i64,
     ocr_max_side: u32,
     pipeline_dump_dir: Option<PathBuf>,
     icon: IconExtractArgs,
 ) -> ExtractConfig {
     ExtractConfig {
+        models_dir: resolve_models_dir(Some(&models_dir)),
+        ocr_pack,
+        icon_index_pack,
         layout: LayoutConfig {
             min_area,
             ..LayoutConfig::default()
         },
         ocr: OcrConfig {
-            model_dir,
             max_side: ocr_max_side,
             ..OcrConfig::default()
         },
@@ -370,6 +376,7 @@ fn build_config(
         run_ocr: !layout_only,
         run_icon: !no_icon,
         pipeline_dump_dir,
+        ..ExtractConfig::default()
     }
 }
 
@@ -379,7 +386,9 @@ fn run_extract(
     annotate: bool,
     layout_only: bool,
     no_icon: bool,
-    model_dir: PathBuf,
+    models_dir: PathBuf,
+    ocr_pack: String,
+    icon_index_pack: String,
     min_area: i64,
     ocr_max_side: u32,
     dump_pipeline: bool,
@@ -394,13 +403,16 @@ fn run_extract(
     let config = build_config(
         layout_only,
         no_icon,
-        model_dir,
+        models_dir,
+        ocr_pack,
+        icon_index_pack,
         min_area,
         ocr_max_side,
         pipeline_dump_dir,
         icon,
     );
-    let result = extract_from_path(&input, &config)?;
+    let mut engine = ExtractEngine::open(config)?;
+    let (result, _) = engine.extract_from_path(&input)?;
 
     let json = match format {
         OutputFormat::Json => serde_json::to_string(&result)?,
@@ -434,7 +446,9 @@ fn run_cases_cmd(
     dir: PathBuf,
     layout_only: bool,
     no_icon: bool,
-    model_dir: PathBuf,
+    models_dir: PathBuf,
+    ocr_pack: String,
+    icon_index_pack: String,
     min_area: i64,
     ocr_max_side: u32,
     icon: IconExtractArgs,
@@ -443,7 +457,9 @@ fn run_cases_cmd(
     let config = build_config(
         layout_only,
         no_icon,
-        model_dir,
+        models_dir,
+        ocr_pack,
+        icon_index_pack,
         min_area,
         ocr_max_side,
         None,
@@ -460,20 +476,6 @@ fn run_cases_cmd(
     );
 
     Ok(())
-}
-
-fn run_icon_build_embeddings(
-    png_dir: PathBuf,
-    out: PathBuf,
-    vision_model: PathBuf,
-    template_size: u32,
-) -> anyhow::Result<()> {
-    build_embeddings_file(&BuildEmbeddingsOptions {
-        png_dir,
-        out,
-        vision_model,
-        template_size,
-    })
 }
 
 fn run_icon_rasterize_svg(

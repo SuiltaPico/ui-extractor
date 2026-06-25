@@ -43,3 +43,15 @@ Write-Host "=== Fluent / Tabler / Font Awesome ==="
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "all icon libraries downloaded under $OutDir/svg and $OutDir/icons"
+
+# Remove stale flat PNG/SVG dumps (legacy MDI-only layout at assets/icons/*.png).
+$StaleFlatPng = Get-ChildItem (Join-Path $OutDir "icons") -File -Filter *.png -ErrorAction SilentlyContinue
+if ($StaleFlatPng.Count -gt 0) {
+    Write-Host "removing $($StaleFlatPng.Count) stale flat PNG(s) from icons/ root"
+    $StaleFlatPng | Remove-Item -Force
+}
+$StaleFlatSvg = Get-ChildItem (Join-Path $OutDir "svg") -File -Filter *.svg -ErrorAction SilentlyContinue
+if ($StaleFlatSvg.Count -gt 0) {
+    Write-Host "removing $($StaleFlatSvg.Count) stale flat SVG(s) from svg/ root"
+    $StaleFlatSvg | Remove-Item -Force
+}

@@ -8,56 +8,49 @@ class ExtractorConfig {
     this.runOcr = true,
     this.runIcon = true,
     this.minArea = 100,
-    this.modelDir,
+    this.modelsDir,
+    this.ocrPack = 'ocr.paddle.ppocr6-tiny.onnx.fp32',
+    this.iconIndexPack = 'icons.bundled.v1.mobileclip2-s0.int8',
     this.ocrMaxSide = 960,
     this.ocrMinConfidence = 0.5,
-    this.embeddingIndex,
-    this.visionModel,
     this.templateSize = 48,
     this.minCosine = 0.72,
     this.iconMinSide = 12,
     this.iconMaxSide = 96,
     this.iconMinAspect = 0.55,
     this.iconMaxAspect = 1.85,
+    this.runtime,
   });
 
   final bool runOcr;
   final bool runIcon;
   final int minArea;
-  final String? modelDir;
+  final String? modelsDir;
+  final String ocrPack;
+  final String iconIndexPack;
   final int ocrMaxSide;
   final double ocrMinConfidence;
-  final String? embeddingIndex;
-  final String? visionModel;
   final int templateSize;
   final double minCosine;
   final int iconMinSide;
   final int iconMaxSide;
   final double iconMinAspect;
   final double iconMaxAspect;
+  final Map<String, dynamic>? runtime;
 
-  /// Relative defaults (`models/`, `assets/embeddings.bin`) for running inside
-  /// an extracted release zip.
-  factory ExtractorConfig.defaults({String baseDir = '.'}) {
-    final root = p.normalize(baseDir);
-    return ExtractorConfig.fromAssetRoot(root);
-  }
-
-  /// Build config from a directory that contains `models/` and `assets/`.
-  factory ExtractorConfig.fromAssetRoot(String root) {
-    final normalized = p.normalize(root);
+  /// Default pack layout under `./models` or `LOCAL_INFER_ROOT`.
+  factory ExtractorConfig.defaults({String? modelsDir}) {
     return ExtractorConfig(
-      modelDir: p.join(normalized, 'models'),
-      embeddingIndex: p.join(normalized, 'assets', 'embeddings.bin'),
-      visionModel: _defaultVisionModel(normalized),
+      modelsDir: modelsDir ?? _defaultModelsDir(),
     );
   }
 
-  static String _defaultVisionModel(String root) {
-    if (Platform.isAndroid) {
-      return p.join(root, 'models', 'mobileclip2-s0-vision.ncnn.param');
+  static String _defaultModelsDir() {
+    final fromEnv = Platform.environment['LOCAL_INFER_ROOT'];
+    if (fromEnv != null && fromEnv.isNotEmpty) {
+      return p.normalize(fromEnv);
     }
-    return p.join(root, 'models', 'mobileclip2-s0-vision.onnx');
+    return p.normalize('models');
   }
 
   Map<String, dynamic> toJson() {
@@ -65,9 +58,6 @@ class ExtractorConfig {
       'max_side': ocrMaxSide,
       'min_confidence': ocrMinConfidence,
     };
-    if (modelDir != null) {
-      ocr['model_dir'] = p.normalize(modelDir!);
-    }
 
     final icon = <String, dynamic>{
       'template_size': templateSize,
@@ -77,17 +67,15 @@ class ExtractorConfig {
       'min_aspect': iconMinAspect,
       'max_aspect': iconMaxAspect,
     };
-    if (embeddingIndex != null) {
-      icon['embedding_index'] = p.normalize(embeddingIndex!);
-    }
-    if (visionModel != null) {
-      icon['vision_model'] = p.normalize(visionModel!);
-    }
 
     return {
       'run_ocr': runOcr,
       'run_icon': runIcon,
       'layout': {'min_area': minArea},
+      if (modelsDir != null) 'models_dir': p.normalize(modelsDir!),
+      'ocr_pack': ocrPack,
+      'icon_index_pack': iconIndexPack,
+      if (runtime != null) 'runtime': runtime,
       'ocr': ocr,
       'icon': icon,
     };

@@ -46,7 +46,7 @@
         },
         "kind": "icon",
         "name": "mdi:ungroup",
-        "confidence": 0.79850686
+        "confidence": 0.7985068
       },
       {
         "bounds": {
@@ -64,20 +64,7 @@
           "width": 23,
           "height": 42
         },
-        "kind": "container",
-        "children": [
-          {
-            "bounds": {
-              "x": 116,
-              "y": 34,
-              "width": 30,
-              "height": 28
-            },
-            "kind": "text",
-            "content": "L",
-            "confidence": 78.34359
-          }
-        ]
+        "kind": "container"
       },
       {
         "bounds": {
@@ -99,7 +86,7 @@
         },
         "kind": "icon",
         "name": "tabler:wifi-0",
-        "confidence": 0.7205356
+        "confidence": 0.7205354
       },
       {
         "bounds": {
@@ -126,7 +113,20 @@
           "width": 81,
           "height": 54
         },
-        "kind": "container"
+        "kind": "container",
+        "children": [
+          {
+            "bounds": {
+              "x": 352,
+              "y": 128,
+              "width": 76,
+              "height": 62
+            },
+            "kind": "text",
+            "content": "A",
+            "confidence": 73.31199
+          }
+        ]
       },
       {
         "bounds": {
@@ -137,7 +137,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.8274225
+        "confidence": 0.8274226
       },
       {
         "bounds": {
@@ -148,7 +148,7 @@
         },
         "kind": "icon",
         "name": "mdi:star-half",
-        "confidence": 0.76738405
+        "confidence": 0.7673841
       },
       {
         "bounds": {
@@ -158,8 +158,8 @@
           "height": 13
         },
         "kind": "icon",
-        "name": "fa-solid:mound",
-        "confidence": 0.78468883
+        "name": "fa:solid-mound",
+        "confidence": 0.7846889
       },
       {
         "bounds": {
@@ -170,7 +170,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.7867333
+        "confidence": 0.78673315
       },
       {
         "bounds": {
@@ -199,7 +199,7 @@
         },
         "kind": "icon",
         "name": "fluent:cellular_data_5",
-        "confidence": 0.90822303
+        "confidence": 0.9082227
       },
       {
         "bounds": {
@@ -210,7 +210,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.79250306
+        "confidence": 0.79250324
       },
       {
         "bounds": {
@@ -232,7 +232,7 @@
         },
         "kind": "icon",
         "name": "tabler:letter-t-small",
-        "confidence": 0.790116
+        "confidence": 0.7901159
       },
       {
         "bounds": {
@@ -243,7 +243,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.883978
+        "confidence": 0.88397807
       },
       {
         "bounds": {
@@ -299,7 +299,7 @@
             },
             "kind": "icon",
             "name": "tabler:loader-quarter",
-            "confidence": 0.7938926
+            "confidence": 0.79389274
           },
           {
             "bounds": {
@@ -312,14 +312,14 @@
             "children": [
               {
                 "bounds": {
-                  "x": 182,
-                  "y": 360,
-                  "width": 154,
-                  "height": 62
+                  "x": 188,
+                  "y": 368,
+                  "width": 132,
+                  "height": 48
                 },
                 "kind": "text",
                 "content": "CF-ST-2",
-                "confidence": 91.47673
+                "confidence": 99.97168
               }
             ]
           },
@@ -332,7 +332,7 @@
             },
             "kind": "icon",
             "name": "mdi:vanish-quarter",
-            "confidence": 0.7487729
+            "confidence": 0.74877286
           },
           {
             "bounds": {
@@ -343,7 +343,7 @@
             },
             "kind": "icon",
             "name": "mdi:surround-sound-5-1",
-            "confidence": 0.8300315
+            "confidence": 0.83003134
           },
           {
             "bounds": {
@@ -356,14 +356,14 @@
             "children": [
               {
                 "bounds": {
-                  "x": 760,
-                  "y": 522,
-                  "width": 110,
-                  "height": 52
+                  "x": 762,
+                  "y": 524,
+                  "width": 124,
+                  "height": 46
                 },
                 "kind": "text",
                 "content": "CF-7",
-                "confidence": 98.86473
+                "confidence": 99.94782
               }
             ]
           },
@@ -380,36 +380,36 @@
           },
           {
             "bounds": {
-              "x": 618,
-              "y": 340,
-              "width": 530,
-              "height": 74
+              "x": 610,
+              "y": 352,
+              "width": 504,
+              "height": 56
             },
             "kind": "text",
             "content": "CF-6 CF-8",
-            "confidence": 95.79187
+            "confidence": 99.96958
           },
           {
             "bounds": {
-              "x": 1468,
-              "y": 378,
-              "width": 152,
-              "height": 52
+              "x": 1476,
+              "y": 384,
+              "width": 142,
+              "height": 44
             },
             "kind": "text",
             "content": "CF-ST-3",
-            "confidence": 99.0488
+            "confidence": 99.93367
           },
           {
             "bounds": {
-              "x": 400,
-              "y": 494,
-              "width": 100,
-              "height": 58
+              "x": 394,
+              "y": 502,
+              "width": 104,
+              "height": 42
             },
             "kind": "text",
             "content": "CF-5",
-            "confidence": 93.7559
+            "confidence": 90.3602
           }
         ]
       },
@@ -440,7 +440,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.7887971
+        "confidence": 0.7887973
       },
       {
         "bounds": {
@@ -469,7 +469,7 @@
         },
         "kind": "icon",
         "name": "mdi:tree",
-        "confidence": 0.7242184
+        "confidence": 0.7242188
       },
       {
         "bounds": {
@@ -517,8 +517,8 @@
           "height": 33
         },
         "kind": "icon",
-        "name": "fa-solid:lines-leaning",
-        "confidence": 0.8045359
+        "name": "fa:solid-lines-leaning",
+        "confidence": 0.80453575
       },
       {
         "bounds": {
@@ -538,7 +538,7 @@
         },
         "kind": "icon",
         "name": "tabler:loader-quarter",
-        "confidence": 0.83619976
+        "confidence": 0.83619994
       },
       {
         "bounds": {
@@ -551,14 +551,14 @@
         "children": [
           {
             "bounds": {
-              "x": 1238,
-              "y": 504,
-              "width": 82,
-              "height": 40
+              "x": 1226,
+              "y": 506,
+              "width": 90,
+              "height": 36
             },
             "kind": "text",
             "content": "CF-9",
-            "confidence": 99.80228
+            "confidence": 99.9071
           }
         ]
       },
@@ -571,7 +571,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.7620351
+        "confidence": 0.76203513
       },
       {
         "bounds": {
@@ -611,7 +611,7 @@
         },
         "kind": "icon",
         "name": "mdi:alpha-t",
-        "confidence": 0.83348215
+        "confidence": 0.83348227
       },
       {
         "bounds": {
@@ -642,7 +642,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.756851
+        "confidence": 0.7568508
       },
       {
         "bounds": {
@@ -661,8 +661,8 @@
               "height": 46
             },
             "kind": "icon",
-            "name": "fa-solid:jet-fighter",
-            "confidence": 0.77508456
+            "name": "fa:solid-jet-fighter",
+            "confidence": 0.7750846
           },
           {
             "bounds": {
@@ -704,7 +704,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.81380844
+        "confidence": 0.81380856
       },
       {
         "bounds": {
@@ -715,7 +715,7 @@
         },
         "kind": "icon",
         "name": "mdi:vanish-quarter",
-        "confidence": 0.7483579
+        "confidence": 0.7483577
       },
       {
         "bounds": {
@@ -755,7 +755,7 @@
         },
         "kind": "icon",
         "name": "mdi:triangle",
-        "confidence": 0.86102015
+        "confidence": 0.8610203
       },
       {
         "bounds": {
@@ -775,7 +775,7 @@
         },
         "kind": "icon",
         "name": "mdi:cursor-text",
-        "confidence": 0.7355078
+        "confidence": 0.735508
       },
       {
         "bounds": {
@@ -804,7 +804,7 @@
         },
         "kind": "icon",
         "name": "mdi:triangle",
-        "confidence": 0.89525336
+        "confidence": 0.89525354
       },
       {
         "bounds": {
@@ -833,7 +833,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.8801312
+        "confidence": 0.880131
       },
       {
         "bounds": {
@@ -853,18 +853,7 @@
             },
             "kind": "icon",
             "name": "mdi:settings-helper",
-            "confidence": 0.7877995
-          },
-          {
-            "bounds": {
-              "x": 216,
-              "y": 764,
-              "width": 328,
-              "height": 72
-            },
-            "kind": "text",
-            "content": "🌙💖🚀",
-            "confidence": 62.68571
+            "confidence": 0.7877994
           }
         ]
       },
@@ -877,7 +866,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.89604366
+        "confidence": 0.89604384
       },
       {
         "bounds": {
@@ -888,7 +877,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.85218406
+        "confidence": 0.85218376
       },
       {
         "bounds": {
@@ -917,7 +906,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.85467327
+        "confidence": 0.8546733
       },
       {
         "bounds": {
@@ -937,7 +926,7 @@
         },
         "kind": "icon",
         "name": "mdi:devices",
-        "confidence": 0.739422
+        "confidence": 0.73942196
       },
       {
         "bounds": {
@@ -948,7 +937,7 @@
         },
         "kind": "icon",
         "name": "mdi:star-four-points-box-outline",
-        "confidence": 0.7534166
+        "confidence": 0.75341624
       },
       {
         "bounds": {
@@ -959,7 +948,7 @@
         },
         "kind": "icon",
         "name": "mdi:image-size-select-small",
-        "confidence": 0.72840506
+        "confidence": 0.72840494
       },
       {
         "bounds": {
@@ -979,7 +968,7 @@
         },
         "kind": "icon",
         "name": "mdi:image-size-select-small",
-        "confidence": 0.7378315
+        "confidence": 0.7378317
       },
       {
         "bounds": {
@@ -997,20 +986,9 @@
           "width": 51,
           "height": 29
         },
-        "kind": "container",
-        "children": [
-          {
-            "bounds": {
-              "x": 546,
-              "y": 778,
-              "width": 64,
-              "height": 42
-            },
-            "kind": "text",
-            "content": "前往",
-            "confidence": 98.86027
-          }
-        ]
+        "kind": "icon",
+        "name": "fa:solid-certificate",
+        "confidence": 0.7404331
       },
       {
         "bounds": {
@@ -1030,7 +1008,7 @@
         },
         "kind": "icon",
         "name": "mdi:settings-helper",
-        "confidence": 0.72291875
+        "confidence": 0.7229185
       },
       {
         "bounds": {

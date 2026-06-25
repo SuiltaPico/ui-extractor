@@ -1,1 +1,1 @@
-pub use infer_core::EmbeddingIndex;
+pub use crate::infer::EmbeddingIndex;

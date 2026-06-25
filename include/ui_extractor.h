@@ -48,7 +48,7 @@ UI_EXTRACTOR_API int ui_extractor_extract_file(
 
 UI_EXTRACTOR_API int ui_extractor_reload_icon_pack(void *handle, char **out_error);
 
-/* Icon pack: load precomputed index or build from PNG directory. */
+/* Icon pack: load precomputed index. */
 UI_EXTRACTOR_API void *ui_icon_pack_load(
     const char *embedding_index,
     const char *vision_model,
@@ -56,26 +56,7 @@ UI_EXTRACTOR_API void *ui_icon_pack_load(
     double min_cosine,
     char **out_error);
 
-UI_EXTRACTOR_API void *ui_icon_pack_build(
-    const char *png_dir,
-    const char *vision_model,
-    uint32_t template_size,
-    double min_cosine,
-    char **out_error);
-
 UI_EXTRACTOR_API void ui_icon_pack_destroy(void *handle);
-
-UI_EXTRACTOR_API int ui_icon_pack_save_embeddings(
-    void *handle,
-    const char *path,
-    char **out_error);
-
-UI_EXTRACTOR_API int ui_icon_pack_embed_png_file(
-    void *handle,
-    const char *png_path,
-    float *out_embedding,
-    uint32_t dim,
-    char **out_error);
 
 UI_EXTRACTOR_API int ui_icon_pack_embed_image_bytes(
     void *handle,
@@ -115,14 +96,6 @@ UI_EXTRACTOR_API int ui_icon_pack_match_region_file(
     int width,
     int height,
     char **out_json,
-    char **out_error);
-
-/* Offline helper: PNG dir -> embeddings.bin */
-UI_EXTRACTOR_API int ui_icon_build_embeddings_file(
-    const char *png_dir,
-    const char *vision_model,
-    uint32_t template_size,
-    const char *out_path,
     char **out_error);
 
 UI_EXTRACTOR_API uint32_t ui_icon_embedding_dim(void);

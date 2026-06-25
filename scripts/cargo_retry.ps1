@@ -25,4 +25,5 @@ function Invoke-CargoWithRetry {
             Start-Sleep -Seconds $delay
         }
     }
+    exit $LASTEXITCODE
 }

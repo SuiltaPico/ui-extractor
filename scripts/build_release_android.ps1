@@ -3,7 +3,8 @@ param(
     [string]$OutDir = "dist",
     [switch]$SkipPack,
     [switch]$SkipDownload,
-    [switch]$SkipAssets
+    [switch]$SkipAssets,
+    [string]$DistDir = ""
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
@@ -11,11 +12,8 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 Push-Location $Root
 try {
-    if (-not $SkipAssets) {
-        $prepareArgs = @{ Backend = "ncnn" }
-        if ($SkipDownload) { $prepareArgs.SkipDownload = $true }
-        & (Join-Path $PSScriptRoot "prepare_release_assets.ps1") @prepareArgs
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    if ($SkipAssets) {
+        Write-Host "SkipAssets is deprecated: release zips no longer bundle models."
     }
 
     $versionLine = Select-String -Path "Cargo.toml" -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1
@@ -23,7 +21,7 @@ try {
     $Version = $versionLine.Matches[0].Groups[1].Value
 
     $buildArgs = @{ Abi = "all" }
-    if (-not $SkipDownload) { $buildArgs.DownloadNcnn = $true }
+    if (-not $SkipDownload) { $buildArgs.DownloadMnn = $true }
     & (Join-Path $PSScriptRoot "build_android.ps1") @buildArgs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -39,59 +37,44 @@ try {
     if (-not (Test-Path $header)) { throw "Missing C header: include/ui_extractor.h" }
 
     $readme = @"
-ui-extractor $Version (Android ncnn backend)
+ui-extractor $Version (Android MNN via infer-core)
 
 Contents:
-  libui_extractor.so     - native library (backend-ncnn)
+  jniLibs/<abi>/*.so     - libui_extractor.so + MNN runtime
   include/ui_extractor.h - C ABI
-  models/                - OCR + MobileCLIP2 ncnn weights + dict
-  assets/embeddings.bin  - MDI icon embedding index (~7400 icons)
+  (model packs are NOT bundled)
 
 Integrate:
-  1. Copy libui_extractor.so to app/src/main/jniLibs/<abi>/
-  2. System.loadLibrary("ui_extractor") and System.loadLibrary("c++_shared")
-  3. Copy models/ and assets/embeddings.bin into app assets (see docs/android.md)
+  1. Copy jniLibs/<abi>/*.so into app/src/main/jniLibs/<abi>/
+  2. System.loadLibrary("ui_extractor") (and libc++_shared if needed)
+  3. Download model packs from local-infer-core Releases (same tag), then place them
+     under your app models dir and pass modelsDir in config JSON.
+     pack ids: ocr.paddle.ppocr6-*.mnn.fp32, embed.mobileclip2-s0.mnn.{fp32,int8},
+               icons.bundled.v1.mobileclip2-s0.int8
 
 See docs/android.md for JNI config JSON.
 "@
-
-    $modelFiles = @(
-        "pp-ocrv5_mobile_det.ncnn.param",
-        "pp-ocrv5_mobile_det.ncnn.bin",
-        "pp-ocrv5_mobile_rec.ncnn.param",
-        "pp-ocrv5_mobile_rec.ncnn.bin",
-        "mobileclip2-s0-vision.ncnn.param",
-        "mobileclip2-s0-vision.ncnn.bin",
-        "ppocrv5_dict.txt"
-    )
-
     $abis = @(
         @{ Name = "arm64-v8a"; Label = "android-arm64-v8a" },
         @{ Name = "x86_64"; Label = "android-x86_64" }
     )
 
     foreach ($abi in $abis) {
-        $so = Join-Path $Root "android\jniLibs\$($abi.Name)\libui_extractor.so"
+        $jniSrc = Join-Path $Root "android\jniLibs\$($abi.Name)"
+        $so = Join-Path $jniSrc "libui_extractor.so"
         if (-not (Test-Path $so)) { throw "Missing build output: $so" }
 
         $stage = Join-Path (Get-ScratchDir) "ui-extractor-$($abi.Label)"
         if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
         $includeDir = Join-Path $stage "include"
+        $stageJni = Join-Path $stage "jniLibs\$($abi.Name)"
         New-Item -ItemType Directory -Force -Path $includeDir | Out-Null
+        New-Item -ItemType Directory -Force -Path $stageJni | Out-Null
 
-        Copy-Item $so $stage
-        Copy-Item $header (Join-Path $includeDir "ui_extractor.h")
-
-        if (-not $SkipAssets) {
-            $modelsStage = Join-Path $stage "models"
-            New-Item -ItemType Directory -Force -Path $modelsStage | Out-Null
-            foreach ($name in $modelFiles) {
-                Copy-Item (Join-Path $Root "models\$name") (Join-Path $modelsStage $name)
-            }
-            $assetsStage = Join-Path $stage "assets"
-            New-Item -ItemType Directory -Force -Path $assetsStage | Out-Null
-            Copy-Item (Join-Path $Root "assets\embeddings.bin") (Join-Path $assetsStage "embeddings.bin")
+        Get-ChildItem $jniSrc -Filter "*.so" | ForEach-Object {
+            Copy-Item $_.FullName (Join-Path $stageJni $_.Name) -Force
         }
+        Copy-Item $header (Join-Path $includeDir "ui_extractor.h")
 
         Set-Content -Path (Join-Path $stage "README.txt") -Value $readme -Encoding UTF8
 

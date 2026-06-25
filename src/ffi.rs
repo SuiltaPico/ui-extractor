@@ -13,7 +13,7 @@ use image::DynamicImage;
 use serde::Deserialize;
 
 use crate::engine::ExtractEngine;
-use crate::icon::{build_embedding_index, IconMatchOptions, IconPack, EMBED_DIM};
+use crate::icon::{IconMatchOptions, IconPack, EMBED_DIM};
 use crate::pipeline::ExtractConfig;
 use crate::types::Bounds;
 use crate::{ExtractError, IconConfig, LayoutConfig, OcrConfig};
@@ -88,6 +88,10 @@ struct EngineConfigJson {
     run_ocr: bool,
     #[serde(default = "default_true")]
     run_icon: bool,
+    models_dir: Option<String>,
+    ocr_pack: Option<String>,
+    icon_index_pack: Option<String>,
+    runtime: Option<serde_json::Value>,
     #[serde(default)]
     layout: LayoutConfigJson,
     #[serde(default)]
@@ -103,15 +107,12 @@ struct LayoutConfigJson {
 
 #[derive(Debug, Deserialize, Default)]
 struct OcrConfigJson {
-    model_dir: Option<String>,
     max_side: Option<u32>,
     min_confidence: Option<f32>,
 }
 
 #[derive(Debug, Deserialize, Default)]
 struct IconConfigJson {
-    embedding_index: Option<String>,
-    vision_model: Option<String>,
     template_size: Option<u32>,
     min_cosine: Option<f64>,
     min_side: Option<i32>,
@@ -125,6 +126,8 @@ fn default_true() -> bool {
 }
 
 fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
+    use crate::packs::{resolve_models_dir, DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK};
+
     let parsed: EngineConfigJson =
         serde_json::from_str(json).map_err(|e| format!("invalid config JSON: {e}"))?;
 
@@ -134,9 +137,6 @@ fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
     }
 
     let mut ocr = OcrConfig::default();
-    if let Some(dir) = parsed.ocr.model_dir {
-        ocr.model_dir = dir.into();
-    }
     if let Some(max_side) = parsed.ocr.max_side {
         ocr.max_side = max_side;
     }
@@ -145,12 +145,6 @@ fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
     }
 
     let mut icon = IconConfig::default();
-    if let Some(v) = parsed.icon.embedding_index {
-        icon.embedding_index = v.into();
-    }
-    if let Some(v) = parsed.icon.vision_model {
-        icon.vision_model = v.into();
-    }
     if let Some(v) = parsed.icon.template_size {
         icon.template_size = v;
     }
@@ -170,7 +164,20 @@ fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
         icon.max_aspect = v;
     }
 
+    let runtime = match parsed.runtime {
+        Some(v) => serde_json::from_value(v).map_err(|e| e.to_string())?,
+        None => crate::infer::RuntimeConfig::from_env_or_default(),
+    };
+
     Ok(ExtractConfig {
+        models_dir: resolve_models_dir(parsed.models_dir.as_deref().map(Path::new)),
+        runtime,
+        ocr_pack: parsed
+            .ocr_pack
+            .unwrap_or_else(|| DEFAULT_OCR_PACK.to_string()),
+        icon_index_pack: parsed
+            .icon_index_pack
+            .unwrap_or_else(|| DEFAULT_ICON_INDEX_PACK.to_string()),
         layout,
         ocr,
         icon,
@@ -215,7 +222,7 @@ pub extern "C" fn ui_extractor_create(
     match catch_unwind(AssertUnwindSafe(|| {
         let json = read_path(config_json)?;
         let config = config_from_json(json)?;
-        ExtractEngine::new(config)
+        ExtractEngine::open(config)
             .map(|engine| Box::into_raw(Box::new(ExtractEngineHandle(engine))) as *mut c_void)
             .map_err(map_extract_error)
     })) {
@@ -355,100 +362,12 @@ pub extern "C" fn ui_icon_pack_load(
     }
 }
 
-/// Build an icon pack by embedding every PNG under `png_dir` (offline index build).
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_build(
-    png_dir: *const c_char,
-    vision_model: *const c_char,
-    template_size: c_uint,
-    min_cosine: c_double,
-    out_error: *mut *mut c_char,
-) -> *mut c_void {
-    match catch_unwind(AssertUnwindSafe(|| {
-        let png_dir = read_path(png_dir)?;
-        let vision_model = read_path(vision_model)?;
-        IconPack::build_from_dir(
-            png_dir,
-            vision_model,
-            template_size,
-            icon_match_options(min_cosine),
-        )
-        .map(|pack| Box::into_raw(Box::new(IconPackHandle(pack))) as *mut c_void)
-        .map_err(map_extract_error)
-    })) {
-        Ok(Ok(ptr)) => {
-            clear_error(out_error);
-            ptr
-        }
-        Ok(Err(message)) => {
-            set_error(out_error, message);
-            ptr::null_mut()
-        }
-        Err(_) => {
-            set_error(out_error, "internal panic");
-            ptr::null_mut()
-        }
-    }
-}
-
-/// Destroy a handle from [`ui_icon_pack_load`] / [`ui_icon_pack_build`].
+/// Destroy a handle from [`ui_icon_pack_load`].
 #[no_mangle]
 pub unsafe extern "C" fn ui_icon_pack_destroy(handle: *mut c_void) {
     if !handle.is_null() {
         drop(Box::from_raw(handle as *mut IconPackHandle));
     }
-}
-
-/// Save the in-memory embedding index to disk (`embed-mdi` output format).
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_save_embeddings(
-    handle: *mut c_void,
-    path: *const c_char,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_mut()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        let path = read_path(path)?;
-        pack.0.save_embeddings(path).map_err(map_extract_error)?;
-        Ok(())
-    })
-}
-
-/// Embed a template PNG file (library-style, color on white). Writes `dim` floats to `out_embedding`.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_embed_png_file(
-    handle: *mut c_void,
-    png_path: *const c_char,
-    out_embedding: *mut f32,
-    dim: c_uint,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_mut()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        if dim as usize != EMBED_DIM {
-            return Err(format!("expected embedding dim {EMBED_DIM}, got {dim}"));
-        }
-        if out_embedding.is_null() {
-            return Err("null out_embedding".into());
-        }
-        let png_path = read_path(png_path)?;
-        let embedding = pack
-            .0
-            .embed_template_png(png_path)
-            .map_err(map_extract_error)?;
-        unsafe {
-            ptr::copy_nonoverlapping(embedding.as_ptr(), out_embedding, EMBED_DIM);
-        }
-        Ok(())
-    })
 }
 
 /// Embed an icon crop from image bytes (screenshot-style). Writes `dim` floats to `out_embedding`.
@@ -614,32 +533,6 @@ pub extern "C" fn ui_icon_pack_match_region_file(
                 *out_json = string_to_raw(json);
             }
         }
-        Ok(())
-    })
-}
-
-/// Standalone helper: build `embeddings.bin` from a PNG directory without keeping a pack handle.
-#[no_mangle]
-pub extern "C" fn ui_icon_build_embeddings_file(
-    png_dir: *const c_char,
-    vision_model: *const c_char,
-    template_size: c_uint,
-    out_path: *const c_char,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let png_dir = read_path(png_dir)?;
-        let vision_model = read_path(vision_model)?;
-        let out_path = read_path(out_path)?;
-        let index = build_embedding_index(
-            Path::new(png_dir),
-            Path::new(vision_model),
-            template_size,
-        )
-        .map_err(map_extract_error)?;
-        index
-            .save(Path::new(out_path))
-            .map_err(|e| map_extract_error(ExtractError::Image(e.to_string())))?;
         Ok(())
     })
 }

@@ -1,53 +1,23 @@
-mod build;
-mod embed;
 mod embedding;
-mod embedder_ort;
-#[cfg(feature = "backend-ncnn")]
-mod embedder_ncnn;
-mod library;
 mod pack;
 mod preprocess;
 mod rasterize;
 
-use std::path::PathBuf;
 use std::time::Instant;
 
 use image::{DynamicImage, GrayImage};
 
 use crate::{
-    error::Result,
     types::{Bounds, UiElement, UiElementKind},
 };
 
-pub use build::{
-    build_embedding_index, build_embedding_index_from_jobs, collect_png_embed_jobs,
-    embedding_worker_jobs, PngEmbedJob,
-};
-pub use embed::{build_embeddings_file, BuildEmbeddingsOptions};
 pub use embedding::EmbeddingIndex;
-pub use embedder_ort::IconEmbedder;
-#[cfg(feature = "backend-ncnn")]
-pub use embedder_ncnn::IconEmbedder as NcnnIconEmbedder;
 pub use rasterize::{rasterize_svg_icons, IconRasterColor, RasterizeSvgOptions};
-pub use library::IconLibrary;
 pub use pack::{IconMatchHit, IconMatchOptions, IconPack};
-pub use preprocess::{icon_crop_to_rgb256, template_png_to_rgb256, EMBED_DIM, INPUT_SIZE};
-
-fn default_vision_model() -> PathBuf {
-    #[cfg(feature = "backend-ncnn")]
-    {
-        let ncnn = PathBuf::from("models/mobileclip2-s0-vision.ncnn.param");
-        if ncnn.is_file() {
-            return ncnn;
-        }
-    }
-    PathBuf::from("models/mobileclip2-s0-vision.onnx")
-}
+pub use preprocess::{icon_crop_to_rgb256, EMBED_DIM, INPUT_SIZE};
 
 #[derive(Debug, Clone)]
 pub struct IconConfig {
-    pub embedding_index: PathBuf,
-    pub vision_model: PathBuf,
     pub template_size: u32,
     pub min_cosine: f64,
     pub min_side: i32,
@@ -59,8 +29,6 @@ pub struct IconConfig {
 impl Default for IconConfig {
     fn default() -> Self {
         Self {
-            embedding_index: PathBuf::from("assets/embeddings.bin"),
-            vision_model: default_vision_model(),
             template_size: 48,
             min_cosine: 0.72,
             min_side: 12,
@@ -84,26 +52,6 @@ pub struct IconMatchStats {
     pub timings: IconTimings,
 }
 
-pub fn attach_icons(
-    root: &mut UiElement,
-    source: &DynamicImage,
-    library: &IconLibrary,
-    embedder: &mut IconEmbedder,
-    config: &IconConfig,
-) -> IconMatchStats {
-    let match_start = Instant::now();
-    let gray = crate::layout::to_gray(source);
-    let mut stats = IconMatchStats {
-        candidates: 0,
-        matched: 0,
-        timings: IconTimings::default(),
-    };
-
-    walk_mut(root, &gray, library, embedder, config, &mut stats);
-    stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
-    stats
-}
-
 pub fn attach_icons_with_pack(
     root: &mut UiElement,
     source: &DynamicImage,
@@ -121,39 +69,6 @@ pub fn attach_icons_with_pack(
     walk_mut_pack(root, &gray, pack, config, &mut stats);
     stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
     stats
-}
-
-pub fn try_load_library(config: &IconConfig) -> Result<IconLibrary> {
-    IconLibrary::load(&config.embedding_index)
-}
-
-fn walk_mut(
-    node: &mut UiElement,
-    gray: &GrayImage,
-    library: &IconLibrary,
-    embedder: &mut IconEmbedder,
-    config: &IconConfig,
-    stats: &mut IconMatchStats,
-) {
-    for child in &mut node.children {
-        walk_mut(child, gray, library, embedder, config, stats);
-    }
-
-    let mut i = 0;
-    while i < node.children.len() {
-        let child = &node.children[i];
-        if is_icon_candidate(child, config) {
-            stats.candidates += 1;
-            if let Some((name, score)) =
-                match_candidate(gray, &child.bounds, library, embedder, config)
-            {
-                let bounds = child.bounds;
-                node.children[i] = UiElement::icon(bounds, name, Some(score as f32));
-                stats.matched += 1;
-            }
-        }
-        i += 1;
-    }
 }
 
 fn walk_mut_pack(
@@ -210,28 +125,13 @@ fn has_text_descendant(element: &UiElement) -> bool {
     })
 }
 
-fn match_candidate(
-    gray: &GrayImage,
-    bounds: &Bounds,
-    library: &IconLibrary,
-    embedder: &mut IconEmbedder,
-    config: &IconConfig,
-) -> Option<(String, f64)> {
-    let crop = crop_gray(gray, bounds)?;
-    let rgb = icon_crop_to_rgb256(&crop, config.template_size);
-    let embedding = embedder.embed_rgb256(&rgb).ok()?;
-    library.best_match(&embedding, config.min_cosine)
-}
-
 fn match_candidate_pack(
     gray: &GrayImage,
     bounds: &Bounds,
     pack: &mut IconPack,
 ) -> Option<IconMatchHit> {
     let crop = crop_gray(gray, bounds)?;
-    let rgb = icon_crop_to_rgb256(&crop, pack.template_size);
-    let embedding = pack.embedder.embed_rgb256(&rgb).ok()?;
-    pack.match_embedding(&embedding)
+    pack.match_gray_crop(&crop)
 }
 
 fn crop_gray(gray: &GrayImage, bounds: &Bounds) -> Option<GrayImage> {
@@ -257,8 +157,6 @@ fn crop_gray(gray: &GrayImage, bounds: &Bounds) -> Option<GrayImage> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-
     use super::*;
 
     #[test]
@@ -277,51 +175,5 @@ mod tests {
     fn rejects_wide_bar() {
         let el = UiElement::container(Bounds::new(0, 0, 80, 16), vec![]);
         assert!(!is_icon_candidate(&el, &IconConfig::default()));
-    }
-
-    #[test]
-    fn template_png_rgb_differs_between_icons() {
-        let dir = Path::new("assets/icons/mdi");
-        if !dir.is_dir() {
-            return;
-        }
-        let home = dir.join("home.png");
-        let menu = dir.join("menu.png");
-        if !home.is_file() || !menu.is_file() {
-            return;
-        }
-        let home_rgb = template_png_to_rgb256(&image::open(home).unwrap(), 48);
-        let menu_rgb = template_png_to_rgb256(&image::open(menu).unwrap(), 48);
-        assert_ne!(home_rgb.as_raw(), menu_rgb.as_raw());
-    }
-
-    #[test]
-    fn embedding_roundtrip_when_assets_present() {
-        let index_path = Path::new("assets/embeddings.bin");
-        let model = default_vision_model();
-        if !index_path.is_file() || !model.is_file() {
-            return;
-        }
-
-        let config = IconConfig::default();
-        let library = match try_load_library(&config) {
-            Ok(lib) => lib,
-            Err(_) => return,
-        };
-
-        let dir = Path::new("assets/icons/mdi");
-        let name = "mdi:home";
-        let png_path = dir.join("home.png");
-        if !png_path.is_file() {
-            return;
-        }
-
-        let mut embedder = IconEmbedder::load(&model).unwrap();
-        let img = image::open(&png_path).unwrap();
-        let rgb = template_png_to_rgb256(&img, config.template_size);
-        let embedding = embedder.embed_rgb256(&rgb).unwrap();
-        let (matched, score) = library.best_match(&embedding, 0.5).unwrap();
-        assert_eq!(matched, name);
-        assert!(score >= 0.85, "self-match score {score}");
     }
 }

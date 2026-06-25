@@ -2,7 +2,8 @@
 param(
     [string]$OutDir = "dist",
     [switch]$SkipPack,
-    [switch]$SkipAssets
+    [switch]$SkipAssets,
+    [string]$DistDir = ""
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
@@ -10,13 +11,8 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 Push-Location $Root
 try {
-    if (-not $SkipAssets) {
-        Write-Host "Building host ui-extractor (release)..."
-        Invoke-CargoWithRetry build --release --bin ui-extractor
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-        & (Join-Path $PSScriptRoot "prepare_release_assets.ps1") -Backend ort
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    if ($SkipAssets) {
+        Write-Host "SkipAssets is deprecated: release zips no longer bundle models."
     }
 
     $versionLine = Select-String -Path "Cargo.toml" -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1
@@ -36,10 +32,25 @@ try {
         rustup target add $t.Triple 2>&1 | Out-Null
         $ErrorActionPreference = $prevEap
         if ($LASTEXITCODE -ne 0) { throw "rustup target add failed: $($t.Triple)" }
-        Invoke-CargoWithRetry build --release --target $t.Triple
+
+        $InferCoreRoot = Join-Path (Split-Path $Root -Parent) "local-infer-core"
+        Write-Host "Building infer-core-ffi for $($t.Label)..."
+        Push-Location $InferCoreRoot
+        try {
+            Invoke-CargoWithRetry @('build', '-p', 'infer-core-ffi', '--release', '--target', $t.Triple, '--features', 'backend-ort')
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        } finally {
+            Pop-Location
+        }
+
+        Invoke-CargoWithRetry @('build', '--release', '--target', $t.Triple)
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+        $inferDll = Join-Path (Split-Path $Root -Parent) "local-infer-core\target\$($t.Triple)\release\infer_core.dll"
         $releaseDir = Join-Path $Root "target\$($t.Triple)\release"
+        if (Test-Path $inferDll) {
+            Copy-Item $inferDll $releaseDir -Force
+        }
         $exe = Join-Path $releaseDir "ui-extractor.exe"
         $dll = Join-Path $releaseDir "ui_extractor.dll"
         $importLib = Join-Path $releaseDir "ui_extractor.dll.lib"
@@ -68,34 +79,28 @@ try {
     $readme = @"
 ui-extractor $Version ($targetLabels)
 
-Desktop release using ONNX Runtime (backend-ort).
+Desktop release using infer-core (ONNX Runtime / backend-ort).
 
 Contents:
-  ui-extractor.exe        - CLI
+  ui-extractor.exe        - CLI (layout + pipeline; loads infer_core.dll at runtime)
   ui_extractor.dll        - native library (C ABI)
-  ui_extractor.dll.lib    - MSVC import library (link against the DLL)
+  infer_core.dll          - local-infer-core inference (OCR + embed)
+  ui_extractor.dll.lib    - MSVC import library
   include/ui_extractor.h  - C ABI header
-  models/                 - OCR + MobileCLIP2 ONNX weights
-  assets/embeddings.bin   - MDI icon embedding index (~7400 icons)
+  (model packs are NOT bundled)
 
 CLI:
-  ui-extractor extract --input screenshot.png --annotate
+  ui-extractor extract --input screenshot.png --annotate --models-dir <models_dir>
 
 SDK integrate:
   1. Link ui_extractor.dll.lib and ship ui_extractor.dll next to your executable
   2. #include "ui_extractor.h"
-  3. Copy models/ and assets/embeddings.bin (or set paths in config JSON)
+  3. Download model packs from local-infer-core Releases (same tag) and extract to <models_dir>
+     pack ids: ocr.paddle.ppocr6-*.onnx.fp32, embed.mobileclip2-s0.onnx.fp32,
+               icons.bundled.v1.mobileclip2-s0.int8
 
-Run the CLI from the extracted directory so default model paths resolve.
+Run the CLI with explicit --models-dir (or set LOCAL_INFER_ROOT).
 "@
-
-    $modelFiles = @(
-        "pp-ocrv5_mobile_det.onnx",
-        "pp-ocrv5_mobile_rec.onnx",
-        "ppocrv5_dict.txt",
-        "mobileclip2-s0-vision.onnx"
-    )
-
     foreach ($item in $built) {
         $stage = Join-Path (Get-ScratchDir) "ui-extractor-$($item.Label)"
         if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
@@ -104,21 +109,14 @@ Run the CLI from the extracted directory so default model paths resolve.
 
         Copy-Item $item.Exe (Join-Path $stage "ui-extractor.exe")
         Copy-Item $item.Dll $stage
+        $inferCoreDll = Join-Path (Split-Path $item.Exe -Parent) "infer_core.dll"
+        if (Test-Path $inferCoreDll) {
+            Copy-Item $inferCoreDll $stage
+        }
         if (Test-Path $item.ImportLib) {
             Copy-Item $item.ImportLib $stage
         }
         Copy-Item $header (Join-Path $includeDir "ui_extractor.h")
-
-        if (-not $SkipAssets) {
-            $modelsStage = Join-Path $stage "models"
-            New-Item -ItemType Directory -Force -Path $modelsStage | Out-Null
-            foreach ($name in $modelFiles) {
-                Copy-Item (Join-Path $Root "models\$name") (Join-Path $modelsStage $name)
-            }
-            $assetsStage = Join-Path $stage "assets"
-            New-Item -ItemType Directory -Force -Path $assetsStage | Out-Null
-            Copy-Item (Join-Path $Root "assets\embeddings.bin") (Join-Path $assetsStage "embeddings.bin")
-        }
 
         Set-Content -Path (Join-Path $stage "README.txt") -Value $readme -Encoding UTF8
 

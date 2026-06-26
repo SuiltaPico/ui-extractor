@@ -30,10 +30,19 @@ jobs:
           toolchain: "1.95.0"
           targets: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
+      - name: Cache infer-core Windows release
+        uses: actions/cache@v4
+        with:
+          path: .infer-core-release
+          key: infer-core-release-${{ github.ref_name }}-windows-${{ hashFiles('scripts/infer_core_release.ps1', 'scripts/download_infer_core_release.ps1') }}
+          restore-keys: |
+            infer-core-release-${{ github.ref_name }}-windows-
+
       - name: Cache Rust build artifacts
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: release-ui-extractor-windows-rust-1.95
+          cache-all-targets: true
 
       - name: Download infer-core Windows release
         shell: pwsh
@@ -59,25 +68,44 @@ jobs:
           toolchain: "1.95.0"
           targets: aarch64-linux-android,x86_64-linux-android
 
+      - name: Cache infer-core Android release
+        uses: actions/cache@v4
+        with:
+          path: .infer-core-release
+          key: infer-core-release-${{ github.ref_name }}-android-${{ hashFiles('scripts/infer_core_release.ps1', 'scripts/download_infer_core_release.ps1') }}
+          restore-keys: |
+            infer-core-release-${{ github.ref_name }}-android-
+
       - name: Cache Rust build artifacts
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: release-ui-extractor-android-rust-1.95
+          cache-all-targets: true
 
       - uses: nttld/setup-ndk@v1
         id: ndk
         with:
           ndk-version: r27c
 
+      - name: Cache cargo-ndk
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-ndk
+          key: cargo-ndk-${{ runner.os }}-locked
+
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
+
+      - name: Download infer-core Android release
+        shell: pwsh
+        run: ./scripts/download_infer_core_release.ps1 -Platform android
 
       - name: Build Android release packages
         shell: pwsh
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
           NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-        run: ./scripts/build_release_android.ps1
+        run: ./scripts/build_release_android.ps1 -SkipDownload
 
       - uses: actions/upload-artifact@v6
         with:

@@ -14,38 +14,60 @@
 
 ## 快速开始（Windows，从零可用）
 
-> 假设两个仓库同级：`D:\repo\ui-extractor` 与 `D:\repo\local-infer-core`。
+### 1. 下载二进制
+
+从 [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) 下载 `ui-extractor-windows-x64.zip`（或 arm64），解压到任意目录，例如 `C:\tools\ui-extractor`。包内已含 `ui-extractor.exe` 与 `infer_core.dll`。
+
+### 2. 下载模型包
+
+从 [local-infer-core v0.1.0 Release](https://github.com/SuiltaPico/local-infer-core/releases/tag/v0.1.0) 下载并解压到 `models\{pack_id}\`（与 `ui-extractor.exe` 同级的 `models` 目录）：
+
+| 资产 zip | 解压目标 |
+|----------|----------|
+| `ocr.paddle.ppocr6-tiny.onnx.fp32.zip` | `models\ocr.paddle.ppocr6-tiny.onnx.fp32\` |
+| `embed.mobileclip2-s0.onnx.fp32.zip` | `models\embed.mobileclip2-s0.onnx.fp32\` |
+| `icons.bundled.v1.mobileclip2-s0.int8.zip` | `models\icons.bundled.v1.mobileclip2-s0.int8\` |
+
+### 3. 运行
 
 ```powershell
-# 1) 在 local-infer-core 构建推理动态库
+cd C:\tools\ui-extractor
+.\ui-extractor.exe extract --input screenshot.png --annotate `
+  --models-dir .\models `
+  --ocr-pack ocr.paddle.ppocr6-tiny.onnx.fp32 `
+  --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8
+```
+
+也可将 `--models-dir` 指向任意目录，或通过环境变量 `LOCAL_INFER_ROOT` 指定模型根路径。
+
+若出现 `0xc0000135` / `STATUS_DLL_NOT_FOUND`，说明 `infer_core.dll` 不在 `ui-extractor.exe` 同目录或 `PATH` 中。
+
+### 从源码开发（可选）
+
+克隆本仓库并本地编译时，可让 `ui-extractor` 与 `local-infer-core` 同级（例如 `D:\repo\ui-extractor` 与 `D:\repo\local-infer-core`），然后：
+
+```powershell
+# 构建 infer_core.dll
 cd D:\repo\local-infer-core
 cargo build -p infer-core-ffi
 
-# 2) 在 ui-extractor 准备模型包（默认装到 ui-extractor/models）
+# 安装模型包 + 复制动态库
 cd D:\repo\ui-extractor
 powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
-
-# 3) 让 ui-extractor CLI 能找到 infer_core.dll（首次必做）
 Copy-Item -Force ..\local-infer-core\target\debug\infer_core.dll .\target\debug\infer_core.dll
 
-# 4) 运行一次提取（验证完整链路：布局 + OCR + 图标）
+# 验证
 cargo run --bin ui-extractor -- extract --input .\tests\cases\zhihu\input.png --annotate `
   --models-dir .\models `
   --ocr-pack ocr.paddle.ppocr6-tiny.onnx.fp32 `
   --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8
 ```
 
-如需一键回归用例：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1
-```
-
-若出现 `0xc0000135` / `STATUS_DLL_NOT_FOUND`，说明 `infer_core.dll` 不在可执行文件同目录或 `PATH` 中。
+一键回归用例：`powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
 
 ## 推理后端
 
-`ui-extractor` 不再内置独立 ML 后端选择；运行时统一通过 `infer_core.dll`/`libinfer_core.so`（来自 `local-infer-core`）执行 OCR 与嵌入推理。
+运行时通过 `infer_core.dll`/`libinfer_core.so`（来自 `local-infer-core`）执行 OCR 与嵌入推理。
 
 ## 文档
 
@@ -115,7 +137,6 @@ powershell -ExecutionPolicy Bypass -File scripts/build_android.ps1
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build_release_windows.ps1
 powershell -ExecutionPolicy Bypass -File scripts/build_release_android.ps1
-# → dist/ui-extractor-<version>-*.zip（仅二进制与头文件，不含 models）
 ```
 
 模型包请从 `local-infer-core` 同版本 Release 下载（`ocr.*` / `embed.*` / `icons.*`），

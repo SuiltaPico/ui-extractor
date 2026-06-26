@@ -1,83 +1,68 @@
 import 'dart:io';
-import 'package:native_assets_cli/native_assets_cli.dart';
-import 'package:http/http.dart' as http;
-import 'package:archive/archive.dart';
-import 'package:path/path.dart' as p;
 
-const String version = '0.1.0';
-const String repo = 'SuiltaPico/ui-extractor';
+import 'package:code_assets/code_assets.dart';
+import 'package:hooks/hooks.dart';
+import 'package:ui_extractor/src/native_release.dart';
+import 'package:ui_extractor/src/native_release_fetch.dart';
+
+const String nativeAssetName = 'src/native_library.dart';
 
 void main(List<String> args) async {
-  await build(args, (config, output) async {
-    final packageName = config.packageName;
-    final targetOS = config.targetOS;
-    final targetArch = config.targetArchitecture;
-
-    final assetName = _getAssetName(targetOS, targetArch);
-    if (assetName == null) {
-      throw UnsupportedError('Unsupported target: $targetOS $targetArch');
+  await build(args, (input, output) async {
+    if (!input.config.buildCodeAssets) {
+      return;
     }
 
-    final downloadUrl = 'https://github.com/$repo/releases/download/v$version/$assetName.zip';
-    final outDir = config.outputDirectory.toFilePath();
-    final extractDir = p.join(outDir, assetName);
+    final code = input.config.code;
+    final targetOS = code.targetOS;
+    final targetArchitecture = code.targetArchitecture;
 
-    final libName = _getLibName(targetOS);
-    final libPath = p.join(extractDir, libName);
-
-    if (!File(libPath).existsSync()) {
-      print('Downloading native assets from $downloadUrl...');
-      final response = await http.get(Uri.parse(downloadUrl));
-      if (response.statusCode != 200) {
-        // Fallback or error
-        print('Failed to download from GitHub (Status: ${response.statusCode}).');
-        print('If this is a development build, ensure you have built the native library manually.');
-        // For now, we throw an error to let the user know.
-        // In a real scenario, we might want to check if the file exists locally.
-        throw Exception('Failed to download native assets: ${response.reasonPhrase}');
-      }
-
-      final bytes = response.bodyBytes;
-      final archive = ZipDecoder().decodeBytes(bytes);
-
-      for (final file in archive) {
-        final filename = file.name;
-        if (file.isFile) {
-          final data = file.content as List<int>;
-          File(p.join(outDir, assetName, filename))
-            ..createSync(recursive: true)
-            ..writeAsBytesSync(data);
-        } else {
-          Directory(p.join(outDir, assetName, filename)).createSync(recursive: true);
-        }
-      }
+    if (input.userDefines['skip_download'] == true) {
+      return;
     }
 
-    // Register the native library
-    output.addAsset(NativeCodeAsset(
-      package: packageName,
-      name: 'ui_extractor',
-      linkMode: DynamicLoadingBundled(),
-      os: targetOS,
-      architecture: targetArch,
-      file: Uri.file(libPath),
-    ));
+    final repo =
+        input.userDefines['release_repo'] as String? ?? defaultReleaseRepo;
+    final tag =
+        input.userDefines['release_tag'] as String? ?? defaultReleaseTag;
+    final localLibUri = input.userDefines.path('local_lib');
+
+    try {
+      final libFile = await resolveNativeLibraryFile(
+        outputDirectory: Directory.fromUri(input.outputDirectoryShared),
+        packageRoot: input.packageRoot,
+        targetOS: targetOS,
+        targetArchitecture: targetArchitecture,
+        repo: repo,
+        tag: tag,
+        localLib: localLibUri?.toFilePath(),
+      );
+
+      output.assets.code.add(
+        CodeAsset(
+          package: input.packageName,
+          name: nativeAssetName,
+          linkMode: DynamicLoadingBundled(),
+          file: libFile.uri,
+        ),
+      );
+
+      if (Platform.isLinux || Platform.isMacOS) {
+        output.dependencies.add(libFile.uri);
+      }
+    } on UnsupportedError catch (e) {
+      throw UnsupportedError(
+        'ui_extractor: ${e.message ?? e}\n'
+        'Supported: Windows (x64, arm64), Android (arm64, x64).\n'
+        'Use hooks user_defines local_lib, $uiExtractorLibEnv, '
+        'or cargo build --release in the ui-extractor repo.',
+      );
+    } on HttpException catch (e) {
+      throw StateError(
+        'ui_extractor: failed to download native library (${e.uri}): ${e.message}\n'
+        'Build locally in the ui-extractor repo, or set hooks user_defines '
+        'local_lib / $uiExtractorLibEnv.',
+      );
+    }
   });
-}
-
-String? _getAssetName(OS os, Architecture? arch) {
-  if (os == OS.windows) {
-    if (arch == Architecture.x64) return 'ui-extractor-windows-x64';
-    if (arch == Architecture.arm64) return 'ui-extractor-windows-arm64';
-  } else if (os == OS.android) {
-    if (arch == Architecture.arm64) return 'ui-extractor-android-arm64-v8a';
-    if (arch == Architecture.x64) return 'ui-extractor-android-x86_64';
-  }
-  return null;
-}
-
-String _getLibName(OS os) {
-  if (os == OS.windows) return 'ui_extractor.dll';
-  if (os == OS.android) return 'libui_extractor.so';
-  return 'libui_extractor.so';
 }

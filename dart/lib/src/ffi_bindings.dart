@@ -1,19 +1,19 @@
 import 'dart:convert';
 import 'dart:ffi';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
 import 'config.dart';
 import 'exceptions.dart';
+import 'native_library.dart';
 
 final class _Bindings {
   _Bindings._();
 
   static final _Bindings instance = _Bindings._();
 
-  late final DynamicLibrary _lib = _openLibrary();
+  late final DynamicLibrary _lib = openUiExtractorLibrary();
 
   late final Pointer<Utf8> Function() _version =
       _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
@@ -156,17 +156,6 @@ final class _Bindings {
       throw UiExtractorException('expected JSON object from native library');
     }
     return decoded;
-  }
-
-  static DynamicLibrary _openLibrary() {
-    try {
-      return DynamicLibrary.open('ui_extractor');
-    } catch (_) {
-      if (Platform.isWindows) {
-        return DynamicLibrary.open('ui_extractor.dll');
-      }
-      return DynamicLibrary.open('libui_extractor.so');
-    }
   }
 }
 

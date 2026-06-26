@@ -1,10 +1,10 @@
 # ui-extractor — 产品目标
 
-**ui-extractor** 从 UI 截图快速提取**元素树、文本坐标、图标名称**，输出 JSON（及可选标注图），供纯文本 LLM 理解界面。它是 **CLI / 动态库** 项目，**不包含**神经网络实现 — 推理全部交给 [local-infer-core](../local-infer-core/PRODUCT.md)。
+**ui-extractor** 从 UI 截图快速提取**元素树、文本坐标、图标名称**，输出 JSON（及可选标注图），供纯文本 LLM 理解界面。它是 **CLI / 动态库** 项目，**不包含**神经网络实现 — 推理全部交给 [local-infer-core](../local-infer-core/docs/dev/PRODUCT.md)。
 
 相关仓库：
 
-- [local-infer-core](../local-infer-core/PRODUCT.md) — OCR、嵌入、模型包
+- [local-infer-core](../local-infer-core/docs/dev/PRODUCT.md) — OCR、嵌入、模型包
 - [Mauchat](../mauchat/PRODUCT.md) — UI 自动化消费方
 
 ---
@@ -89,7 +89,7 @@ ui-extractor extract --input screenshot.png \
 
 ## 模型与图标库：三种来源
 
-1. **官方包** — 从 [local-infer-core Releases](../local-infer-core/PRODUCT.md#官方-releasegithub-releases) 下载 zip，解压到 `{models_dir}/{pack_id}/`
+1. **官方包** — 从 [local-infer-core Releases](../local-infer-core/docs/dev/PRODUCT.md#官方-releasegithub-releases) 下载 zip，解压到 `{models_dir}/{pack_id}/`
 2. **自备包** — 符合 manifest v1 的目录，放入 `{models_dir}/` 即可
 3. **自定义图标库** — 上传 PNG + 用 infer-core 工具离线建 `icon_index` 包（manifest 声明 `embed_model_id`）；与官方 `icons.bundled.v1.*` 并列，不替代其 Release 地位
 
@@ -110,7 +110,7 @@ ui-extractor extract --input screenshot.png \
 | `dart/` pub 包 **`ui_extractor`** | Flutter FFI；**依赖** `local_infer_core` dart 包 |
 | `tests/cases/` | 回归（input.jpg、output.json、annotated.png） |
 
-Native hook **只下载 `ui_extractor` 动态库**；模型目录取自 `local_infer_core` 的 `modelsDir`（见 [local-infer-core IMPLEMENTATION §6](../local-infer-core/IMPLEMENTATION.md#62-dart-包-ui_extractorui-extractor-仓库-dart)）。
+Native hook **只下载 `ui_extractor` 动态库**；模型目录取自 `local_infer_core` 的 `modelsDir`（见 [local-infer-core `dart/`](../local-infer-core/dart/)）。
 
 ---
 

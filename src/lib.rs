@@ -19,8 +19,7 @@ pub use skeleton::{render_skeleton_html, write_skeleton_html};
 pub use cases::{format_ms, process_case, run_cases, CaseBatchSummary, CaseOutputs, CaseTimings};
 pub use icon::{
     attach_icons_with_pack, IconConfig, IconMatchHit,
-    IconMatchOptions, IconMatchStats, IconPack, IconRasterColor, IconTimings,
-    RasterizeSvgOptions, rasterize_svg_icons,
+    IconMatchOptions, IconMatchStats, IconPack, IconTimings,
 };
 pub use layout::{LayoutConfig, LayoutStages};
 pub use ocr::{OcrConfig, OcrTimings};

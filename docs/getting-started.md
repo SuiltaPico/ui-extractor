@@ -117,9 +117,8 @@ tests/cases/<name>/
 |--------|------|
 | `extract` | 单张截图：布局 + OCR + 图标 |
 | `cases` | 批量处理 `tests/cases` |
-| `icon rasterize-svg` | SVG 批量栅格化为 PNG |
-| `icon match` | 单图/区域匹配图标库 |
-| `icon search` | 单图/区域 top-k 检索 |
+
+离线图标素材下载、SVG 栅格化、建 `icons.bundled` 索引包见 `local-infer-core`（`scripts/download_icons.ps1`、`infer-core-helper`）。
 
 ## Rust 库 API
 
@@ -144,4 +143,4 @@ cargo run --bin ui-extractor -- extract --input screenshot.png `
   --min-cosine 0.72
 ```
 
-离线“PNG -> embeddings.bin”构建入口已迁移到 `local-infer-core`（`icon-index-build`）。
+离线“PNG -> embeddings.bin”构建入口在 `local-infer-core`（`infer-core-helper icon index-build`）。

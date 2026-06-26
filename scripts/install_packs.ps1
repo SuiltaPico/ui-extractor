@@ -22,10 +22,11 @@ param(
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
+. (Join-Path $PSScriptRoot "infer_core_root.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 $ModelsRoot = if ([IO.Path]::IsPathRooted($ModelsDir)) { $ModelsDir } else { Join-Path $Root $ModelsDir }
-$InferCoreRoot = Join-Path (Split-Path $Root -Parent) "local-infer-core"
+$InferCoreRoot = Get-InferCoreRoot -UiExtractorRoot $Root
 $CatalogScript = Join-Path $InferCoreRoot "scripts\packs\catalog.ps1"
 if (-not (Test-Path $CatalogScript)) {
     throw "Missing infer-core catalog helpers: $CatalogScript"

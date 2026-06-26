@@ -2,11 +2,16 @@
 param(
     [string]$OutDir = "dist",
     [switch]$SkipPack,
+    [switch]$SkipDownload,
     [switch]$SkipAssets,
-    [string]$DistDir = ""
+    [string]$DistDir = "",
+    [string]$ReleaseRepo = "",
+    [string]$ReleaseTag = "",
+    [string]$InferCoreReleaseDir = ""
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
+. (Join-Path $PSScriptRoot "infer_core_release.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 Push-Location $Root
@@ -18,6 +23,11 @@ try {
     $versionLine = Select-String -Path "Cargo.toml" -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1
     if (-not $versionLine) { throw "Could not read version from Cargo.toml" }
     $Version = $versionLine.Matches[0].Groups[1].Value
+
+    if (-not $SkipDownload) {
+        & (Join-Path $PSScriptRoot "download_infer_core_release.ps1") -Platform windows -ReleaseRepo $ReleaseRepo -ReleaseTag $ReleaseTag -OutDir $InferCoreReleaseDir
+        if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
+    }
 
     $targets = @(
         @{ Triple = "x86_64-pc-windows-msvc"; Label = "windows-x64" },
@@ -31,23 +41,21 @@ try {
         $ErrorActionPreference = 'SilentlyContinue'
         rustup target add $t.Triple 2>&1 | Out-Null
         $ErrorActionPreference = $prevEap
-        if ($LASTEXITCODE -ne 0) { throw "rustup target add failed: $($t.Triple)" }
+        if ($LASTEXITCODE -gt 0) { throw "rustup target add failed: $($t.Triple)" }
 
-        $InferCoreRoot = Join-Path (Split-Path $Root -Parent) "local-infer-core"
-        Write-Host "Building infer-core-ffi for $($t.Label)..."
-        Push-Location $InferCoreRoot
-        try {
-            Invoke-CargoWithRetry @('build', '-p', 'infer-core-ffi', '--release', '--target', $t.Triple, '--features', 'backend-ort')
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        } finally {
-            Pop-Location
-        }
+        $inferLibDir = Resolve-InferCoreWindowsLibDir `
+            -Triple $t.Triple `
+            -ReleaseRoot $InferCoreReleaseDir `
+            -Repo $ReleaseRepo `
+            -Tag $ReleaseTag
+        Write-Host "Using infer-core release lib dir: $inferLibDir"
+        $env:INFER_CORE_LIB_DIR = $inferLibDir
 
         Invoke-CargoWithRetry @('build', '--release', '--target', $t.Triple)
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
 
-        $inferDll = Join-Path (Split-Path $Root -Parent) "local-infer-core\target\$($t.Triple)\release\infer_core.dll"
         $releaseDir = Join-Path $Root "target\$($t.Triple)\release"
+        $inferDll = Join-Path $inferLibDir "infer_core.dll"
         if (Test-Path $inferDll) {
             Copy-Item $inferDll $releaseDir -Force
         }

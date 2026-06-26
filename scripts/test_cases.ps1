@@ -8,9 +8,10 @@ param(
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
+. (Join-Path $PSScriptRoot "infer_core_root.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
-$InferCoreRoot = Join-Path (Split-Path $Root -Parent) "local-infer-core"
+$InferCoreRoot = Get-InferCoreRoot -UiExtractorRoot $Root
 Push-Location $Root
 try {
     $installArgs = @{ Platform = "windows"; Source = "local"; DistDir = $DistDir }

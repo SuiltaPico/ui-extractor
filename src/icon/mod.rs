@@ -1,7 +1,5 @@
-mod embedding;
 mod pack;
 mod preprocess;
-mod rasterize;
 
 use std::time::Instant;
 
@@ -11,8 +9,6 @@ use crate::{
     types::{Bounds, UiElement, UiElementKind},
 };
 
-pub use embedding::EmbeddingIndex;
-pub use rasterize::{rasterize_svg_icons, IconRasterColor, RasterizeSvgOptions};
 pub use pack::{IconMatchHit, IconMatchOptions, IconPack};
 pub use preprocess::{icon_crop_to_rgb256, EMBED_DIM, INPUT_SIZE};
 

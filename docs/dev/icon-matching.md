@@ -2,7 +2,7 @@
 
 图标识别在布局树中筛选候选区域，调用 `local-infer-core` 的 embed + icon_index 能力做余弦检索；命中输出 `kind: "icon"`，未命中保留 `container`。
 
-MDI 资源下载与栅格化见 [mdi-icons.md](./mdi-icons.md)。
+MDI 资源下载与栅格化见 [mdi-icons.md](./mdi-icons.md)（`local-infer-core`）。
 
 ## 架构概览
 
@@ -20,7 +20,7 @@ MDI 资源下载与栅格化见 [mdi-icons.md](./mdi-icons.md)。
 |------|-------------|------|
 | embed 模型包 | `embed.mobileclip2-s0.*` | 由 infer-core 按 manifest 加载 |
 | 图标索引包 | `icons.bundled.v1.mobileclip2-s0.*` | 由 infer-core 按 manifest 加载 |
-| 模板 PNG | `assets/icons/` | **仅离线建索引**；运行时不需要 |
+| 模板 PNG | `local-infer-core/assets/icons/` | **仅离线建索引**；运行时不需要 |
 
 ## 模型规格
 
@@ -58,7 +58,7 @@ MDI 资源下载与栅格化见 [mdi-icons.md](./mdi-icons.md)。
 
 最终 `confidence` 等于最佳余弦相似度。
 
-索引格式与 pack 结构见 `local-infer-core/PRODUCT.md`（`icon_index` 部分）。
+索引格式与 pack 结构见 `local-infer-core/docs/dev/PRODUCT.md`（`icon_index` 部分）。
 
 ## CLI
 

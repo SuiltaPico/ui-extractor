@@ -18,7 +18,7 @@ fn link_infer_core() {
     let host = std::env::var("HOST").unwrap_or_default();
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
     let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-    let local_infer_core_dir = manifest_dir.join("..").join("local-infer-core");
+    let local_infer_core_dir = resolve_local_infer_core_dir(&manifest_dir);
 
     let infer_root = local_infer_core_dir.join("target");
 
@@ -80,6 +80,18 @@ fn link_infer_core() {
         println!("cargo:rerun-if-changed={}", static_lib.display());
     }
     println!("cargo:rerun-if-env-changed=INFER_CORE_LIB_DIR");
+    println!("cargo:rerun-if-env-changed=LOCAL_INFER_CORE_ROOT");
+}
+
+fn resolve_local_infer_core_dir(manifest_dir: &Path) -> PathBuf {
+    if let Ok(root) = std::env::var("LOCAL_INFER_CORE_ROOT") {
+        return PathBuf::from(root);
+    }
+    let nested = manifest_dir.join("local-infer-core");
+    if nested.is_dir() {
+        return nested;
+    }
+    manifest_dir.join("..").join("local-infer-core")
 }
 
 fn resolve_infer_core_lib_dir(infer_root: &PathBuf, target: &str, profile: &str) -> PathBuf {
@@ -120,6 +132,12 @@ fn build_local_infer_core_ffi(local_infer_core_dir: &Path, profile: &str, target
         .arg("-p")
         .arg("infer-core-ffi")
         .current_dir(local_infer_core_dir);
+
+    if target.contains("android") {
+        cmd.arg("--no-default-features").arg("--features").arg("backend-mnn");
+    } else {
+        cmd.arg("--features").arg("backend-ort");
+    }
 
     if profile == "release" {
         cmd.arg("--release");

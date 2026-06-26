@@ -4,8 +4,8 @@
 
 ## 先读什么
 
-1. [local-infer-core/IMPLEMENTATION.md](../local-infer-core/IMPLEMENTATION.md) — **总上手文档（从这里理解全局）**
-2. [local-infer-core/PRODUCT.md](../local-infer-core/PRODUCT.md) — manifest、包 id、LICENSE
+1. [local-infer-core/docs/dev/PRODUCT.md](../local-infer-core/docs/dev/PRODUCT.md) — manifest、包 id、LICENSE、Release
+2. [local-infer-core README](../local-infer-core/README.md) — clone 与开发命令
 3. [PRODUCT.md](PRODUCT.md) — 本仓库迁移后的目标形态
 
 ## 你今天看到的代码 = 迁移前
@@ -29,7 +29,7 @@
 - **删除** `BundledAssets` 找 fat zip；改传 `modelsDir` + pack id
 - hook 只拉 `ui_extractor.dll`；与 `infer_core.dll` 同进程加载（Mauchat 两个 Native Assets）
 
-详细 API 见 [local-infer-core/IMPLEMENTATION.md §6.2](../local-infer-core/IMPLEMENTATION.md#62-dart-包-ui_extractorui-extractor-仓库-dart)。
+详细 API 见 [local-infer-core `dart/`](../local-infer-core/dart/) 与本仓库 [`dart/`](dart/)。
 
 ## 不要在这里做
 
@@ -39,5 +39,5 @@
 
 ## 图标索引
 
-- 开发：`scripts/download_icon_libraries.ps1` 等多库 SVG → 本地建索引
-- Release：只产出合并包 `icons.bundled.v1.*`（见 local-infer-core PRODUCT.md）
+- 开发：在 `local-infer-core` 用 `download_icons.ps1` + `infer-core-helper` 建本地索引包
+- Release：只产出合并包 `icons.bundled.v1.*`（见 [local-infer-core PRODUCT](../local-infer-core/docs/dev/PRODUCT.md)）

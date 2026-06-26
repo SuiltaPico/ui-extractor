@@ -4,10 +4,14 @@ param(
     [switch]$SkipPack,
     [switch]$SkipDownload,
     [switch]$SkipAssets,
-    [string]$DistDir = ""
+    [string]$DistDir = "",
+    [string]$ReleaseRepo = "",
+    [string]$ReleaseTag = "",
+    [string]$InferCoreReleaseDir = ""
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
+. (Join-Path $PSScriptRoot "infer_core_release.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
 Push-Location $Root
@@ -20,10 +24,19 @@ try {
     if (-not $versionLine) { throw "Could not read version from Cargo.toml" }
     $Version = $versionLine.Matches[0].Groups[1].Value
 
-    $buildArgs = @{ Abi = "all" }
-    if (-not $SkipDownload) { $buildArgs.DownloadMnn = $true }
+    if (-not $SkipDownload) {
+        & (Join-Path $PSScriptRoot "download_infer_core_release.ps1") -Platform android -ReleaseRepo $ReleaseRepo -ReleaseTag $ReleaseTag -OutDir $InferCoreReleaseDir
+        if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
+    }
+
+    $buildArgs = @{
+        Abi                  = "all"
+        ReleaseRepo          = $ReleaseRepo
+        ReleaseTag           = $ReleaseTag
+        InferCoreReleaseDir  = $InferCoreReleaseDir
+    }
     & (Join-Path $PSScriptRoot "build_android.ps1") @buildArgs
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
 
     if ($SkipPack) {
         Write-Host "SkipPack set; .so files left under android/jniLibs/"

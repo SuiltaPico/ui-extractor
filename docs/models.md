@@ -1,7 +1,7 @@
 # 模型包说明
 
 `ui-extractor` 已不再维护独立模型下载/转换流程。  
-OCR、embed、icon_index 全部由 [`local-infer-core`](../../local-infer-core/PRODUCT.md) 的 manifest 模型包提供。
+OCR、embed、icon_index 全部由 [`local-infer-core`](../../local-infer-core/docs/dev/PRODUCT.md) 的 manifest 模型包提供。
 
 ## 模型目录约定
 
@@ -39,11 +39,10 @@ ui-extractor extract --input screenshot.png `
 
 ## 离线建索引
 
-`PNG -> embeddings.bin` 构建入口已迁移到 `local-infer-core`：
+`PNG -> icons.bundled` 构建在 `local-infer-core`：
 
 ```powershell
-cargo run -p infer-core --bin icon-index-build -- `
-  --png-dir assets/icons `
-  --vision-model <path-to-embed-pack-vision-model> `
-  --out assets/embeddings.bin
+cd ..\local-infer-core
+powershell -ExecutionPolicy Bypass -File .\scripts\download_icons.ps1 -Rasterize
+powershell -ExecutionPolicy Bypass -File .\tools\icon-index\build_bundled.ps1
 ```

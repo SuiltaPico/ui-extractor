@@ -33,3 +33,7 @@ tests/cases/*/skeleton.html
 
 # Release packages (scripts/build_release_*.ps1)
 dist/
+
+# MCP server
+mcp-server/node_modules/
+mcp-server/dist/

@@ -86,6 +86,17 @@ use ui_extractor::{extract_from_path, ExtractConfig};
 let result = extract_from_path("screenshot.png".as_ref(), &ExtractConfig::default())?;
 ```
 
+## MCP Server 与 Agent Skill
+
+- **MCP Server**：[`mcp-server/`](mcp-server/README.md) — 向 Cursor 等 AI 客户端暴露 `extract_ui` / `check_setup` 工具
+- **Agent Skill**：[`SKILL.md`](SKILL.md) — Release 下载 + CLI/MCP 使用指南（[Agent Skills](https://agentskills.io/home) 格式）
+- **Cursor 配置**：[`.cursor/mcp.json`](.cursor/mcp.json)
+
+```powershell
+cd mcp-server
+npm install && npm run build
+```
+
 C ABI：[`include/ui_extractor.h`](include/ui_extractor.h)
 
 ## Android

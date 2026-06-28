@@ -1,6 +1,6 @@
 import 'config.dart';
 
-/// Resolve models directory for the native extractor.
+/// Resolve models directory for the native extractor (standalone mode).
 class BundledAssets {
   /// Build config using [LOCAL_INFER_ROOT] or `./models`.
   static ExtractorConfig resolveConfig({ExtractorConfig? overrides}) {

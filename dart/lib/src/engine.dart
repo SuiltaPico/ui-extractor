@@ -1,8 +1,11 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:local_infer_core/local_infer_core.dart';
+
 import 'assets.dart';
 import 'config.dart';
+import 'extract_output.dart';
 import 'ffi_bindings.dart';
 
 /// Stateful UI extractor backed by the native library.
@@ -13,9 +16,24 @@ class UiExtractorEngine {
 
   Pointer<Void>? _handle;
 
-  /// Create an engine with explicit config (paths must exist on disk).
+  /// Standalone: ui-extractor opens its own infer-core registry.
   factory UiExtractorEngine.create(ExtractorConfig config) {
-    final handle = nativeBindings.createHandle(config);
+    final handle = nativeBindings.createHandle(
+      inferRegistry: null,
+      config: config.toJson(),
+    );
+    return UiExtractorEngine._(handle);
+  }
+
+  /// Shared registry: borrow [registry] from `local_infer_core` (Mauchat path).
+  factory UiExtractorEngine.createWithRegistry(
+    LocalInferRegistry registry,
+    ExtractorLayoutConfig config,
+  ) {
+    final handle = nativeBindings.createHandle(
+      inferRegistry: registry.nativeHandle,
+      config: config.toJson(),
+    );
     return UiExtractorEngine._(handle);
   }
 
@@ -28,11 +46,16 @@ class UiExtractorEngine {
 
   /// Extract UI tree from in-memory image bytes (PNG/JPEG/WebP, etc.).
   Map<String, dynamic> extractBytes(Uint8List imageBytes) {
+    return extractWithTimings(imageBytes).resultJson;
+  }
+
+  /// Like [extractBytes] but also returns native stage timings.
+  UiExtractOutput extractWithTimings(Uint8List imageBytes) {
     final handle = _handle;
     if (handle == null) {
       throw StateError('UiExtractorEngine already disposed');
     }
-    return nativeBindings.extractBytes(handle, imageBytes);
+    return UiExtractOutput.fromJson(nativeBindings.extractBytes(handle, imageBytes));
   }
 
   /// Extract UI tree from an image file path.

@@ -15,7 +15,9 @@ use crate::{
 
 use crate::layout::to_gray;
 
-#[derive(Debug, Clone, Default)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct ExtractTimings {
     pub gray_ms: f64,
     pub layout_ms: f64,
@@ -61,7 +63,7 @@ impl Default for ExtractConfig {
     fn default() -> Self {
         Self {
             models_dir: resolve_models_dir(None),
-            runtime: RuntimeConfig::from_env_or_default(),
+            runtime: RuntimeConfig::default(),
             ocr_pack: DEFAULT_OCR_PACK.to_string(),
             icon_index_pack: DEFAULT_ICON_INDEX_PACK.to_string(),
             layout: LayoutConfig::default(),

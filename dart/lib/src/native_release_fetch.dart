@@ -2,10 +2,8 @@ import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:path/path.dart' as p;
+import 'package:ui_extractor/src/http_proxy.dart';
 import 'package:ui_extractor/src/native_release.dart';
-
-/// Environment variable for an explicit native library path (CI / local dev).
-const String uiExtractorLibEnv = 'LOCAL_UI_EXTRACTOR_LIB';
 
 Future<File> fetchNativeLibrary({
   required Directory outputDirectory,
@@ -23,23 +21,34 @@ Future<File> fetchNativeLibrary({
     tag: tag,
     assetBaseName: assetBase,
   );
-  final archiveFile = File(p.join(outputDirectory.path, '$assetBase.zip'));
+  const ext = '.zip';
+  final archiveFile = File(p.join(outputDirectory.path, '$assetBase$ext'));
   final extractRoot = Directory(p.join(outputDirectory.path, assetBase));
 
   if (!await extractRoot.exists()) {
     await extractRoot.create(recursive: true);
   }
 
+  final libRelative = targetOS == OS.android
+      ? androidLibraryRelativePath(targetArchitecture)
+      : p.join(
+          'lib',
+          targetOS.dylibFileName(bundledLibraryBaseName(targetOS)),
+        );
+
+  final libFile = File(p.join(extractRoot.path, libRelative));
+
   if (!await archiveFile.exists()) {
     await _download(url, archiveFile);
+  }
+
+  if (!await libFile.exists()) {
+    if (!await archiveFile.exists()) {
+      throw StateError('missing release archive for $assetBase');
+    }
     await _extractZip(archiveFile: archiveFile, dest: extractRoot);
   }
 
-  final libRelative = targetOS == OS.android
-      ? androidLibraryRelativePath(targetArchitecture)
-      : targetOS.dylibFileName(bundledLibraryBaseName(targetOS));
-
-  final libFile = File(p.join(extractRoot.path, libRelative));
   if (!await libFile.exists()) {
     throw StateError(
       'expected library at ${libFile.path} after extracting $url',
@@ -48,8 +57,31 @@ Future<File> fetchNativeLibrary({
   return libFile;
 }
 
+/// Registers the primary native library only.
+///
+/// Android release zips also ship infer-core runtime `.so` files for standalone
+/// JNI integration, but in Flutter apps those are bundled by `local_infer_core`.
+/// Registering siblings here would duplicate filenames across packages.
+void registerBundledNativeCodeAssets({
+  required void Function(CodeAsset asset) addAsset,
+  required String packageName,
+  required String primaryAssetName,
+  required File primaryLib,
+  required OS targetOS,
+}) {
+  addAsset(
+    CodeAsset(
+      package: packageName,
+      name: primaryAssetName,
+      linkMode: DynamicLoadingBundled(),
+      file: primaryLib.uri,
+    ),
+  );
+}
+
 Future<void> _download(Uri url, File dest) async {
-  final client = HttpClient()..findProxy = HttpClient.findProxyFromEnvironment;
+  final client = HttpClient()
+    ..findProxy = (uri) => resolveHttpProxy(uri);
   try {
     final request = await client.getUrl(url);
     final response = await request.close();
@@ -70,64 +102,39 @@ Future<void> _extractZip({
   required File archiveFile,
   required Directory dest,
 }) async {
+  if (Platform.isWindows) {
+    final result = await Process.run(
+      'powershell',
+      [
+        '-NoProfile',
+        '-Command',
+        'Expand-Archive -LiteralPath "${archiveFile.path}" -DestinationPath "${dest.path}" -Force',
+      ],
+      runInShell: true,
+    );
+    if (result.exitCode != 0) {
+      throw StateError('Expand-Archive failed: ${result.stderr}');
+    }
+    return;
+  }
+
   final result = await Process.run(
-    'powershell',
-    [
-      '-NoProfile',
-      '-Command',
-      'Expand-Archive -LiteralPath "${archiveFile.path}" -DestinationPath "${dest.path}" -Force',
-    ],
+    'unzip',
+    ['-o', archiveFile.path, '-d', dest.path],
     runInShell: true,
   );
   if (result.exitCode != 0) {
-    throw StateError('Expand-Archive failed: ${result.stderr}');
+    throw StateError('unzip failed: ${result.stderr}');
   }
 }
 
 Future<File> resolveNativeLibraryFile({
   required Directory outputDirectory,
-  required Uri packageRoot,
   required OS targetOS,
   required Architecture targetArchitecture,
   required String repo,
   required String tag,
-  String? localLib,
 }) async {
-  if (localLib != null && localLib.isNotEmpty) {
-    final file = File(localLib);
-    if (!await file.exists()) {
-      throw StateError('local_lib not found: $localLib');
-    }
-    return file;
-  }
-
-  final envLib = Platform.environment[uiExtractorLibEnv];
-  if (envLib != null && envLib.isNotEmpty) {
-    final file = File(envLib);
-    if (!await file.exists()) {
-      throw StateError('$uiExtractorLibEnv not found: $envLib');
-    }
-    return file;
-  }
-
-  final preinstalledRelative = preinstalledLibraryRelativePath(
-    targetOS: targetOS,
-    targetArchitecture: targetArchitecture,
-  );
-  if (preinstalledRelative != null) {
-    final preinstalled = File(
-      p.join(packageRoot.toFilePath(), preinstalledRelative),
-    );
-    if (await preinstalled.exists()) {
-      return preinstalled;
-    }
-  }
-
-  final cargoOut = _cargoReleaseLibrary(packageRoot.toFilePath(), targetOS);
-  if (cargoOut != null && await File(cargoOut).exists()) {
-    return File(cargoOut);
-  }
-
   return fetchNativeLibrary(
     outputDirectory: outputDirectory,
     targetOS: targetOS,
@@ -135,10 +142,4 @@ Future<File> resolveNativeLibraryFile({
     repo: repo,
     tag: tag,
   );
-}
-
-String? _cargoReleaseLibrary(String packageRoot, OS targetOS) {
-  final repoRoot = p.normalize(p.join(packageRoot, '..'));
-  final fileName = targetOS.dylibFileName(bundledLibraryBaseName(targetOS));
-  return p.join(repoRoot, 'target', 'release', fileName);
 }

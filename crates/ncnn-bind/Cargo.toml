@@ -1,9 +1,0 @@
-[package]
-name = "ncnn-bind"
-version = "0.1.0"
-edition = "2021"
-description = "Minimal ncnn C API bindings for ui-extractor"
-license = "MIT"
-
-[dependencies]
-anyhow = "1"

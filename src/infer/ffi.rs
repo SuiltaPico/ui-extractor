@@ -38,11 +38,6 @@ extern "C" {
         pack_id: *const c_char,
         out_error: *mut *mut c_char,
     ) -> *mut c_void;
-    fn infer_embed_engine_load_path(
-        model_path: *const c_char,
-        runtime_config_json: *const c_char,
-        out_error: *mut *mut c_char,
-    ) -> *mut c_void;
     fn infer_embed_engine_destroy(engine: *mut c_void);
     fn infer_embed_rgb256(
         engine: *mut c_void,
@@ -51,6 +46,39 @@ extern "C" {
         out_dim: *mut usize,
         out_error: *mut *mut c_char,
     ) -> *mut f32;
+    fn infer_registry_pack_ids_json(
+        handle: *mut c_void,
+        out_json: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> c_int;
+    fn infer_registry_manifest_json(
+        handle: *mut c_void,
+        pack_id: *const c_char,
+        out_json: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> c_int;
+    fn infer_icon_index_load(
+        registry: *mut c_void,
+        pack_id: *const c_char,
+        out_error: *mut *mut c_char,
+    ) -> *mut c_void;
+    fn infer_icon_index_destroy(index: *mut c_void);
+    fn infer_icon_index_match_embedding(
+        index: *mut c_void,
+        embedding: *const f32,
+        dim: usize,
+        min_cosine: f32,
+        out_json: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> c_int;
+    fn infer_icon_index_search(
+        index: *mut c_void,
+        embedding: *const f32,
+        dim: usize,
+        top_k: usize,
+        out_json: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> c_int;
 }
 
 fn c_string(text: &str) -> Result<CString> {
@@ -174,32 +202,6 @@ pub fn embed_engine_load(registry: *mut c_void, pack_id: &str) -> Result<*mut c_
     Ok(handle)
 }
 
-pub fn embed_engine_load_path(model_path: &Path, runtime_json: Option<&str>) -> Result<*mut c_void> {
-    let path = c_string(model_path.to_string_lossy().as_ref())?;
-    let runtime = runtime_json
-        .map(c_string)
-        .transpose()?
-        .map(|s| s.into_raw())
-        .unwrap_or(ptr::null_mut());
-    let mut err: *mut c_char = ptr::null_mut();
-    let handle = unsafe {
-        infer_embed_engine_load_path(
-            path.as_ptr(),
-            runtime,
-            &mut err as *mut *mut c_char,
-        )
-    };
-    if !runtime.is_null() {
-        unsafe {
-            drop(CString::from_raw(runtime));
-        }
-    }
-    if handle.is_null() {
-        return Err(take_error(err));
-    }
-    Ok(handle)
-}
-
 pub fn embed_engine_destroy(handle: *mut c_void) {
     if !handle.is_null() {
         unsafe { infer_embed_engine_destroy(handle) };
@@ -228,4 +230,98 @@ pub fn embed_rgb256(handle: *mut c_void, rgb_bytes: &[u8]) -> Result<Vec<f32>> {
         owned
     };
     Ok(values)
+}
+
+pub fn registry_pack_ids_json(handle: *mut c_void) -> Result<String> {
+    let mut out_json: *mut c_char = ptr::null_mut();
+    let mut err: *mut c_char = ptr::null_mut();
+    let rc = unsafe {
+        infer_registry_pack_ids_json(
+            handle,
+            &mut out_json as *mut *mut c_char,
+            &mut err as *mut *mut c_char,
+        )
+    };
+    if rc != 0 {
+        return Err(take_error(err));
+    }
+    take_string(out_json)
+}
+
+pub fn registry_manifest_json(handle: *mut c_void, pack_id: &str) -> Result<String> {
+    let pack = c_string(pack_id)?;
+    let mut out_json: *mut c_char = ptr::null_mut();
+    let mut err: *mut c_char = ptr::null_mut();
+    let rc = unsafe {
+        infer_registry_manifest_json(
+            handle,
+            pack.as_ptr(),
+            &mut out_json as *mut *mut c_char,
+            &mut err as *mut *mut c_char,
+        )
+    };
+    if rc != 0 {
+        return Err(take_error(err));
+    }
+    take_string(out_json)
+}
+
+pub fn icon_index_load(registry: *mut c_void, pack_id: &str) -> Result<*mut c_void> {
+    let pack = c_string(pack_id)?;
+    let mut err: *mut c_char = ptr::null_mut();
+    let handle = unsafe {
+        infer_icon_index_load(registry, pack.as_ptr(), &mut err as *mut *mut c_char)
+    };
+    if handle.is_null() {
+        return Err(take_error(err));
+    }
+    Ok(handle)
+}
+
+pub fn icon_index_destroy(handle: *mut c_void) {
+    if !handle.is_null() {
+        unsafe { infer_icon_index_destroy(handle) };
+    }
+}
+
+pub fn icon_index_match_embedding(
+    handle: *mut c_void,
+    embedding: &[f32],
+    min_cosine: f32,
+) -> Result<String> {
+    let mut out_json: *mut c_char = ptr::null_mut();
+    let mut err: *mut c_char = ptr::null_mut();
+    let rc = unsafe {
+        infer_icon_index_match_embedding(
+            handle,
+            embedding.as_ptr(),
+            embedding.len(),
+            min_cosine,
+            &mut out_json as *mut *mut c_char,
+            &mut err as *mut *mut c_char,
+        )
+    };
+    if rc != 0 {
+        return Err(take_error(err));
+    }
+    take_string(out_json)
+}
+
+pub fn icon_index_search(handle: *mut c_void, embedding: &[f32], top_k: usize) -> Result<String> {
+    let mut out_json: *mut c_char = ptr::null_mut();
+    let mut err: *mut c_char = ptr::null_mut();
+    let rc = unsafe {
+        infer_icon_index_search(
+            handle,
+            embedding.as_ptr(),
+            embedding.len(),
+            top_k,
+            &mut out_json as *mut *mut c_char,
+            &mut err as *mut *mut c_char,
+        )
+    };
+    if rc != 0 {
+        return Err(take_error(err));
+    }
+    take_string(out_json)
 }

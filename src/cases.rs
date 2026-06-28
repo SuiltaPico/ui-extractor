@@ -63,11 +63,24 @@ impl CaseTimings {
         }
 
         if e.icon.timings.load_ms > 0.0 || e.icon.timings.match_ms > 0.0 {
-            parts.push(format!(
-                "icon {}+{}",
-                format_ms(e.icon.timings.load_ms),
-                format_ms(e.icon.timings.match_ms)
-            ));
+            let t = &e.icon.timings;
+            if t.embed_ms > 0.0 {
+                parts.push(format!(
+                    "icon {} (gray {} crop {} pre {} embed {} idx {})",
+                    format_ms(t.match_ms),
+                    format_ms(t.gray_ms),
+                    format_ms(t.crop_ms),
+                    format_ms(t.preprocess_ms),
+                    format_ms(t.embed_ms),
+                    format_ms(t.index_ms),
+                ));
+            } else {
+                parts.push(format!(
+                    "icon {}+{}",
+                    format_ms(t.load_ms),
+                    format_ms(t.match_ms)
+                ));
+            }
         }
 
         parts.push(format!("json {}", format_ms(self.write_json_ms)));
@@ -86,8 +99,15 @@ impl CaseTimings {
         self.extract.ocr.init_ms += other.extract.ocr.init_ms;
         self.extract.ocr.predict_ms += other.extract.ocr.predict_ms;
         self.extract.attach_words_ms += other.extract.attach_words_ms;
-        self.extract.icon.timings.load_ms += other.extract.icon.timings.load_ms;
-        self.extract.icon.timings.match_ms += other.extract.icon.timings.match_ms;
+        let icon = &mut self.extract.icon.timings;
+        let other_icon = &other.extract.icon.timings;
+        icon.load_ms += other_icon.load_ms;
+        icon.gray_ms += other_icon.gray_ms;
+        icon.crop_ms += other_icon.crop_ms;
+        icon.preprocess_ms += other_icon.preprocess_ms;
+        icon.embed_ms += other_icon.embed_ms;
+        icon.index_ms += other_icon.index_ms;
+        icon.match_ms += other_icon.match_ms;
         self.write_json_ms += other.write_json_ms;
         self.write_annotation_ms += other.write_annotation_ms;
         self.total_ms += other.total_ms;

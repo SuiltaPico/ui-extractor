@@ -20,7 +20,7 @@ No need to clone `local-infer-core` or keep both repos as siblings — GitHub Re
 
 ### 1. Download binaries
 
-Download `ui-extractor-windows-x64.zip` (or arm64) from [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) and extract anywhere, e.g. `C:\tools\ui-extractor`. The zip includes `ui-extractor.exe` and `infer_core.dll`.
+Download `ui-extractor-windows-x86_64-bundle.zip` (or `windows-aarch64-bundle`) from [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) and extract anywhere, e.g. `C:\tools\ui-extractor`. The bundle includes `ui-extractor.exe` and `infer_core.dll`.
 
 ### 2. Download model packs
 
@@ -48,26 +48,22 @@ If you see `0xc0000135` / `STATUS_DLL_NOT_FOUND`, `infer_core.dll` is not next t
 
 ### Build from source (optional)
 
-When cloning and building locally, keep `ui-extractor` and `local-infer-core` as siblings (e.g. `D:\repo\ui-extractor` and `D:\repo\local-infer-core`), then:
+Clone only this repo — no `local-infer-core` sibling checkout:
 
 ```powershell
-# Build infer_core.dll
-cd D:\repo\local-infer-core
-cargo build -p infer-core-ffi
-
-# Install model packs + copy the dynamic library
-cd D:\repo\ui-extractor
+powershell -ExecutionPolicy Bypass -File .\scripts\download_infer_core_release.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
-Copy-Item -Force ..\local-infer-core\target\debug\infer_core.dll .\target\debug\infer_core.dll
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
-# Verify
 cargo run --bin ui-extractor -- extract --input .\tests\cases\zhihu\input.png --annotate `
   --models-dir .\models `
   --ocr-pack ocr.paddle.ppocr6-tiny.onnx.fp32 `
   --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8
 ```
 
-One-shot regression: `powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
+Regression: `powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
+
+See [docs/dev/rot-checklist.md](docs/dev/rot-checklist.md) for integration rules.
 
 ## Inference backend
 
@@ -134,7 +130,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_android.ps1
 
 ## Release packaging
 
-Tagging (e.g. `v0.1.0`) triggers GitHub Actions to publish four zips: Windows x64/arm64, Android arm64-v8a/x86_64.
+Tagging (e.g. `v0.1.0`) triggers GitHub Actions to publish SDK zips (`ui-extractor-windows-{x86_64,aarch64}.zip`, Android `arm64-v8a` / `x86_64`) plus desktop CLI bundles (`*-bundle.zip`) and `SHA256SUMS.txt`.
 
 Local packaging (model packs are managed by `local-infer-core`):
 

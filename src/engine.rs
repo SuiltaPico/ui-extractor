@@ -19,10 +19,14 @@ pub struct ExtractEngine {
 }
 
 impl ExtractEngine {
-    /// Open registry and optionally preload icon resources when `config.run_icon` is true.
-    pub fn open(config: ExtractConfig) -> Result<Self> {
-        let registry = Registry::open(&config.models_dir, config.runtime.clone())
-            .map_err(|e| crate::error::ExtractError::Ocr(e.to_string()))?;
+    /// `registry == None` → open an owned registry; `Some` → borrow external handle.
+    pub fn new(config: ExtractConfig, registry: Option<Registry>) -> Result<Self> {
+        let registry = match registry {
+            Some(reg) => reg,
+            None => Registry::open(&config.models_dir, config.runtime.clone())
+                .map_err(|e| crate::error::ExtractError::Ocr(e.to_string()))?,
+        };
+
         let mut engine = Self {
             registry,
             config: config.clone(),
@@ -33,6 +37,16 @@ impl ExtractEngine {
             engine.reload_icon_pack()?;
         }
         Ok(engine)
+    }
+
+    /// Standalone mode: create and own an infer-core registry.
+    pub fn open(config: ExtractConfig) -> Result<Self> {
+        Self::new(config, None)
+    }
+
+    /// Use an existing infer-core registry (owned or borrowed).
+    pub fn from_registry(registry: Registry, config: ExtractConfig) -> Result<Self> {
+        Self::new(config, Some(registry))
     }
 
     pub fn registry(&self) -> &Registry {

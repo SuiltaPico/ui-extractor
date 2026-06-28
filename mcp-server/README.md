@@ -19,7 +19,7 @@
 
 End users: download from GitHub Releases (no source build required).
 
-1. **CLI**: [ui-extractor Release](https://github.com/SuiltaPico/ui-extractor/releases) — pick `ui-extractor-windows-x64.zip` (includes `infer_core.dll`)
+1. **CLI**: [ui-extractor Release](https://github.com/SuiltaPico/ui-extractor/releases) — pick `ui-extractor-windows-x86_64-bundle.zip` (includes `infer_core.dll`)
 2. **Model packs**: [local-infer-core Release](https://github.com/SuiltaPico/local-infer-core/releases) (same tag) — extract `ocr.*`, `embed.*`, `icons.*` zips into `models/{pack_id}/`
 
 See [SKILL.md](../SKILL.md) for the full Release setup script and CLI examples.
@@ -47,9 +47,10 @@ Environment variables:
 | `UI_EXTRACTOR_BIN` | `../target/release/ui-extractor` |
 | `UI_EXTRACTOR_MODELS_DIR` | `../models` |
 | `LOCAL_INFER_ROOT` | same as models dir |
-| `INFER_CORE_DIR` | `../local-infer-core/target/{release,debug}` |
 | `UI_EXTRACTOR_OCR_PACK` | `ocr.paddle.ppocr6-tiny.onnx.fp32` |
 | `UI_EXTRACTOR_ICON_INDEX_PACK` | `icons.bundled.v1.mobileclip2-s0.int8` |
+
+`infer_core.dll` 默认从 `../.infer-core-release/` 或 binary 同目录探测（见 `mcp-server/src/config.ts`）。
 
 ## Cursor
 

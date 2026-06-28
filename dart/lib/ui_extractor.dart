@@ -1,9 +1,16 @@
 library ui_extractor;
 
+export 'package:local_infer_core/local_infer_core.dart'
+    show LocalInferRegistry, RuntimeConfig;
+
 export 'src/config.dart';
 export 'src/engine.dart';
+export 'src/extract_output.dart';
+export 'src/extract_timings.dart';
 export 'src/exceptions.dart';
 export 'src/assets.dart' show BundledAssets;
+export 'src/native_library.dart'
+    show initUiExtractorLibrary, isUiExtractorLibraryInitialized;
 
 import 'src/ffi_bindings.dart' show nativeBindings;
 

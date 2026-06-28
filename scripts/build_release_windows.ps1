@@ -1,4 +1,4 @@
-# Build Windows release binaries (x64 + arm64) and zip packages for GitHub Releases.
+# Build Windows release binaries (x86_64 + aarch64) and zip packages for GitHub Releases.
 param(
     [string]$OutDir = "dist",
     [switch]$SkipPack,
@@ -30,8 +30,8 @@ try {
     }
 
     $targets = @(
-        @{ Triple = "x86_64-pc-windows-msvc"; Label = "windows-x64" },
-        @{ Triple = "aarch64-pc-windows-msvc"; Label = "windows-arm64" }
+        @{ Triple = "x86_64-pc-windows-msvc"; Label = "windows-x86_64" },
+        @{ Triple = "aarch64-pc-windows-msvc"; Label = "windows-aarch64" }
     )
 
     $built = @()
@@ -49,7 +49,6 @@ try {
             -Repo $ReleaseRepo `
             -Tag $ReleaseTag
         Write-Host "Using infer-core release lib dir: $inferLibDir"
-        $env:INFER_CORE_LIB_DIR = $inferLibDir
 
         Invoke-CargoWithRetry @('build', '--release', '--target', $t.Triple)
         if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
@@ -83,11 +82,29 @@ try {
     $header = Join-Path $Root "include\ui_extractor.h"
     if (-not (Test-Path $header)) { throw "Missing C header: include/ui_extractor.h" }
 
-    $targetLabels = ($targets | ForEach-Object { $_.Label }) -join ", "
-    $readme = @"
-ui-extractor $Version ($targetLabels)
+    $sdkReadme = @"
+ui-extractor $Version (SDK / Dart hook)
 
-Desktop release using infer-core (ONNX Runtime / backend-ort).
+Desktop native library aligned with local-infer-core release layout.
+
+Contents:
+  lib/ui_extractor.dll       - native library (C ABI)
+  lib/ui_extractor.dll.lib   - MSVC import library
+  include/ui_extractor.h     - C ABI header
+
+SDK integrate:
+  1. Link lib/ui_extractor.dll.lib and ship lib/ui_extractor.dll next to your executable
+  2. #include "ui_extractor.h"
+  3. Ship infer_core.dll from local-infer-core Release (same tag)
+  4. Download model packs from local-infer-core Releases and extract to <models_dir>
+     pack ids: ocr.paddle.ppocr6-*.onnx.fp32, embed.mobileclip2-s0.onnx.fp32,
+               icons.bundled.v1.mobileclip2-s0.int8
+"@
+
+    $bundleReadme = @"
+ui-extractor $Version (CLI bundle)
+
+Desktop CLI bundle with infer-core runtime DLL.
 
 Contents:
   ui-extractor.exe        - CLI (layout + pipeline; loads infer_core.dll at runtime)
@@ -100,40 +117,54 @@ Contents:
 CLI:
   ui-extractor extract --input screenshot.png --annotate --models-dir <models_dir>
 
-SDK integrate:
-  1. Link ui_extractor.dll.lib and ship ui_extractor.dll next to your executable
-  2. #include "ui_extractor.h"
-  3. Download model packs from local-infer-core Releases (same tag) and extract to <models_dir>
-     pack ids: ocr.paddle.ppocr6-*.onnx.fp32, embed.mobileclip2-s0.onnx.fp32,
-               icons.bundled.v1.mobileclip2-s0.int8
-
-Run the CLI with explicit --models-dir (or set LOCAL_INFER_ROOT).
+Run with explicit --models-dir (or set LOCAL_INFER_ROOT).
 "@
-    foreach ($item in $built) {
-        $stage = Join-Path (Get-ScratchDir) "ui-extractor-$($item.Label)"
-        if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
-        $includeDir = Join-Path $stage "include"
-        New-Item -ItemType Directory -Force -Path $includeDir | Out-Null
 
-        Copy-Item $item.Exe (Join-Path $stage "ui-extractor.exe")
-        Copy-Item $item.Dll $stage
+    foreach ($item in $built) {
+        $sdkStage = Join-Path (Get-ScratchDir) "ui-extractor-$($item.Label)-sdk"
+        if (Test-Path $sdkStage) { Remove-Item -Recurse -Force $sdkStage }
+        $sdkLibDir = Join-Path $sdkStage "lib"
+        $sdkIncludeDir = Join-Path $sdkStage "include"
+        New-Item -ItemType Directory -Force -Path $sdkLibDir | Out-Null
+        New-Item -ItemType Directory -Force -Path $sdkIncludeDir | Out-Null
+
+        Copy-Item $item.Dll (Join-Path $sdkLibDir "ui_extractor.dll")
+        if (Test-Path $item.ImportLib) {
+            Copy-Item $item.ImportLib (Join-Path $sdkLibDir "ui_extractor.dll.lib")
+        }
+        Copy-Item $header (Join-Path $sdkIncludeDir "ui_extractor.h")
+        Set-Content -Path (Join-Path $sdkStage "README.txt") -Value $sdkReadme -Encoding UTF8
+
+        $sdkZipName = "ui-extractor-$($item.Label).zip"
+        $sdkZipPath = Join-Path $packRoot $sdkZipName
+        if (Test-Path $sdkZipPath) { Remove-Item -Force $sdkZipPath }
+        Compress-Archive -Path (Join-Path $sdkStage "*") -DestinationPath $sdkZipPath
+        Remove-Item -Recurse -Force $sdkStage
+        Write-Host "Packaged: $OutDir/$sdkZipName"
+
+        $bundleStage = Join-Path (Get-ScratchDir) "ui-extractor-$($item.Label)-bundle"
+        if (Test-Path $bundleStage) { Remove-Item -Recurse -Force $bundleStage }
+        $bundleIncludeDir = Join-Path $bundleStage "include"
+        New-Item -ItemType Directory -Force -Path $bundleIncludeDir | Out-Null
+
+        Copy-Item $item.Exe (Join-Path $bundleStage "ui-extractor.exe")
+        Copy-Item $item.Dll $bundleStage
         $inferCoreDll = Join-Path (Split-Path $item.Exe -Parent) "infer_core.dll"
         if (Test-Path $inferCoreDll) {
-            Copy-Item $inferCoreDll $stage
+            Copy-Item $inferCoreDll $bundleStage
         }
         if (Test-Path $item.ImportLib) {
-            Copy-Item $item.ImportLib $stage
+            Copy-Item $item.ImportLib $bundleStage
         }
-        Copy-Item $header (Join-Path $includeDir "ui_extractor.h")
+        Copy-Item $header (Join-Path $bundleIncludeDir "ui_extractor.h")
+        Set-Content -Path (Join-Path $bundleStage "README.txt") -Value $bundleReadme -Encoding UTF8
 
-        Set-Content -Path (Join-Path $stage "README.txt") -Value $readme -Encoding UTF8
-
-        $zipName = "ui-extractor-$($item.Label).zip"
-        $zipPath = Join-Path $packRoot $zipName
-        if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
-        Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zipPath
-        Remove-Item -Recurse -Force $stage
-        Write-Host "Packaged: $OutDir/$zipName"
+        $bundleZipName = "ui-extractor-$($item.Label)-bundle.zip"
+        $bundleZipPath = Join-Path $packRoot $bundleZipName
+        if (Test-Path $bundleZipPath) { Remove-Item -Force $bundleZipPath }
+        Compress-Archive -Path (Join-Path $bundleStage "*") -DestinationPath $bundleZipPath
+        Remove-Item -Recurse -Force $bundleStage
+        Write-Host "Packaged: $OutDir/$bundleZipName"
     }
 } finally {
     Pop-Location

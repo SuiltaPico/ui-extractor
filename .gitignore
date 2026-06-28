@@ -12,13 +12,6 @@ assets/
 models/*/
 # Legacy flat weights (removed)
 models/*.onnx
-models/*.ncnn.param
-models/*.ncnn.bin
-
-# ncnn prebuilt libs (see android/README.md)
-third_party/
-vendor/
-android/jniLibs/
 
 # MDI SVG/PNG/embeddings — generate in local-infer-core (see that repo's .gitignore)
 

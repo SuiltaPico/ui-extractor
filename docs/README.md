@@ -11,6 +11,7 @@
 | [architecture.md](architecture.md) | 流水线架构与模块职责 |
 | [android.md](android.md) | Android `.so` 构建、模型打包、JNI / C ABI |
 | [dev/icon-matching.md](dev/icon-matching.md) | MobileCLIP2 向量检索与匹配策略 |
+| [dev/rot-checklist.md](dev/rot-checklist.md) | 与 local-infer-core 集成后的腐化清单与修复顺序 |
 
 ## 运行时依赖
 

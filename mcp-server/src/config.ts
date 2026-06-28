@@ -78,11 +78,22 @@ export function resolveConfig(): ServerConfig {
   );
 
   const inferCoreDir =
-    process.env.INFER_CORE_DIR ??
     firstExisting([
-      join(REPO_ROOT, "..", "local-infer-core", "target", "release"),
-      join(REPO_ROOT, "..", "local-infer-core", "target", "debug"),
+      join(
+        REPO_ROOT,
+        ".infer-core-release",
+        "infer-core-windows-x86_64",
+        "lib",
+      ),
+      join(
+        REPO_ROOT,
+        ".infer-core-release",
+        "infer-core-windows-aarch64",
+        "lib",
+      ),
       dirname(bin),
+      join(REPO_ROOT, "target", "release"),
+      join(REPO_ROOT, "target", "debug"),
     ]);
 
   return {
@@ -116,7 +127,7 @@ export function checkSetup(config: ServerConfig = resolveConfig()): SetupCheck {
   if (!inferCoreExists) {
     issues.push(
       `${inferCoreName} not found near ${config.inferCoreDir ?? "(unknown)"}. ` +
-        "Build local-infer-core: cargo build -p infer-core-ffi, then copy DLL next to ui-extractor or set INFER_CORE_DIR.",
+        "Run scripts/download_infer_core_release.ps1 and scripts/build.ps1 (copies infer_core.dll next to the binary).",
     );
   }
 

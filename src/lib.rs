@@ -24,6 +24,7 @@ pub use icon::{
 pub use layout::{LayoutConfig, LayoutStages};
 pub use ocr::{OcrConfig, OcrTimings};
 pub use packs::{resolve_models_dir, DEFAULT_EMBED_PACK, DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK};
+pub use infer::{Registry, RegistryOwnership, RuntimeConfig};
 pub use pipeline::{extract_from_image, extract_from_image_timed, extract_from_path, ExtractConfig, ExtractTimings};
 pub use error::{ExtractError, Result};
 pub use types::{Bounds, ExtractResult, UiElement, UiElementKind};

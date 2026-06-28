@@ -31,7 +31,9 @@ pub struct OcrWord {
     pub confidence: f32,
 }
 
-#[derive(Debug, Clone, Default)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct OcrTimings {
     pub init_ms: f64,
     pub predict_ms: f64,

@@ -62,7 +62,6 @@ try {
             throw "infer-core release output not found: $inferSo"
         }
 
-        $env:INFER_CORE_LIB_DIR = $inferJni
         Remove-Item Env:MNN_LIB_DIR -ErrorAction SilentlyContinue
         Remove-Item Env:MNN_COMPILE -ErrorAction SilentlyContinue
         Remove-Item Env:MNN_LINK -ErrorAction SilentlyContinue

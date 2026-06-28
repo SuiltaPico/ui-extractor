@@ -7,8 +7,8 @@ param(
 
     [string]$DistDir = "",
 
-    [ValidateSet("auto", "release", "local")]
-    [string]$Source = "",
+    [ValidateSet("release", "local")]
+    [string]$Source = "release",
 
     [switch]$Force
 )
@@ -20,10 +20,9 @@ $installArgs = @{
 }
 if ($DistDir) {
     $installArgs.DistDir = $DistDir
-    if (-not $Source) { $installArgs.Source = "local" }
+    $installArgs.Source = "local"
 }
 if ($Source) { $installArgs.Source = $Source }
-if (-not $installArgs.Source) { $installArgs.Source = "auto" }
 if ($Force) { $installArgs.Force = $true }
 & (Join-Path $PSScriptRoot "install_packs.ps1") @installArgs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -12,8 +12,8 @@ pub use embed::{
     cosine, finalize_embedding, l2_normalize, rgb256_to_nchw, EmbedEngine, EMBED_DIM, INPUT_SIZE,
 };
 pub use error::{InferError, Result};
-pub use icon_index::{EmbeddingIndex, IconIndex, IconMatch, IndexStorageFormat};
+pub use icon_index::{IconIndex, IconMatch};
 pub use manifest::{LicenseInfo, Manifest};
 pub use ocr::{OcrBounds, OcrEngine, OcrTimings, OcrWord};
-pub use registry::Registry;
+pub use registry::{Registry, RegistryOwnership};
 pub use runtime::{MnnConfig, OnnxConfig, RuntimeConfig};

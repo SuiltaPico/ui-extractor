@@ -62,20 +62,8 @@ pub struct EmbedEngine {
 }
 
 impl EmbedEngine {
-    pub fn load(model_path: &std::path::Path, runtime_config: &crate::infer::runtime::RuntimeConfig) -> Result<Self> {
-        let runtime_json = serde_json::to_string(runtime_config)?;
-        let handle = ffi::embed_engine_load_path(model_path, Some(&runtime_json))?;
-        Ok(Self { handle })
-    }
-
     pub fn embed_rgb256(&mut self, rgb: &RgbImage) -> Result<Vec<f32>> {
         ffi::embed_rgb256(self.handle, rgb.as_raw())
-    }
-
-    pub fn embed_nchw(&mut self, _nchw: &[f32]) -> Result<Vec<f32>> {
-        Err(InferError::Embed(
-            "embed_nchw is not exposed via infer_core.dll".into(),
-        ))
     }
 }
 

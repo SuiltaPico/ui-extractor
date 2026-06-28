@@ -6,6 +6,8 @@
 .venv/
 **/*.rs.bk
 
+assets/
+
 # Manifest model packs (scripts/install_packs.ps1)
 models/*/
 # Legacy flat weights (removed)

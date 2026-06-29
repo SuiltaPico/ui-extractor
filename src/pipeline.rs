@@ -15,7 +15,9 @@ use crate::{
 
 use crate::layout::to_gray;
 
-#[derive(Debug, Clone, Default)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct ExtractTimings {
     pub gray_ms: f64,
     pub layout_ms: f64,

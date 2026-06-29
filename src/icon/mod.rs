@@ -35,13 +35,15 @@ impl Default for IconConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct IconTimings {
     pub load_ms: f64,
     pub match_ms: f64,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct IconMatchStats {
     pub candidates: usize,
     pub matched: usize,

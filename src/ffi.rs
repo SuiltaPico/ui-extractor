@@ -10,11 +10,12 @@ use std::path::{Path, PathBuf};
 use std::ptr;
 
 use image::DynamicImage;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::engine::ExtractEngine;
 use crate::infer::Registry;
-use crate::pipeline::ExtractConfig;
+use crate::pipeline::{ExtractConfig, ExtractTimings};
+use crate::types::ExtractResult;
 use crate::{IconConfig, LayoutConfig, OcrConfig};
 
 const OK: c_int = 0;
@@ -199,6 +200,18 @@ fn load_image_bytes(bytes: &[u8]) -> Result<DynamicImage, String> {
     image::load_from_memory(bytes).map_err(|e| e.to_string())
 }
 
+#[derive(Serialize)]
+struct ExtractJsonOutput {
+    #[serde(flatten)]
+    result: ExtractResult,
+    timings: ExtractTimings,
+}
+
+fn extract_result_json(result: ExtractResult, timings: ExtractTimings) -> Result<String, String> {
+    serde_json::to_string(&ExtractJsonOutput { result, timings })
+        .map_err(|e| e.to_string())
+}
+
 fn open_engine(
     infer_registry: *mut c_void,
     config_json: &str,
@@ -302,11 +315,11 @@ pub extern "C" fn ui_extractor_extract_bytes(
         };
         let bytes = read_bytes(data, len)?;
         let img = load_image_bytes(bytes)?;
-        let (result, _timings) = engine
+        let (result, timings) = engine
             .0
             .extract_from_image(&img)
             .map_err(map_extract_error)?;
-        let json = serde_json::to_string(&result).map_err(|e| e.to_string())?;
+        let json = extract_result_json(result, timings)?;
         if !out_json.is_null() {
             unsafe {
                 *out_json = string_to_raw(json);
@@ -331,11 +344,11 @@ pub extern "C" fn ui_extractor_extract_file(
                 .ok_or_else(|| "null extractor handle".to_string())?
         };
         let path = read_cstr(path)?;
-        let (result, _timings) = engine
+        let (result, timings) = engine
             .0
             .extract_from_path(Path::new(path))
             .map_err(map_extract_error)?;
-        let json = serde_json::to_string(&result).map_err(|e| e.to_string())?;
+        let json = extract_result_json(result, timings)?;
         if !out_json.is_null() {
             unsafe {
                 *out_json = string_to_raw(json);
@@ -381,5 +394,48 @@ mod tests {
         )
         .unwrap();
         assert_eq!(cfg.models_dir, PathBuf::from("."));
+    }
+
+    #[test]
+    fn extract_json_includes_timings_object() {
+        use crate::types::{ExtractResult, UiElement, UiElementKind};
+        use crate::ocr::OcrTimings;
+        use crate::icon::{IconMatchStats, IconTimings};
+
+        let result = ExtractResult {
+            width: 100,
+            height: 200,
+            root: UiElement {
+                bounds: crate::types::Bounds::new(0, 0, 100, 200),
+                kind: UiElementKind::Root,
+                children: vec![],
+            },
+        };
+        let timings = ExtractTimings {
+            gray_ms: 1.5,
+            layout_ms: 42.0,
+            parallel_ms: 120.0,
+            ocr: OcrTimings {
+                init_ms: 0.0,
+                predict_ms: 80.0,
+            },
+            attach_words_ms: 3.0,
+            icon: IconMatchStats {
+                candidates: 4,
+                matched: 2,
+                timings: IconTimings {
+                    load_ms: 0.0,
+                    match_ms: 25.0,
+                },
+            },
+            ..ExtractTimings::default()
+        };
+
+        let json = extract_result_json(result, timings).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["width"], 100);
+        assert_eq!(parsed["timings"]["layout_ms"], 42.0);
+        assert_eq!(parsed["timings"]["ocr"]["predict_ms"], 80.0);
+        assert_eq!(parsed["timings"]["icon"]["matched"], 2);
     }
 }

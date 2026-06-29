@@ -5,6 +5,7 @@ import 'package:local_infer_core/local_infer_core.dart';
 
 import 'assets.dart';
 import 'config.dart';
+import 'extract_output.dart';
 import 'ffi_bindings.dart';
 
 /// Stateful UI extractor backed by the native library.
@@ -45,11 +46,16 @@ class UiExtractorEngine {
 
   /// Extract UI tree from in-memory image bytes (PNG/JPEG/WebP, etc.).
   Map<String, dynamic> extractBytes(Uint8List imageBytes) {
+    return extractWithTimings(imageBytes).resultJson;
+  }
+
+  /// Like [extractBytes] but also returns native stage timings.
+  UiExtractOutput extractWithTimings(Uint8List imageBytes) {
     final handle = _handle;
     if (handle == null) {
       throw StateError('UiExtractorEngine already disposed');
     }
-    return nativeBindings.extractBytes(handle, imageBytes);
+    return UiExtractOutput.fromJson(nativeBindings.extractBytes(handle, imageBytes));
   }
 
   /// Extract UI tree from an image file path.

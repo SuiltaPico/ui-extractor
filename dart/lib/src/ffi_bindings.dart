@@ -5,92 +5,61 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 
 import 'exceptions.dart';
+import 'ffi_native.dart';
+import 'ffi_types.dart';
 import 'native_library.dart';
 
 final class _Bindings {
-  _Bindings._();
+  _Bindings._() {
+    if (usesBundledNativeAsset) {
+      _initBundled();
+    } else {
+      _initDynamicLibrary(uiExtractorLibrary);
+    }
+  }
 
   static final _Bindings instance = _Bindings._();
 
-  late final DynamicLibrary _lib = openUiExtractorLibrary();
+  late final UiExtractorVersionFn _version;
+  late final UiExtractorStringFreeFn _stringFree;
+  late final UiExtractorCreateFn _create;
+  late final UiExtractorDestroyFn _destroy;
+  late final UiExtractorExtractBytesFn _extractBytes;
+  late final UiExtractorExtractFileFn _extractFile;
 
-  late final Pointer<Utf8> Function() _version =
-      _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
-    'ui_extractor_version',
-  );
+  void _initBundled() {
+    _version = nativeUiExtractorVersion;
+    _stringFree = nativeUiExtractorStringFree;
+    _create = nativeUiExtractorCreate;
+    _destroy = nativeUiExtractorDestroy;
+    _extractBytes = nativeUiExtractorExtractBytes;
+    _extractFile = nativeUiExtractorExtractFile;
+  }
 
-  late final void Function(Pointer<Utf8>) _stringFree =
-      _lib.lookupFunction<Void Function(Pointer<Utf8>), void Function(Pointer<Utf8>)>(
-    'ui_extractor_string_free',
-  );
-
-  late final Pointer<Void> Function(
-    Pointer<Void>,
-    Pointer<Utf8>,
-    Pointer<Pointer<Utf8>>,
-  ) _create = _lib.lookupFunction<
-          Pointer<Void> Function(
-            Pointer<Void>,
-            Pointer<Utf8>,
-            Pointer<Pointer<Utf8>>,
-          ),
-          Pointer<Void> Function(
-            Pointer<Void>,
-            Pointer<Utf8>,
-            Pointer<Pointer<Utf8>>,
-          )>(
-    'ui_extractor_create',
-  );
-
-  late final void Function(Pointer<Void>) _destroy =
-      _lib.lookupFunction<Void Function(Pointer<Void>), void Function(Pointer<Void>)>(
-    'ui_extractor_destroy',
-  );
-
-  late final int Function(
-    Pointer<Void>,
-    Pointer<Uint8>,
-    int,
-    Pointer<Pointer<Utf8>>,
-    Pointer<Pointer<Utf8>>,
-  ) _extractBytes = _lib.lookupFunction<
-      Int32 Function(
-        Pointer<Void>,
-        Pointer<Uint8>,
-        IntPtr,
-        Pointer<Pointer<Utf8>>,
-        Pointer<Pointer<Utf8>>,
-      ),
-      int Function(
-        Pointer<Void>,
-        Pointer<Uint8>,
-        int,
-        Pointer<Pointer<Utf8>>,
-        Pointer<Pointer<Utf8>>,
-      )>(
-    'ui_extractor_extract_bytes',
-  );
-
-  late final int Function(
-    Pointer<Void>,
-    Pointer<Utf8>,
-    Pointer<Pointer<Utf8>>,
-    Pointer<Pointer<Utf8>>,
-  ) _extractFile = _lib.lookupFunction<
-      Int32 Function(
-        Pointer<Void>,
-        Pointer<Utf8>,
-        Pointer<Pointer<Utf8>>,
-        Pointer<Pointer<Utf8>>,
-      ),
-      int Function(
-        Pointer<Void>,
-        Pointer<Utf8>,
-        Pointer<Pointer<Utf8>>,
-        Pointer<Pointer<Utf8>>,
-      )>(
-    'ui_extractor_extract_file',
-  );
+  void _initDynamicLibrary(DynamicLibrary lib) {
+    _version = lib.lookupFunction<UiExtractorVersionFn, UiExtractorVersionFn>(
+      'ui_extractor_version',
+    );
+    _stringFree = lib.lookupFunction<
+        UiExtractorStringFreeNative, UiExtractorStringFreeFn>(
+      'ui_extractor_string_free',
+    );
+    _create = lib.lookupFunction<UiExtractorCreateFn, UiExtractorCreateFn>(
+      'ui_extractor_create',
+    );
+    _destroy = lib.lookupFunction<
+        UiExtractorDestroyNative, UiExtractorDestroyFn>(
+      'ui_extractor_destroy',
+    );
+    _extractBytes = lib.lookupFunction<
+        UiExtractorExtractBytesNative, UiExtractorExtractBytesFn>(
+      'ui_extractor_extract_bytes',
+    );
+    _extractFile = lib.lookupFunction<
+        UiExtractorExtractFileNative, UiExtractorExtractFileFn>(
+      'ui_extractor_extract_file',
+    );
+  }
 
   String get version => _version().toDartString();
 

@@ -7,6 +7,8 @@ export 'src/config.dart';
 export 'src/engine.dart';
 export 'src/exceptions.dart';
 export 'src/assets.dart' show BundledAssets;
+export 'src/native_library.dart'
+    show initUiExtractorLibrary, isUiExtractorLibraryInitialized;
 
 import 'src/ffi_bindings.dart' show nativeBindings;
 

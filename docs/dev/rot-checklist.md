@@ -72,6 +72,7 @@
 | CLI / `ExtractEngine` | ✅ | manifest + `pack_id` |
 | `src/infer/runtime.rs` | ✅ | types-only；无 env |
 | `dart/` hook | ✅ | 仅 GitHub Release；`release_tag` in pubspec |
+| `dart/` runtime | ✅ | 对齐 local_infer_core：`@Native` bundled / Android / `initUiExtractorLibrary` |
 | Release zip | ⚠️ | slim 优先；完整 zip fallback |
 | `catalog.json` | ✅ | 已删；pack URL = `releases/download/{tag}/{pack_id}.zip` |
 
@@ -147,7 +148,7 @@ Mauchat                →  models_dir 一处；registry 可共享
 |----|------|------|
 | Dart slim zip fallback | P2 | hook 先试 `-slim`，失败再拉完整 zip |
 | `LOCAL_INFER_ROOT` 运行时 | P3 | Mauchat 模型根目录 env；与 native lib 无关，可保留 |
-| local-infer-core dart hook | P3 | 仍可能有 `local_lib`；ui-extractor 侧已 Release-only |
+| local-infer-core dart hook | P3 | 仍可能有 `local_lib`；ui-extractor 侧 hook + runtime 已 Release-only |
 
 ---
 

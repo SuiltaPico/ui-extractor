@@ -18,7 +18,7 @@ dependencies:
       path: dart
 ```
 
-Build hook 从 GitHub Release 下载 `ui_extractor.dll`（优先 slim zip）；`infer_core.dll` 由 `local_infer_core` hook 从 Release 提供。
+Build hook 从 GitHub Release 下载 `lib/ui_extractor.dll`（`ui-extractor-windows-{x86_64,aarch64}.zip`，布局对齐 local-infer-core）；`infer_core.dll` 由 `local_infer_core` hook 从 Release 提供。
 
 桌面端符号经 build hook 的 `@Native` bundled asset 解析；Android 用 ffiPlugin。测试或自定义布局时可调用 `initUiExtractorLibrary(path)`。
 

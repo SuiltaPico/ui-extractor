@@ -19,7 +19,7 @@
 
 End users: download from GitHub Releases (no source build required).
 
-1. **CLI**: [ui-extractor Release](https://github.com/SuiltaPico/ui-extractor/releases) — pick `ui-extractor-windows-x64.zip` (includes `infer_core.dll`)
+1. **CLI**: [ui-extractor Release](https://github.com/SuiltaPico/ui-extractor/releases) — pick `ui-extractor-windows-x86_64-bundle.zip` (includes `infer_core.dll`)
 2. **Model packs**: [local-infer-core Release](https://github.com/SuiltaPico/local-infer-core/releases) (same tag) — extract `ocr.*`, `embed.*`, `icons.*` zips into `models/{pack_id}/`
 
 See [SKILL.md](../SKILL.md) for the full Release setup script and CLI examples.

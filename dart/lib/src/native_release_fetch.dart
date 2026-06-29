@@ -15,44 +15,35 @@ Future<File> fetchNativeLibrary({
     targetOS: targetOS,
     targetArchitecture: targetArchitecture,
   );
+  final url = releaseArchiveUrl(
+    repo: repo,
+    tag: tag,
+    assetBaseName: assetBase,
+  );
+  const ext = '.zip';
+  final archiveFile = File(p.join(outputDirectory.path, '$assetBase$ext'));
   final extractRoot = Directory(p.join(outputDirectory.path, assetBase));
 
   if (!await extractRoot.exists()) {
     await extractRoot.create(recursive: true);
   }
 
-  // Prefer slim zip (ui_extractor.dll only); fall back to full CLI/SDK bundle.
-  for (final suffix in ['-slim', '']) {
-    final archiveBase = '$assetBase$suffix';
-    final url = releaseArchiveUrl(
-      repo: repo,
-      tag: tag,
-      assetBaseName: archiveBase,
-    );
-    final archiveFile = File(p.join(outputDirectory.path, '$archiveBase.zip'));
-    try {
-      if (!await archiveFile.exists()) {
-        await _download(url, archiveFile);
-      }
-      await _extractZip(archiveFile: archiveFile, dest: extractRoot);
-      break;
-    } on HttpException {
-      if (suffix.isEmpty) rethrow;
-      continue;
-    } on StateError {
-      if (suffix.isEmpty) rethrow;
-      continue;
-    }
+  if (!await archiveFile.exists()) {
+    await _download(url, archiveFile);
+    await _extractZip(archiveFile: archiveFile, dest: extractRoot);
   }
 
   final libRelative = targetOS == OS.android
       ? androidLibraryRelativePath(targetArchitecture)
-      : targetOS.dylibFileName(bundledLibraryBaseName(targetOS));
+      : p.join(
+          'lib',
+          targetOS.dylibFileName(bundledLibraryBaseName(targetOS)),
+        );
 
   final libFile = File(p.join(extractRoot.path, libRelative));
   if (!await libFile.exists()) {
     throw StateError(
-      'expected library at ${libFile.path} after extracting release archives for $assetBase',
+      'expected library at ${libFile.path} after extracting $url',
     );
   }
   return libFile;
@@ -80,17 +71,29 @@ Future<void> _extractZip({
   required File archiveFile,
   required Directory dest,
 }) async {
+  if (Platform.isWindows) {
+    final result = await Process.run(
+      'powershell',
+      [
+        '-NoProfile',
+        '-Command',
+        'Expand-Archive -LiteralPath "${archiveFile.path}" -DestinationPath "${dest.path}" -Force',
+      ],
+      runInShell: true,
+    );
+    if (result.exitCode != 0) {
+      throw StateError('Expand-Archive failed: ${result.stderr}');
+    }
+    return;
+  }
+
   final result = await Process.run(
-    'powershell',
-    [
-      '-NoProfile',
-      '-Command',
-      'Expand-Archive -LiteralPath "${archiveFile.path}" -DestinationPath "${dest.path}" -Force',
-    ],
+    'unzip',
+    ['-o', archiveFile.path, '-d', dest.path],
     runInShell: true,
   );
   if (result.exitCode != 0) {
-    throw StateError('Expand-Archive failed: ${result.stderr}');
+    throw StateError('unzip failed: ${result.stderr}');
   }
 }
 

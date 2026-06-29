@@ -20,7 +20,7 @@ No need to clone `local-infer-core` or keep both repos as siblings — GitHub Re
 
 ### 1. Download binaries
 
-Download `ui-extractor-windows-x64.zip` (or arm64) from [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) and extract anywhere, e.g. `C:\tools\ui-extractor`. The zip includes `ui-extractor.exe` and `infer_core.dll`.
+Download `ui-extractor-windows-x86_64-bundle.zip` (or `windows-aarch64-bundle`) from [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) and extract anywhere, e.g. `C:\tools\ui-extractor`. The bundle includes `ui-extractor.exe` and `infer_core.dll`.
 
 ### 2. Download model packs
 
@@ -130,7 +130,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_android.ps1
 
 ## Release packaging
 
-Tagging (e.g. `v0.1.0`) triggers GitHub Actions to publish four zips: Windows x64/arm64, Android arm64-v8a/x86_64.
+Tagging (e.g. `v0.1.0`) triggers GitHub Actions to publish SDK zips (`ui-extractor-windows-{x86_64,aarch64}.zip`, Android `arm64-v8a` / `x86_64`) plus desktop CLI bundles (`*-bundle.zip`) and `SHA256SUMS.txt`.
 
 Local packaging (model packs are managed by `local-infer-core`):
 

@@ -20,7 +20,7 @@
 
 ### 1. 下载二进制
 
-从 [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) 下载 `ui-extractor-windows-x64.zip`（或 arm64），解压到任意目录，例如 `C:\tools\ui-extractor`。包内已含 `ui-extractor.exe` 与 `infer_core.dll`。
+从 [ui-extractor v0.1.0 Release](https://github.com/SuiltaPico/ui-extractor/releases/tag/v0.1.0) 下载 `ui-extractor-windows-x86_64-bundle.zip`（或 `windows-aarch64-bundle`），解压到任意目录，例如 `C:\tools\ui-extractor`。包内已含 `ui-extractor.exe` 与 `infer_core.dll`。
 
 ### 2. 下载模型包
 
@@ -130,7 +130,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_android.ps1
 
 ## Release 打包
 
-打 tag（如 `v0.1.0`）后 GitHub Actions 自动发布 4 个 zip：Windows x64/arm64、Android arm64-v8a/x86_64。
+打 tag（如 `v0.1.0`）后 GitHub Actions 自动发布 SDK zip（`ui-extractor-windows-{x86_64,aarch64}.zip`、Android arm64-v8a/x86_64）、桌面 CLI bundle（`*-bundle.zip`）及 `SHA256SUMS.txt`。
 
 本地打包（模型包由 `local-infer-core` 管理）：
 

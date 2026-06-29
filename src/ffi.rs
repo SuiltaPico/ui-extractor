@@ -4,25 +4,23 @@
 //! library must be freed with [`ui_extractor_string_free`].
 
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_double, c_int, c_uint, c_void};
+use std::os::raw::{c_char, c_int, c_void};
 use std::panic::{catch_unwind, AssertUnwindSafe};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::ptr;
 
 use image::DynamicImage;
 use serde::Deserialize;
 
 use crate::engine::ExtractEngine;
-use crate::icon::{IconMatchOptions, IconPack, EMBED_DIM};
+use crate::infer::Registry;
 use crate::pipeline::ExtractConfig;
-use crate::types::Bounds;
-use crate::{ExtractError, IconConfig, LayoutConfig, OcrConfig};
+use crate::{IconConfig, LayoutConfig, OcrConfig};
 
 const OK: c_int = 0;
 const ERR: c_int = -1;
 
 pub struct ExtractEngineHandle(ExtractEngine);
-pub struct IconPackHandle(IconPack);
 
 fn set_error(out_error: *mut *mut c_char, message: impl Into<String>) {
     if !out_error.is_null() {
@@ -46,13 +44,13 @@ fn string_to_raw(message: impl Into<String>) -> *mut c_char {
         .unwrap_or(ptr::null_mut())
 }
 
-fn read_path(c: *const c_char) -> Result<&'static str, String> {
+fn read_cstr(c: *const c_char) -> Result<&'static str, String> {
     if c.is_null() {
-        return Err("null path".into());
+        return Err("null string".into());
     }
     unsafe { CStr::from_ptr(c) }
         .to_str()
-        .map_err(|e| format!("invalid UTF-8 path: {e}"))
+        .map_err(|e| format!("invalid UTF-8: {e}"))
 }
 
 fn read_bytes(data: *const u8, len: usize) -> Result<&'static [u8], String> {
@@ -125,7 +123,7 @@ fn default_true() -> bool {
     true
 }
 
-fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
+fn config_from_json(json: &str, borrowed_registry: bool) -> Result<ExtractConfig, String> {
     use crate::packs::{resolve_models_dir, DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK};
 
     let parsed: EngineConfigJson =
@@ -166,11 +164,17 @@ fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
 
     let runtime = match parsed.runtime {
         Some(v) => serde_json::from_value(v).map_err(|e| e.to_string())?,
-        None => crate::infer::RuntimeConfig::from_env_or_default(),
+        None => crate::infer::RuntimeConfig::default(),
+    };
+
+    let models_dir = if borrowed_registry {
+        PathBuf::from(".")
+    } else {
+        resolve_models_dir(parsed.models_dir.as_deref().map(Path::new))
     };
 
     Ok(ExtractConfig {
-        models_dir: resolve_models_dir(parsed.models_dir.as_deref().map(Path::new)),
+        models_dir,
         runtime,
         ocr_pack: parsed
             .ocr_pack
@@ -187,7 +191,7 @@ fn config_from_json(json: &str) -> Result<ExtractConfig, String> {
     })
 }
 
-fn map_extract_error(err: ExtractError) -> String {
+fn map_extract_error(err: crate::ExtractError) -> String {
     err.to_string()
 }
 
@@ -195,8 +199,18 @@ fn load_image_bytes(bytes: &[u8]) -> Result<DynamicImage, String> {
     image::load_from_memory(bytes).map_err(|e| e.to_string())
 }
 
-fn icon_match_options(min_cosine: c_double) -> IconMatchOptions {
-    IconMatchOptions { min_cosine }
+fn open_engine(
+    infer_registry: *mut c_void,
+    config_json: &str,
+) -> Result<ExtractEngine, String> {
+    let borrowed = !infer_registry.is_null();
+    let config = config_from_json(config_json, borrowed)?;
+    if borrowed {
+        let registry = Registry::from_borrowed(infer_registry);
+        ExtractEngine::from_registry(registry, config).map_err(map_extract_error)
+    } else {
+        ExtractEngine::open(config).map_err(map_extract_error)
+    }
 }
 
 /// Library version string (static, do not free).
@@ -213,18 +227,21 @@ pub unsafe extern "C" fn ui_extractor_string_free(s: *mut c_char) {
     }
 }
 
-/// Create an extractor from a JSON config string. Returns null on failure.
+/*
+ * infer_registry: NULL → ui-extractor opens its own infer-core registry
+ *                  non-NULL → borrow existing InferRegistry* (not destroyed on close)
+ * config_json: layout/ocr/icon + pack ids; models_dir/runtime ignored when borrowing
+ */
 #[no_mangle]
 pub extern "C" fn ui_extractor_create(
+    infer_registry: *mut c_void,
     config_json: *const c_char,
     out_error: *mut *mut c_char,
 ) -> *mut c_void {
     match catch_unwind(AssertUnwindSafe(|| {
-        let json = read_path(config_json)?;
-        let config = config_from_json(json)?;
-        ExtractEngine::open(config)
+        let json = read_cstr(config_json)?;
+        open_engine(infer_registry, json)
             .map(|engine| Box::into_raw(Box::new(ExtractEngineHandle(engine))) as *mut c_void)
-            .map_err(map_extract_error)
     })) {
         Ok(Ok(ptr)) => {
             clear_error(out_error);
@@ -239,6 +256,25 @@ pub extern "C" fn ui_extractor_create(
             ptr::null_mut()
         }
     }
+}
+
+/// Standalone create: equivalent to `ui_extractor_create(NULL, config_json, out_error)`.
+#[no_mangle]
+pub extern "C" fn ui_extractor_create_standalone(
+    config_json: *const c_char,
+    out_error: *mut *mut c_char,
+) -> *mut c_void {
+    ui_extractor_create(ptr::null_mut(), config_json, out_error)
+}
+
+/// Borrow-mode alias for `ui_extractor_create(infer_registry, config_json, out_error)`.
+#[no_mangle]
+pub extern "C" fn ui_extractor_create_from_registry(
+    infer_registry: *mut c_void,
+    config_json: *const c_char,
+    out_error: *mut *mut c_char,
+) -> *mut c_void {
+    ui_extractor_create(infer_registry, config_json, out_error)
 }
 
 /// Destroy a handle from [`ui_extractor_create`].
@@ -294,7 +330,7 @@ pub extern "C" fn ui_extractor_extract_file(
                 .as_mut()
                 .ok_or_else(|| "null extractor handle".to_string())?
         };
-        let path = read_path(path)?;
+        let path = read_cstr(path)?;
         let (result, _timings) = engine
             .0
             .extract_from_path(Path::new(path))
@@ -326,231 +362,24 @@ pub extern "C" fn ui_extractor_reload_icon_pack(
     })
 }
 
-/// Load an icon pack from a precomputed embedding index.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_load(
-    embedding_index: *const c_char,
-    vision_model: *const c_char,
-    template_size: c_uint,
-    min_cosine: c_double,
-    out_error: *mut *mut c_char,
-) -> *mut c_void {
-    match catch_unwind(AssertUnwindSafe(|| {
-        let embedding_index = read_path(embedding_index)?;
-        let vision_model = read_path(vision_model)?;
-        IconPack::load(
-            embedding_index,
-            vision_model,
-            template_size,
-            icon_match_options(min_cosine),
-        )
-        .map(|pack| Box::into_raw(Box::new(IconPackHandle(pack))) as *mut c_void)
-        .map_err(map_extract_error)
-    })) {
-        Ok(Ok(ptr)) => {
-            clear_error(out_error);
-            ptr
-        }
-        Ok(Err(message)) => {
-            set_error(out_error, message);
-            ptr::null_mut()
-        }
-        Err(_) => {
-            set_error(out_error, "internal panic");
-            ptr::null_mut()
-        }
-    }
-}
-
-/// Destroy a handle from [`ui_icon_pack_load`].
-#[no_mangle]
-pub unsafe extern "C" fn ui_icon_pack_destroy(handle: *mut c_void) {
-    if !handle.is_null() {
-        drop(Box::from_raw(handle as *mut IconPackHandle));
-    }
-}
-
-/// Embed an icon crop from image bytes (screenshot-style). Writes `dim` floats to `out_embedding`.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_embed_image_bytes(
-    handle: *mut c_void,
-    data: *const u8,
-    len: usize,
-    out_embedding: *mut f32,
-    dim: c_uint,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_mut()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        if dim as usize != EMBED_DIM {
-            return Err(format!("expected embedding dim {EMBED_DIM}, got {dim}"));
-        }
-        if out_embedding.is_null() {
-            return Err("null out_embedding".into());
-        }
-        let bytes = read_bytes(data, len)?;
-        let img = load_image_bytes(bytes)?;
-        let embedding = pack.0.embed_query_image(&img).map_err(map_extract_error)?;
-        unsafe {
-            ptr::copy_nonoverlapping(embedding.as_ptr(), out_embedding, EMBED_DIM);
-        }
-        Ok(())
-    })
-}
-
-/// Match a precomputed embedding against the pack. Writes JSON `{ "name", "score" }` or `null`.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_match_embedding(
-    handle: *mut c_void,
-    embedding: *const f32,
-    dim: c_uint,
-    out_json: *mut *mut c_char,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_ref()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        if dim as usize != EMBED_DIM {
-            return Err(format!("expected embedding dim {EMBED_DIM}, got {dim}"));
-        }
-        if embedding.is_null() {
-            return Err("null embedding".into());
-        }
-        let slice = unsafe { std::slice::from_raw_parts(embedding, EMBED_DIM) };
-        let hit = pack.0.match_embedding(slice);
-        let json = match hit {
-            Some(h) => serde_json::to_string(&h).map_err(|e| e.to_string())?,
-            None => "null".to_string(),
-        };
-        if !out_json.is_null() {
-            unsafe {
-                *out_json = string_to_raw(json);
-            }
-        }
-        Ok(())
-    })
-}
-
-/// Cosine search top-k. Writes JSON array of `{ "name", "score" }`.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_search_embedding(
-    handle: *mut c_void,
-    embedding: *const f32,
-    dim: c_uint,
-    top_k: c_uint,
-    out_json: *mut *mut c_char,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_ref()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        if dim as usize != EMBED_DIM {
-            return Err(format!("expected embedding dim {EMBED_DIM}, got {dim}"));
-        }
-        if embedding.is_null() {
-            return Err("null embedding".into());
-        }
-        let slice = unsafe { std::slice::from_raw_parts(embedding, EMBED_DIM) };
-        let hits = pack.0.search_embedding(slice, top_k as usize);
-        let json = serde_json::to_string(&hits).map_err(|e| e.to_string())?;
-        if !out_json.is_null() {
-            unsafe {
-                *out_json = string_to_raw(json);
-            }
-        }
-        Ok(())
-    })
-}
-
-/// Match an image file against the pack (whole frame treated as icon). Writes JSON hit or `null`.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_match_image_file(
-    handle: *mut c_void,
-    path: *const c_char,
-    out_json: *mut *mut c_char,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_mut()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        let path = read_path(path)?;
-        let img = image::open(path).map_err(|e| e.to_string())?;
-        let hit = pack.0.match_image(&img).map_err(map_extract_error)?;
-        let json = match hit {
-            Some(h) => serde_json::to_string(&h).map_err(|e| e.to_string())?,
-            None => "null".to_string(),
-        };
-        if !out_json.is_null() {
-            unsafe {
-                *out_json = string_to_raw(json);
-            }
-        }
-        Ok(())
-    })
-}
-
-/// Match a region `(x, y, width, height)` inside an image file.
-#[no_mangle]
-pub extern "C" fn ui_icon_pack_match_region_file(
-    handle: *mut c_void,
-    path: *const c_char,
-    x: c_int,
-    y: c_int,
-    width: c_int,
-    height: c_int,
-    out_json: *mut *mut c_char,
-    out_error: *mut *mut c_char,
-) -> c_int {
-    run(out_error, || {
-        let pack = unsafe {
-            (handle as *mut IconPackHandle)
-                .as_mut()
-                .ok_or_else(|| "null icon pack handle".to_string())?
-        };
-        let path = read_path(path)?;
-        let img = image::open(path).map_err(|e| e.to_string())?;
-        let bounds = Bounds::new(x, y, width, height);
-        let hit = pack.0.match_region(&img, &bounds);
-        let json = match hit {
-            Some(h) => serde_json::to_string(&h).map_err(|e| e.to_string())?,
-            None => "null".to_string(),
-        };
-        if !out_json.is_null() {
-            unsafe {
-                *out_json = string_to_raw(json);
-            }
-        }
-        Ok(())
-    })
-}
-
-/// Embedding vector dimension (512 for MobileCLIP2-S0).
-#[no_mangle]
-pub extern "C" fn ui_icon_embedding_dim() -> c_uint {
-    EMBED_DIM as c_uint
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn parses_minimal_engine_config() {
-        let cfg = config_from_json(r#"{"run_ocr": false, "run_icon": false}"#).unwrap();
+        let cfg = config_from_json(r#"{"run_ocr": false, "run_icon": false}"#, false).unwrap();
         assert!(!cfg.run_ocr);
         assert!(!cfg.run_icon);
+    }
+
+    #[test]
+    fn borrowed_mode_ignores_models_dir_in_json() {
+        let cfg = config_from_json(
+            r#"{"models_dir":"/should/be/ignored","run_ocr":false,"run_icon":false}"#,
+            true,
+        )
+        .unwrap();
+        assert_eq!(cfg.models_dir, PathBuf::from("."));
     }
 }

@@ -18,21 +18,34 @@ Future<File> fetchNativeLibrary({
     targetOS: targetOS,
     targetArchitecture: targetArchitecture,
   );
-  final url = releaseArchiveUrl(
-    repo: repo,
-    tag: tag,
-    assetBaseName: assetBase,
-  );
-  final archiveFile = File(p.join(outputDirectory.path, '$assetBase.zip'));
   final extractRoot = Directory(p.join(outputDirectory.path, assetBase));
 
   if (!await extractRoot.exists()) {
     await extractRoot.create(recursive: true);
   }
 
-  if (!await archiveFile.exists()) {
-    await _download(url, archiveFile);
-    await _extractZip(archiveFile: archiveFile, dest: extractRoot);
+  // Prefer slim zip (ui_extractor.dll only); fall back to full CLI/SDK bundle.
+  for (final suffix in ['-slim', '']) {
+    final archiveBase = '$assetBase$suffix';
+    final url = releaseArchiveUrl(
+      repo: repo,
+      tag: tag,
+      assetBaseName: archiveBase,
+    );
+    final archiveFile = File(p.join(outputDirectory.path, '$archiveBase.zip'));
+    try {
+      if (!await archiveFile.exists()) {
+        await _download(url, archiveFile);
+      }
+      await _extractZip(archiveFile: archiveFile, dest: extractRoot);
+      break;
+    } on HttpException {
+      if (suffix.isEmpty) rethrow;
+      continue;
+    } on StateError {
+      if (suffix.isEmpty) rethrow;
+      continue;
+    }
   }
 
   final libRelative = targetOS == OS.android
@@ -42,7 +55,7 @@ Future<File> fetchNativeLibrary({
   final libFile = File(p.join(extractRoot.path, libRelative));
   if (!await libFile.exists()) {
     throw StateError(
-      'expected library at ${libFile.path} after extracting $url',
+      'expected library at ${libFile.path} after extracting release archives for $assetBase',
     );
   }
   return libFile;

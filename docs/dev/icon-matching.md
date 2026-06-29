@@ -11,7 +11,7 @@ MDI 资源下载与栅格化见 [mdi-icons.md](./mdi-icons.md)（`local-infer-co
   → crop 截图区域
   → 预处理 → 256×256 RGB（白底黑 icon）
   → MobileCLIP2-S0 vision → 512 维嵌入（L2 归一化）
-  → 与 embeddings.bin 暴力余弦检索（~7400 量级，毫秒级）
+  → 与 icon_index pack（MCL2 向量库）余弦检索
   → cosine ≥ min_cosine → { kind: "icon", name, confidence }
   → 否则保留 container（后续 potrace 兜底）
 ```

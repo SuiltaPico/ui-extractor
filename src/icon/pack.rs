@@ -1,7 +1,5 @@
-use std::path::Path;
-
 use image::{DynamicImage, GrayImage};
-use crate::infer::{EmbedEngine, IconIndex, Registry, RuntimeConfig};
+use crate::infer::{EmbedEngine, IconIndex, Registry};
 
 use crate::{
     error::{ExtractError, Result},
@@ -80,31 +78,6 @@ impl IconPack {
         })
     }
 
-    /// Legacy path-based loader (offline tools / tests).
-    pub fn load(
-        embedding_index: impl AsRef<Path>,
-        vision_model: impl AsRef<Path>,
-        template_size: u32,
-        match_options: IconMatchOptions,
-    ) -> Result<Self> {
-        let runtime = RuntimeConfig::from_env_or_default();
-        let embedder = EmbedEngine::load(vision_model.as_ref(), &runtime)
-            .map_err(|e| ExtractError::Image(e.to_string()))?;
-        let index = IconIndex::load(embedding_index.as_ref())
-            .map_err(|e| ExtractError::Image(e.to_string()))?;
-        let candidate_config = IconConfig {
-            min_cosine: match_options.min_cosine,
-            ..IconConfig::default()
-        };
-        Ok(Self {
-            template_size,
-            embedder,
-            index,
-            match_options,
-            candidate_config,
-        })
-    }
-
     pub fn match_config(&self) -> IconConfig {
         self.candidate_config.clone()
     }
@@ -124,27 +97,33 @@ impl IconPack {
     pub fn match_gray_crop(&mut self, gray_crop: &GrayImage) -> Option<IconMatchHit> {
         let rgb = icon_crop_to_rgb256(gray_crop, self.template_size);
         let embedding = self.embedder.embed_rgb256(&rgb).ok()?;
-        self.match_embedding(&embedding)
+        self.match_embedding(&embedding).ok().flatten()
     }
 
-    pub fn match_embedding(&self, embedding: &[f32]) -> Option<IconMatchHit> {
+    pub fn match_embedding(&self, embedding: &[f32]) -> Result<Option<IconMatchHit>> {
         self.index
             .match_embedding(embedding, self.match_options.min_cosine)
-            .map(|m| IconMatchHit {
-                name: m.name,
-                score: m.score,
+            .map(|m| {
+                m.map(|hit| IconMatchHit {
+                    name: hit.name,
+                    score: hit.score,
+                })
             })
+            .map_err(|e| ExtractError::Image(e.to_string()))
     }
 
-    pub fn search_embedding(&self, embedding: &[f32], top_k: usize) -> Vec<IconMatchHit> {
+    pub fn search_embedding(&self, embedding: &[f32], top_k: usize) -> Result<Vec<IconMatchHit>> {
         self.index
             .search(embedding, top_k.max(1))
-            .into_iter()
-            .map(|m| IconMatchHit {
-                name: m.name,
-                score: m.score,
+            .map(|hits| {
+                hits.into_iter()
+                    .map(|m| IconMatchHit {
+                        name: m.name,
+                        score: m.score,
+                    })
+                    .collect()
             })
-            .collect()
+            .map_err(|e| ExtractError::Image(e.to_string()))
     }
 
     pub fn match_region(
@@ -156,12 +135,12 @@ impl IconPack {
         let crop = crop_gray(&gray, bounds)?;
         let rgb = icon_crop_to_rgb256(&crop, self.template_size);
         let embedding = self.embedder.embed_rgb256(&rgb).ok()?;
-        self.match_embedding(&embedding)
+        self.match_embedding(&embedding).ok().flatten()
     }
 
     pub fn match_image(&mut self, img: &DynamicImage) -> Result<Option<IconMatchHit>> {
         let embedding = self.embed_query_image(img)?;
-        Ok(self.match_embedding(&embedding))
+        self.match_embedding(&embedding)
     }
 
     pub fn embedding_dim() -> usize {

@@ -1,5 +1,8 @@
 library ui_extractor;
 
+export 'package:local_infer_core/local_infer_core.dart'
+    show LocalInferRegistry, RuntimeConfig;
+
 export 'src/config.dart';
 export 'src/engine.dart';
 export 'src/exceptions.dart';

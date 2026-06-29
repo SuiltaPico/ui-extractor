@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use ui_extractor::{
     format_ms, render_annotation, run_cases, resolve_models_dir, ExtractConfig, IconConfig,
-    LayoutConfig, OcrConfig, DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK, ExtractEngine,
+    LayoutConfig, OcrConfig, RuntimeConfig, DEFAULT_ICON_INDEX_PACK, DEFAULT_OCR_PACK,
+    ExtractEngine,
 };
 
 #[derive(Parser)]
@@ -49,6 +50,10 @@ enum Command {
         #[arg(long, default_value = DEFAULT_ICON_INDEX_PACK)]
         icon_index_pack: String,
 
+        /// Runtime config JSON file or inline JSON (ORT/MNN execution providers)
+        #[arg(long)]
+        runtime_config: Option<String>,
+
         /// Minimum contour area in pixels
         #[arg(long, default_value_t = 100)]
         min_area: i64,
@@ -93,6 +98,10 @@ enum Command {
         /// Icon index pack id
         #[arg(long, default_value = DEFAULT_ICON_INDEX_PACK)]
         icon_index_pack: String,
+
+        /// Runtime config JSON file or inline JSON
+        #[arg(long)]
+        runtime_config: Option<String>,
 
         /// Minimum contour area in pixels
         #[arg(long, default_value_t = 100)]
@@ -147,6 +156,7 @@ fn main() -> anyhow::Result<()> {
             dump_pipeline,
             format,
             icon,
+            runtime_config,
         } => run_extract(
             input,
             output,
@@ -161,6 +171,7 @@ fn main() -> anyhow::Result<()> {
             dump_pipeline,
             format,
             icon,
+            runtime_config,
         ),
         Command::Cases {
             dir,
@@ -172,6 +183,7 @@ fn main() -> anyhow::Result<()> {
             min_area,
             ocr_max_side,
             icon,
+            runtime_config,
         } => run_cases_cmd(
             dir,
             layout_only,
@@ -182,8 +194,22 @@ fn main() -> anyhow::Result<()> {
             min_area,
             ocr_max_side,
             icon,
+            runtime_config,
         ),
     }
+}
+
+fn parse_runtime_config(raw: Option<&str>) -> anyhow::Result<RuntimeConfig> {
+    let Some(text) = raw else {
+        return Ok(RuntimeConfig::default());
+    };
+    let path = PathBuf::from(text);
+    let json = if path.is_file() {
+        std::fs::read_to_string(path)?
+    } else {
+        text.to_string()
+    };
+    RuntimeConfig::from_json(&json).map_err(|e| anyhow::anyhow!("runtime config: {e}"))
 }
 
 fn build_config(
@@ -196,9 +222,11 @@ fn build_config(
     ocr_max_side: u32,
     pipeline_dump_dir: Option<PathBuf>,
     icon: IconExtractArgs,
-) -> ExtractConfig {
-    ExtractConfig {
+    runtime_config: Option<String>,
+) -> anyhow::Result<ExtractConfig> {
+    Ok(ExtractConfig {
         models_dir: resolve_models_dir(Some(&models_dir)),
+        runtime: parse_runtime_config(runtime_config.as_deref())?,
         ocr_pack,
         icon_index_pack,
         layout: LayoutConfig {
@@ -213,8 +241,7 @@ fn build_config(
         run_ocr: !layout_only,
         run_icon: !no_icon,
         pipeline_dump_dir,
-        ..ExtractConfig::default()
-    }
+    })
 }
 
 fn run_extract(
@@ -231,6 +258,7 @@ fn run_extract(
     dump_pipeline: bool,
     format: OutputFormat,
     icon: IconExtractArgs,
+    runtime_config: Option<String>,
 ) -> anyhow::Result<()> {
     let pipeline_dump_dir = if dump_pipeline {
         Some(pipeline_dump_dir_for_extract(&input, output.as_ref()))
@@ -247,7 +275,8 @@ fn run_extract(
         ocr_max_side,
         pipeline_dump_dir,
         icon,
-    );
+        runtime_config,
+    )?;
     let mut engine = ExtractEngine::open(config)?;
     let (result, _) = engine.extract_from_path(&input)?;
 
@@ -289,6 +318,7 @@ fn run_cases_cmd(
     min_area: i64,
     ocr_max_side: u32,
     icon: IconExtractArgs,
+    runtime_config: Option<String>,
 ) -> anyhow::Result<()> {
     let batch_start = std::time::Instant::now();
     let config = build_config(
@@ -301,7 +331,8 @@ fn run_cases_cmd(
         ocr_max_side,
         None,
         icon,
-    );
+        runtime_config,
+    )?;
     let summary = run_cases(&dir, &config)?;
 
     let batch_ms = batch_start.elapsed().as_secs_f64() * 1000.0;

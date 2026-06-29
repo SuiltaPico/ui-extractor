@@ -19,6 +19,7 @@ path = "src/main.rs"
 default = []
 
 [dependencies]
+infer-core = { git = "https://github.com/SuiltaPico/local-infer-core.git", tag = "v0.1.0", default-features = false, features = ["types-only"] }
 ab_glyph = "0.2"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }

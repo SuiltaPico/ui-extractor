@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-import 'config.dart';
 import 'exceptions.dart';
 import 'native_library.dart';
 
@@ -25,10 +24,21 @@ final class _Bindings {
     'ui_extractor_string_free',
   );
 
-  late final Pointer<Void> Function(Pointer<Utf8>, Pointer<Pointer<Utf8>>)
-      _create = _lib.lookupFunction<
-          Pointer<Void> Function(Pointer<Utf8>, Pointer<Pointer<Utf8>>),
-          Pointer<Void> Function(Pointer<Utf8>, Pointer<Pointer<Utf8>>)>(
+  late final Pointer<Void> Function(
+    Pointer<Void>,
+    Pointer<Utf8>,
+    Pointer<Pointer<Utf8>>,
+  ) _create = _lib.lookupFunction<
+          Pointer<Void> Function(
+            Pointer<Void>,
+            Pointer<Utf8>,
+            Pointer<Pointer<Utf8>>,
+          ),
+          Pointer<Void> Function(
+            Pointer<Void>,
+            Pointer<Utf8>,
+            Pointer<Pointer<Utf8>>,
+          )>(
     'ui_extractor_create',
   );
 
@@ -84,12 +94,15 @@ final class _Bindings {
 
   String get version => _version().toDartString();
 
-  Pointer<Void> createHandle(ExtractorConfig config) {
-    final configJson = jsonEncode(config.toJson());
+  Pointer<Void> createHandle({
+    required Pointer<Void>? inferRegistry,
+    required Map<String, dynamic> config,
+  }) {
+    final configJson = jsonEncode(config);
     final configPtr = configJson.toNativeUtf8();
     final errorPtr = calloc<Pointer<Utf8>>();
     try {
-      final handle = _create(configPtr, errorPtr);
+      final handle = _create(inferRegistry ?? nullptr, configPtr, errorPtr);
       if (handle == nullptr) {
         throw UiExtractorException(_takeOwnedString(errorPtr.value));
       }

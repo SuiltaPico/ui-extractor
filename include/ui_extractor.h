@@ -19,7 +19,6 @@ extern "C" {
 #endif
 
 typedef struct UiExtractorHandle UiExtractorHandle;
-typedef struct IconPackHandle IconPackHandle;
 
 /* Returns a static version string (do not free). */
 UI_EXTRACTOR_API const char *ui_extractor_version(void);
@@ -29,9 +28,23 @@ UI_EXTRACTOR_API void ui_extractor_string_free(char *s);
 
 /*
  * Create an extractor from JSON config (UTF-8).
- * Returns opaque handle or NULL; on failure `*out_error` is set.
+ * infer_registry: NULL → open an owned infer-core registry from config
+ *                 non-NULL → borrow existing InferRegistry* (not destroyed here)
+ * When borrowing, models_dir/runtime in config_json are ignored.
  */
-UI_EXTRACTOR_API void *ui_extractor_create(const char *config_json, char **out_error);
+UI_EXTRACTOR_API void *ui_extractor_create(
+    void *infer_registry,
+    const char *config_json,
+    char **out_error);
+
+#define ui_extractor_create_standalone(json, err) \
+    ui_extractor_create(NULL, (json), (err))
+
+UI_EXTRACTOR_API void *ui_extractor_create_from_registry(
+    void *infer_registry,
+    const char *config_json,
+    char **out_error);
+
 UI_EXTRACTOR_API void ui_extractor_destroy(void *handle);
 
 /* Extract UI tree as JSON (caller frees `*out_json`). */
@@ -43,62 +56,9 @@ UI_EXTRACTOR_API int ui_extractor_extract_bytes(
 UI_EXTRACTOR_API int ui_extractor_extract_file(
     void *handle,
     const char *path,
-    char **out_json,
-    char **out_error);
+    char **out_json, char **out_error);
 
 UI_EXTRACTOR_API int ui_extractor_reload_icon_pack(void *handle, char **out_error);
-
-/* Icon pack: load precomputed index. */
-UI_EXTRACTOR_API void *ui_icon_pack_load(
-    const char *embedding_index,
-    const char *vision_model,
-    uint32_t template_size,
-    double min_cosine,
-    char **out_error);
-
-UI_EXTRACTOR_API void ui_icon_pack_destroy(void *handle);
-
-UI_EXTRACTOR_API int ui_icon_pack_embed_image_bytes(
-    void *handle,
-    const uint8_t *data,
-    size_t len,
-    float *out_embedding,
-    uint32_t dim,
-    char **out_error);
-
-/* Match/search return JSON (`{"name":"...","score":0.9}` or `null` / array). */
-UI_EXTRACTOR_API int ui_icon_pack_match_embedding(
-    void *handle,
-    const float *embedding,
-    uint32_t dim,
-    char **out_json,
-    char **out_error);
-
-UI_EXTRACTOR_API int ui_icon_pack_search_embedding(
-    void *handle,
-    const float *embedding,
-    uint32_t dim,
-    uint32_t top_k,
-    char **out_json,
-    char **out_error);
-
-UI_EXTRACTOR_API int ui_icon_pack_match_image_file(
-    void *handle,
-    const char *path,
-    char **out_json,
-    char **out_error);
-
-UI_EXTRACTOR_API int ui_icon_pack_match_region_file(
-    void *handle,
-    const char *path,
-    int x,
-    int y,
-    int width,
-    int height,
-    char **out_json,
-    char **out_error);
-
-UI_EXTRACTOR_API uint32_t ui_icon_embedding_dim(void);
 
 #ifdef __cplusplus
 }

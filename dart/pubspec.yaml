@@ -26,6 +26,11 @@ dependencies:
     sdk: flutter
   hooks: ^2.0.2
   http: ^1.2.1
+  local_infer_core:
+    git:
+      url: https://github.com/SuiltaPico/local-infer-core.git
+      path: dart
+      ref: v0.1.0
   path: ^1.9.0
 
 dev_dependencies:

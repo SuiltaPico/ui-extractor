@@ -143,4 +143,4 @@ cargo run --bin ui-extractor -- extract --input screenshot.png `
   --min-cosine 0.72
 ```
 
-离线“PNG -> embeddings.bin”构建入口在 `local-infer-core`（`infer-core-helper icon index-build`）。
+离线 icon index（MCL2）构建入口在 `local-infer-core`（`infer-core-helper icon index-build`）。

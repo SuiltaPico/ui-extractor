@@ -57,8 +57,11 @@ Future<File> fetchNativeLibrary({
   return libFile;
 }
 
-/// Registers the primary native library and, on Android, sibling `.so` runtime
-/// deps from the same `jniLibs/<abi>/` directory.
+/// Registers the primary native library only.
+///
+/// Android release zips also ship infer-core runtime `.so` files for standalone
+/// JNI integration, but in Flutter apps those are bundled by `local_infer_core`.
+/// Registering siblings here would duplicate filenames across packages.
 void registerBundledNativeCodeAssets({
   required void Function(CodeAsset asset) addAsset,
   required String packageName,
@@ -74,32 +77,6 @@ void registerBundledNativeCodeAssets({
       file: primaryLib.uri,
     ),
   );
-
-  if (targetOS != OS.android) {
-    return;
-  }
-
-  final jniDir = primaryLib.parent;
-  if (!jniDir.existsSync()) {
-    return;
-  }
-
-  for (final entity in jniDir.listSync()) {
-    if (entity is! File || !entity.path.endsWith('.so')) {
-      continue;
-    }
-    if (p.basename(entity.path) == p.basename(primaryLib.path)) {
-      continue;
-    }
-    addAsset(
-      CodeAsset(
-        package: packageName,
-        name: 'src/native_runtime/${p.basename(entity.path)}',
-        linkMode: DynamicLoadingBundled(),
-        file: entity.uri,
-      ),
-    );
-  }
 }
 
 Future<void> _download(Uri url, File dest) async {

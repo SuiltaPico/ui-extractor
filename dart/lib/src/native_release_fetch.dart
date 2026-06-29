@@ -88,7 +88,7 @@ void registerBundledNativeCodeAssets({
     if (entity is! File || !entity.path.endsWith('.so')) {
       continue;
     }
-    if (entity.path == primaryLib.path) {
+    if (p.basename(entity.path) == p.basename(primaryLib.path)) {
       continue;
     }
     addAsset(

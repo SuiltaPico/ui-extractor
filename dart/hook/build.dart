@@ -25,17 +25,14 @@ void main(List<String> args) async {
         input.userDefines['release_repo'] as String? ?? defaultReleaseRepo;
     final tag =
         input.userDefines['release_tag'] as String? ?? defaultReleaseTag;
-    final localLibUri = input.userDefines.path('local_lib');
 
     try {
       final libFile = await resolveNativeLibraryFile(
         outputDirectory: Directory.fromUri(input.outputDirectoryShared),
-        packageRoot: input.packageRoot,
         targetOS: targetOS,
         targetArchitecture: targetArchitecture,
         repo: repo,
         tag: tag,
-        localLib: localLibUri?.toFilePath(),
       );
 
       output.assets.code.add(
@@ -54,14 +51,12 @@ void main(List<String> args) async {
       throw UnsupportedError(
         'ui_extractor: ${e.message ?? e}\n'
         'Supported: Windows (x64, arm64), Android (arm64, x64).\n'
-        'Use hooks user_defines local_lib, $uiExtractorLibEnv, '
-        'or cargo build --release in the ui-extractor repo.',
+        'Native libs are downloaded from GitHub Release (see pubspec hooks user_defines).',
       );
     } on HttpException catch (e) {
       throw StateError(
         'ui_extractor: failed to download native library (${e.uri}): ${e.message}\n'
-        'Build locally in the ui-extractor repo, or set hooks user_defines '
-        'local_lib / $uiExtractorLibEnv.',
+        'Check network/proxy access to GitHub Releases, or override release_tag in pubspec hooks.',
       );
     }
   });

@@ -48,26 +48,22 @@ If you see `0xc0000135` / `STATUS_DLL_NOT_FOUND`, `infer_core.dll` is not next t
 
 ### Build from source (optional)
 
-When cloning and building locally, keep `ui-extractor` and `local-infer-core` as siblings (e.g. `D:\repo\ui-extractor` and `D:\repo\local-infer-core`), then:
+Clone only this repo — no `local-infer-core` sibling checkout:
 
 ```powershell
-# Build infer_core.dll
-cd D:\repo\local-infer-core
-cargo build -p infer-core-ffi
-
-# Install model packs + copy the dynamic library
-cd D:\repo\ui-extractor
+powershell -ExecutionPolicy Bypass -File .\scripts\download_infer_core_release.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
-Copy-Item -Force ..\local-infer-core\target\debug\infer_core.dll .\target\debug\infer_core.dll
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
-# Verify
 cargo run --bin ui-extractor -- extract --input .\tests\cases\zhihu\input.png --annotate `
   --models-dir .\models `
   --ocr-pack ocr.paddle.ppocr6-tiny.onnx.fp32 `
   --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8
 ```
 
-One-shot regression: `powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
+Regression: `powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
+
+See [docs/dev/rot-checklist.md](docs/dev/rot-checklist.md) for integration rules.
 
 ## Inference backend
 

@@ -15,8 +15,6 @@ concurrency:
 
 env:
   CARGO_HTTP_MULTIPLEXING: "false"
-  LOCAL_INFER_RELEASE_TAG: ${{ github.ref_name }}
-  INFER_CORE_RELEASE_DIR: ${{ github.workspace }}/.infer-core-release
 
 jobs:
   build-windows:

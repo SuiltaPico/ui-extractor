@@ -48,26 +48,22 @@ cd C:\tools\ui-extractor
 
 ### 从源码开发（可选）
 
-克隆本仓库并本地编译时，可让 `ui-extractor` 与 `local-infer-core` 同级（例如 `D:\repo\ui-extractor` 与 `D:\repo\local-infer-core`），然后：
+克隆本仓库即可开发，**无需** `local-infer-core` 同级目录：
 
 ```powershell
-# 构建 infer_core.dll
-cd D:\repo\local-infer-core
-cargo build -p infer-core-ffi
-
-# 安装模型包 + 复制动态库
-cd D:\repo\ui-extractor
+powershell -ExecutionPolicy Bypass -File .\scripts\download_infer_core_release.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
-Copy-Item -Force ..\local-infer-core\target\debug\infer_core.dll .\target\debug\infer_core.dll
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
-# 验证
 cargo run --bin ui-extractor -- extract --input .\tests\cases\zhihu\input.png --annotate `
   --models-dir .\models `
   --ocr-pack ocr.paddle.ppocr6-tiny.onnx.fp32 `
   --icon-index-pack icons.bundled.v1.mobileclip2-s0.int8
 ```
 
-一键回归用例：`powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
+一键回归：`powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1`
+
+集成原则见 [docs/dev/rot-checklist.md](docs/dev/rot-checklist.md)。
 
 ## 推理后端
 

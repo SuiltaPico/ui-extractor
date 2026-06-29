@@ -15,7 +15,6 @@ function Get-InferCoreReleaseRepo {
     param([string]$Repo = "")
 
     if ($Repo) { return $Repo }
-    if ($env:LOCAL_INFER_RELEASE_REPO) { return $env:LOCAL_INFER_RELEASE_REPO }
     return $script:DefaultInferCoreReleaseRepo
 }
 
@@ -27,10 +26,6 @@ function Get-InferCoreReleaseTag {
 
     if ($Tag) {
         return $(if ($Tag -match '^v') { $Tag } else { "v$Tag" })
-    }
-    if ($env:LOCAL_INFER_RELEASE_TAG) {
-        $envTag = $env:LOCAL_INFER_RELEASE_TAG
-        return $(if ($envTag -match '^v') { $envTag } else { "v$envTag" })
     }
     if ($env:GITHUB_REF_NAME) {
         $refTag = $env:GITHUB_REF_NAME
@@ -45,7 +40,7 @@ function Get-InferCoreReleaseTag {
         return "v$($versionLine.Matches[0].Groups[1].Value)"
     }
 
-    throw "Could not resolve infer-core release tag (set -ReleaseTag or LOCAL_INFER_RELEASE_TAG)"
+    throw "Could not resolve infer-core release tag (pass -ReleaseTag or bump Cargo.toml version)"
 }
 
 function Get-InferCoreReleaseUrl {
@@ -65,9 +60,6 @@ function Get-InferCoreReleaseRoot {
 
     if ($OutDir) {
         return $(if ([IO.Path]::IsPathRooted($OutDir)) { $OutDir } else { Join-Path (Split-Path $PSScriptRoot -Parent) $OutDir })
-    }
-    if ($env:INFER_CORE_RELEASE_DIR) {
-        return $(if ([IO.Path]::IsPathRooted($env:INFER_CORE_RELEASE_DIR)) { $env:INFER_CORE_RELEASE_DIR } else { Join-Path (Split-Path $PSScriptRoot -Parent) $env:INFER_CORE_RELEASE_DIR })
     }
     return Join-Path (Split-Path $PSScriptRoot -Parent) ".infer-core-release"
 }
@@ -143,21 +135,9 @@ function Resolve-InferCoreWindowsLibDir {
 
     $importLib = Join-Path $libDir "infer_core.dll.lib"
     if (-not (Test-Path $importLib)) {
-        . (Join-Path $PSScriptRoot "infer_core_root.ps1")
-        $uiRoot = Split-Path $PSScriptRoot -Parent
-        $inferCoreRoot = Get-InferCoreRoot -UiExtractorRoot $uiRoot
-        $localImportLib = Join-Path $inferCoreRoot "target\$Triple\release\infer_core.dll.lib"
-        if (Test-Path $localImportLib) {
-            Write-Host "Release zip missing infer_core.dll.lib; using local build: $localImportLib"
-            Copy-Item $localImportLib $importLib -Force
-        }
-    }
-
-    if (-not (Test-Path $importLib)) {
         throw @"
 infer-core Windows release is missing infer_core.dll.lib (required to link ui-extractor).
-Publish a new local-infer-core release with lib/infer_core.dll.lib, or build infer-core-ffi locally:
-  cargo build -p infer-core-ffi --release --target $Triple --features backend-ort
+Publish a new local-infer-core release with lib/infer_core.dll.lib.
 Asset: $asset
 "@
     }
@@ -183,4 +163,20 @@ function Resolve-InferCoreAndroidJniDir {
     }
 
     return (Resolve-Path $jniDir).Path
+}
+
+function Copy-InferCoreRuntimeDll {
+    param(
+        [Parameter(Mandatory)][string]$Triple,
+        [Parameter(Mandatory)][string]$CargoOutDir,
+        [string]$ReleaseRoot = "",
+        [string]$Repo = "",
+        [string]$Tag = ""
+    )
+
+    $libDir = Resolve-InferCoreWindowsLibDir -Triple $Triple -ReleaseRoot $ReleaseRoot -Repo $Repo -Tag $Tag
+    $dll = Join-Path $libDir "infer_core.dll"
+    New-Item -ItemType Directory -Force -Path $CargoOutDir | Out-Null
+    Copy-Item $dll $CargoOutDir -Force
+    Write-Host "Copied infer_core.dll -> $CargoOutDir"
 }

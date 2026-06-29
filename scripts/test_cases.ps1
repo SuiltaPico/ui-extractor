@@ -1,42 +1,30 @@
-# Run golden case regression after installing local-infer-core packs.
+# Run golden case regression (infer-core native lib + model packs from GitHub Releases).
 param(
     [string]$ModelsDir = "models",
-    [string]$DistDir = "",
     [string]$CasesDir = "tests/cases",
     [switch]$LayoutOnly,
     [switch]$NoIcon
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "cargo_retry.ps1")
-. (Join-Path $PSScriptRoot "infer_core_root.ps1")
+. (Join-Path $PSScriptRoot "infer_core_release.ps1")
 
 $Root = Split-Path $PSScriptRoot -Parent
-$InferCoreRoot = Get-InferCoreRoot -UiExtractorRoot $Root
 Push-Location $Root
 try {
-    $installArgs = @{ Platform = "windows"; Source = "local"; DistDir = $DistDir }
-    if ($DistDir) { $installArgs.DistDir = $DistDir } else { $installArgs.DistDir = (Join-Path $InferCoreRoot "dist") }
-    & (Join-Path $PSScriptRoot "install_packs.ps1") @installArgs
+    & (Join-Path $PSScriptRoot "download_infer_core_release.ps1") -Platform windows
+    if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
 
-    Write-Host "Building infer-core-ffi (release)..."
-    Push-Location $InferCoreRoot
-    try {
-        Invoke-CargoWithRetry @('build', '-p', 'infer-core-ffi', '--release', '--features', 'backend-ort')
-    } finally {
-        Pop-Location
-    }
+    & (Join-Path $PSScriptRoot "install_packs.ps1") -Platform windows -Source release -ModelsDir $ModelsDir
+    if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
 
     Write-Host "Building ui-extractor (release)..."
     Invoke-CargoWithRetry @('build', '--release', '--bin', 'ui-extractor')
+    if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }
 
-    $inferDll = Join-Path $InferCoreRoot "target\release\infer_core.dll"
-    $hostRelease = Join-Path $Root "target\release"
-    if (Test-Path $inferDll) {
-        Copy-Item $inferDll $hostRelease -Force
-        Write-Host "Copied infer_core.dll -> target/release/"
-    } else {
-        throw "Missing infer_core.dll at $inferDll (build infer-core-ffi first)"
-    }
+    $hostTriple = "x86_64-pc-windows-msvc"
+    $cargoOut = Join-Path $Root "target\release"
+    Copy-InferCoreRuntimeDll -Triple $hostTriple -CargoOutDir $cargoOut
 
     $caseArgs = @(
         "run", "--release", "--",

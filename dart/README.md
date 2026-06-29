@@ -18,7 +18,11 @@ dependencies:
       path: dart
 ```
 
-Build hook 仅下载并注册 `ui_extractor.dll`（优先 slim zip）；`infer_core.dll` 由 `local_infer_core` hook 提供。
+Build hook 从 GitHub Release 下载 `ui_extractor.dll`（优先 slim zip）；`infer_core.dll` 由 `local_infer_core` hook 从 Release 提供。
+
+## 开发
+
+Native 库仅来自 GitHub Release。override tag 在 `pubspec.yaml` 的 `hooks.user_defines.ui_extractor.release_tag`。模型目录用 `ExtractorConfig.defaults(modelsDir: ...)` 或仓库根 `scripts/install_packs.ps1`。
 
 ## 快速开始
 
@@ -80,4 +84,4 @@ try {
 
 ## 开发
 
-本地无 GitHub Release 时，构建 Rust crate 并设置 `LOCAL_UI_EXTRACTOR_LIB`，或将 release zip 解压后通过 `ExtractorConfig.defaults(modelsDir: ...)` 指定模型根目录。参见仓库根目录 `README.md`。
+本地无 GitHub Release 时，调整 `pubspec.yaml` 中 `hooks.user_defines` 的 `release_tag`，或先发布对应 Release。参见仓库根 `README.md` 与 `scripts/build.ps1`。

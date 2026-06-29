@@ -49,7 +49,6 @@ try {
             -Repo $ReleaseRepo `
             -Tag $ReleaseTag
         Write-Host "Using infer-core release lib dir: $inferLibDir"
-        $env:INFER_CORE_LIB_DIR = $inferLibDir
 
         Invoke-CargoWithRetry @('build', '--release', '--target', $t.Triple)
         if ($LASTEXITCODE -gt 0) { exit $LASTEXITCODE }

@@ -1,7 +1,51 @@
 # 腐化清单
 
-本文档记录 `ui-extractor` 与 [`local-infer-core`](https://github.com/SuiltaPico/local-infer-core) 集成后的架构偏离项及修复状态。  
-**最后核对：** 2026-06-29（腐化修复落地）
+本文档记录 `ui-extractor` 与 [`local-infer-core`](https://github.com/SuiltaPico/local-infer-core) 的集成原则、偏离项与修复状态。
+
+**最后核对：** 2026-06-29（native lib 单一来源：GitHub Release）
+
+---
+
+## 核心原则（不可妥协）
+
+### 1. Native lib 唯一来源：GitHub Release
+
+| 库 | Release 仓库 | 缓存目录 | 链接 / 运行时布局 |
+|----|--------------|----------|-------------------|
+| `infer_core.dll` / `libinfer_core.so` | `SuiltaPico/local-infer-core` | `.infer-core-release/{asset}/` | Windows: `lib/`；Android: `jniLibs/{abi}/` |
+| `ui_extractor.dll` / `libui_extractor.so` | `SuiltaPico/ui-extractor` | Dart hook `outputDirectoryShared` | slim zip 或完整 Release zip |
+
+**禁止：**
+
+- sibling `../local-infer-core` 目录 heuristic
+- `build.rs` 内自动 `cargo build -p infer-core-ffi`
+- 用环境变量指定 native lib / infer-core 源码路径（`LOCAL_INFER_CORE_ROOT`、`INFER_CORE_LIB_DIR`、`LOCAL_UI_EXTRACTOR_LIB` 等）
+- Dart hook 回退到 `target/release` 或包内预装路径
+
+**允许的唯一 override（显式、非 env）：**
+
+- PowerShell 脚本参数：`-ReleaseTag`、`-ReleaseRepo`、`-DistDir`（模型 pack 本地 zip）
+- Dart `pubspec.yaml` → `hooks.user_defines`：`release_repo`、`release_tag`
+- `hooks.user_defines.skip_download`（CI 特殊场景）
+
+**版本对齐：** `Cargo.toml` `version` → infer-core tag `v{version}`。改 FFI 契约时：**先** 发 local-infer-core Release，**再** bump / 发 ui-extractor。
+
+### 2. 模型 pack：GitHub Release（默认）
+
+- 目录布局：`{models_dir}/{pack_id}/manifest.json + …`
+- 默认来源：`scripts/install_packs.ps1 -Source release`（URL 规则 + `install_packs` 内 pack 列表）
+- 本地 zip 仅通过 `-DistDir` + `-Source local`（显式参数，非 env）
+
+### 3. 双 DLL + 双模式 API（保留）
+
+- **链接：** `infer_core.dll.lib` + 运行时 `infer_core.dll`（推理）
+- **编排：** `ui_extractor.dll`（布局 / pipeline FFI）
+- **API：** `open(config)` 自有 registry，或 `from_registry` / `createWithRegistry` 借用 Mauchat 的 registry
+
+### 4. Rust 依赖分工
+
+- git dep `infer-core`（`types-only`）：编译期类型与契约
+- Release `infer_core` 动态库：运行期推理（与 types-only 解耦）
 
 ---
 
@@ -10,9 +54,9 @@
 | 级别 | 含义 |
 |------|------|
 | **P0** | 行为与 infer-core 契约冲突，或静默失效 |
-| **P1** | 架构重复 / 与 infer-core 设计偏离，长期漂移风险 |
-| **P2** | 孤儿代码、过时脚本、Release 职责混乱 |
-| **P3** | 文档滞后、命名/注释过时 |
+| **P1** | 架构重复 / 集成层多路径 / 长期漂移 |
+| **P2** | 孤儿脚本、Release 职责混乱 |
+| **P3** | 文档滞后 |
 
 ---
 
@@ -20,96 +64,96 @@
 
 | 区域 | 状态 | 摘要 |
 |------|------|------|
-| CLI / `ExtractEngine` 主流程 | ✅ | manifest + `pack_id` |
-| `src/infer/runtime.rs` | ✅ | git dep `infer-core` types-only；无 env 逻辑 |
-| `src/infer/icon_index.rs` | ✅ | `infer_icon_index_*` FFI 薄封装 |
-| `src/infer/registry.rs` | ✅ | Owned/Borrowed；manifest 经 FFI 缓存 |
-| `ExtractEngine` / C FFI | ✅ | `new(config, Option<Registry>)`；`ui_extractor_create(reg?, json)` |
-| `dart/` | ✅ | 依赖 `local_infer_core`；`createWithRegistry` |
-| Release zip | ⚠️ | hook 优先 `-slim` zip；完整 zip 仍作 fallback |
-| `crates/ncnn-bind/` 等 | ✅ | 已删除 |
-| 文档 | ✅ | README / icon-matching / getting-started 已更新 |
+| `build.rs` | ✅ | 缺则自动拉 GitHub Release → `.infer-core-release/` |
+| `infer_core_release.ps1` | ✅ | 下载 + 解析；无 sibling fallback |
+| `infer_core_root.ps1` | ✅ | 已删除 |
+| `install_packs.ps1` | ✅ | 默认 `release`；`scripts/packs/release.ps1` |
+| `scripts/build.ps1` | ✅ | 开发入口：download + cargo + copy runtime dll |
+| CLI / `ExtractEngine` | ✅ | manifest + `pack_id` |
+| `src/infer/runtime.rs` | ✅ | types-only；无 env |
+| `dart/` hook | ✅ | 仅 GitHub Release；`release_tag` in pubspec |
+| Release zip | ⚠️ | slim 优先；完整 zip fallback |
+| `catalog.json` | ✅ | 已删；pack URL = `releases/download/{tag}/{pack_id}.zip` |
 
 ---
 
-## 已修复项（摘要）
+## 已删除的腐化路径（2026-06-29）
 
-### P0 — RuntimeConfig 环境变量
-
-- 删除 `from_env_or_default()`、`resolved_eps()` 等复活逻辑
-- CLI 增加 `--runtime-config`；FFI JSON 缺 `runtime` 时用 `RuntimeConfig::default()`
-
-### P1 — icon_index / registry / 双模式 API
-
-- `IconIndex` 改走 `infer_icon_index_load` / `match_embedding` / `search`
-- `Registry`：`RegistryOwnership` + `from_borrowed`；manifest 经 `infer_registry_manifest_json`
-- `ExtractEngine::new` / `open` / `from_registry`；C `ui_extractor_create(infer_registry, json, err)`
-- 移除 `IconPack::load`、`EmbedEngine::load`、`ui_icon_pack_*` legacy C API
-
-### P2 — 遗留产物
-
-- 删除 `crates/ncnn-bind/`、`scripts/download_models.ps1`
-- Dart hook 优先下载 slim zip（仅 `ui_extractor.dll`）
-
-### P3 — 文档
-
-- `dart/README.md`、`docs/dev/icon-matching.md`、`docs/getting-started.md` 已对齐 manifest pack 模型
+| 项 | 说明 |
+|----|------|
+| `LOCAL_INFER_CORE_ROOT` / `INFER_CORE_LIB_DIR` | build 不再读取 |
+| `build.rs` → `cargo build -p infer-core-ffi` | 不再隐式编译 sibling repo |
+| `infer_core_root.ps1` | sibling 目录解析 |
+| `infer_core_release.ps1` 本地 `infer_core.dll.lib` fallback | Release 必须自带 import lib |
+| `install_packs` fixture / dev dist / env pack source | 仅 release 或 `-DistDir` |
+| Dart `LOCAL_UI_EXTRACTOR_LIB` / `local_lib` / `target/release` 回退 | hook 仅 Release |
+| README「两个 repo 同级 copy dll」 | 改为 `scripts/build.ps1` |
 
 ---
 
-## 双模式 API 原则：懂 / 不懂 infer-core 都能用
+## 开发工作流（标准）
 
-**一条规则：** 要么传入 infer-core registry 实例（借用），要么不传——由 ui-extractor **自己** `infer_registry_create` 一个（自有）。
+```powershell
+# 1. 拉 infer-core native lib（链路与运行时 dll 同源）
+powershell -ExecutionPolicy Bypass -File .\scripts\download_infer_core_release.ps1
 
-| 用户 | 怎么做 | 需要知道什么 |
-|------|--------|--------------|
-| **不懂 infer-core** | `ExtractEngine::open(config)` / `ui_extractor_create(NULL, json, err)` | 模型目录、pack 名、JSON 配置 |
-| **懂 infer-core** | `ExtractEngine::from_registry(reg, config)` / `ui_extractor_create(reg, json, err)` | infer-core 生命周期 + 同一 `infer_core.dll` |
+# 2. 拉模型 pack
+powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
 
-### Rust API
+# 3. 编译 + 复制 infer_core.dll 到 target/debug|release
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
+# 或 -Profile release
 
-```rust
-pub fn ExtractEngine::new(config: ExtractConfig, registry: Option<Registry>) -> Result<Self>;
-pub fn ExtractEngine::open(config: ExtractConfig) -> Result<Self>;          // new(config, None)
-pub fn ExtractEngine::from_registry(registry: Registry, config: ExtractConfig) -> Result<Self>;
+# 4. 回归
+powershell -ExecutionPolicy Bypass -File .\scripts\test_cases.ps1
 ```
 
-### C FFI
+`cargo build` 单独执行时，`build.rs` 会自动下载 infer-core Release（需网络）。运行前仍需把 `infer_core.dll` 拷到 binary 目录：
 
-```c
-void *ui_extractor_create(void *infer_registry, const char *config_json, char **out_error);
-#define ui_extractor_create_standalone(json, err) ui_extractor_create(NULL, (json), (err))
-void *ui_extractor_create_from_registry(void *infer_registry, const char *config_json, char **out_error);
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_packs.ps1 -Platform windows
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1 -Profile release
+
+---
+
+## 双模式 API（保留）
+
+| 用户 | 做法 |
+|------|------|
+| standalone | `ExtractEngine::open(config)` / `ui_extractor_create(NULL, json, err)` |
+| 共享 registry | `from_registry` / `createWithRegistry`（同一 `infer_core.dll`） |
+
+---
+
+## 目标架构
+
+```
+GitHub Release (local-infer-core)  →  .infer-core-release/  →  build.rs 链接 + 运行时 infer_core.dll
+GitHub Release (ui-extractor)      →  Dart hook              →  ui_extractor.dll
+install_packs.ps1 (+ release.ps1)     →  models/{pack_id}/
 ```
 
-### Dart API
-
-```dart
-UiExtractorEngine.create(ExtractorConfig(...));
-UiExtractorEngine.createWithRegistry(LocalInferRegistry registry, ExtractorLayoutConfig(...));
+```
+local_infer_core dart  →  infer_core（Release）+ Registry + RuntimeConfig
+ui_extractor dart      →  ui_extractor.dll（Release）+ layout FFI
+Mauchat                →  models_dir 一处；registry 可共享
 ```
 
 ---
 
-## 目标架构（总览）
+## 待办 / 已知 ⚠️
 
-```
-local_infer_core dart  →  infer_core 单实例 + Registry + RuntimeConfig + PackCatalog
-ui_extractor dart      →  仅 ui_extractor.dll + layout/编排 FFI；依赖 local_infer_core
-Mauchat / 其他宿主       →  models_dir 装一次；RuntimeConfig 一处配置；registry 一处 create
-```
-
-Rust / native：
-
-- git dep `infer-core`（`types-only`）：**类型与契约对齐**
-- 动态 `infer_core.dll`：**推理运行时隔离**
-- `ExtractEngine::from_registry` + `ui_extractor_create_from_registry`：**消除双 registry**
+| 项 | 级别 | 说明 |
+|----|------|------|
+| Dart slim zip fallback | P2 | hook 先试 `-slim`，失败再拉完整 zip |
+| `LOCAL_INFER_ROOT` 运行时 | P3 | Mauchat 模型根目录 env；与 native lib 无关，可保留 |
+| local-infer-core dart hook | P3 | 仍可能有 `local_lib`；ui-extractor 侧已 Release-only |
 
 ---
 
 ## 相关文档
 
-- [../architecture.md](../architecture.md) — 流水线概览
-- [../models.md](../models.md) — manifest 模型包
+- [../architecture.md](../architecture.md)
+- [../models.md](../models.md)
+- [../getting-started.md](../getting-started.md)
 - [local-infer-core PRODUCT.md](https://github.com/SuiltaPico/local-infer-core/blob/master/docs/dev/PRODUCT.md)
-- [local-infer-core DART_API.md](https://github.com/SuiltaPico/local-infer-core/blob/master/docs/dev/DART_API.md)

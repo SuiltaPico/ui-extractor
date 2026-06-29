@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:path/path.dart' as p;
+import 'package:ui_extractor/src/http_proxy.dart';
 import 'package:ui_extractor/src/native_release.dart';
 
 Future<File> fetchNativeLibrary({
@@ -28,11 +29,6 @@ Future<File> fetchNativeLibrary({
     await extractRoot.create(recursive: true);
   }
 
-  if (!await archiveFile.exists()) {
-    await _download(url, archiveFile);
-    await _extractZip(archiveFile: archiveFile, dest: extractRoot);
-  }
-
   final libRelative = targetOS == OS.android
       ? androidLibraryRelativePath(targetArchitecture)
       : p.join(
@@ -41,6 +37,18 @@ Future<File> fetchNativeLibrary({
         );
 
   final libFile = File(p.join(extractRoot.path, libRelative));
+
+  if (!await archiveFile.exists()) {
+    await _download(url, archiveFile);
+  }
+
+  if (!await libFile.exists()) {
+    if (!await archiveFile.exists()) {
+      throw StateError('missing release archive for $assetBase');
+    }
+    await _extractZip(archiveFile: archiveFile, dest: extractRoot);
+  }
+
   if (!await libFile.exists()) {
     throw StateError(
       'expected library at ${libFile.path} after extracting $url',
@@ -49,8 +57,54 @@ Future<File> fetchNativeLibrary({
   return libFile;
 }
 
+/// Registers the primary native library and, on Android, sibling `.so` runtime
+/// deps from the same `jniLibs/<abi>/` directory.
+void registerBundledNativeCodeAssets({
+  required void Function(CodeAsset asset) addAsset,
+  required String packageName,
+  required String primaryAssetName,
+  required File primaryLib,
+  required OS targetOS,
+}) {
+  addAsset(
+    CodeAsset(
+      package: packageName,
+      name: primaryAssetName,
+      linkMode: DynamicLoadingBundled(),
+      file: primaryLib.uri,
+    ),
+  );
+
+  if (targetOS != OS.android) {
+    return;
+  }
+
+  final jniDir = primaryLib.parent;
+  if (!jniDir.existsSync()) {
+    return;
+  }
+
+  for (final entity in jniDir.listSync()) {
+    if (entity is! File || !entity.path.endsWith('.so')) {
+      continue;
+    }
+    if (entity.path == primaryLib.path) {
+      continue;
+    }
+    addAsset(
+      CodeAsset(
+        package: packageName,
+        name: 'src/native_runtime/${p.basename(entity.path)}',
+        linkMode: DynamicLoadingBundled(),
+        file: entity.uri,
+      ),
+    );
+  }
+}
+
 Future<void> _download(Uri url, File dest) async {
-  final client = HttpClient()..findProxy = HttpClient.findProxyFromEnvironment;
+  final client = HttpClient()
+    ..findProxy = (uri) => resolveHttpProxy(uri);
   try {
     final request = await client.getUrl(url);
     final response = await request.close();

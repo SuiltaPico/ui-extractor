@@ -4,6 +4,7 @@ import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:ui_extractor/src/native_release.dart';
 import 'package:ui_extractor/src/native_release_fetch.dart';
+import 'package:ui_extractor/src/supported_target.dart';
 
 const String nativeAssetName = 'src/native_library.dart';
 
@@ -21,6 +22,10 @@ void main(List<String> args) async {
       return;
     }
 
+    if (!isBundledNativeTargetSupported(targetOS, targetArchitecture)) {
+      return;
+    }
+
     final repo =
         input.userDefines['release_repo'] as String? ?? defaultReleaseRepo;
     final tag =
@@ -35,13 +40,12 @@ void main(List<String> args) async {
         tag: tag,
       );
 
-      output.assets.code.add(
-        CodeAsset(
-          package: input.packageName,
-          name: nativeAssetName,
-          linkMode: DynamicLoadingBundled(),
-          file: libFile.uri,
-        ),
+      registerBundledNativeCodeAssets(
+        addAsset: output.assets.code.add,
+        packageName: input.packageName,
+        primaryAssetName: nativeAssetName,
+        primaryLib: libFile,
+        targetOS: targetOS,
       );
 
       if (Platform.isLinux || Platform.isMacOS) {

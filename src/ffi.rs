@@ -426,6 +426,7 @@ mod tests {
                 timings: IconTimings {
                     load_ms: 0.0,
                     match_ms: 25.0,
+                    ..IconTimings::default()
                 },
             },
             ..ExtractTimings::default()

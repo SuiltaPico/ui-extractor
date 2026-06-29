@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use image::{DynamicImage, GrayImage};
 use crate::infer::{EmbedEngine, IconIndex, Registry};
 
@@ -5,7 +7,7 @@ use crate::{
     error::{ExtractError, Result},
     types::Bounds,
 };
-use super::IconConfig;
+use super::{IconConfig, IconTimings};
 use super::preprocess::EMBED_DIM;
 use super::preprocess::icon_crop_to_rgb256;
 
@@ -95,9 +97,27 @@ impl IconPack {
     }
 
     pub fn match_gray_crop(&mut self, gray_crop: &GrayImage) -> Option<IconMatchHit> {
+        let mut discard = IconTimings::default();
+        self.match_gray_crop_timed(gray_crop, &mut discard)
+    }
+
+    pub fn match_gray_crop_timed(
+        &mut self,
+        gray_crop: &GrayImage,
+        timings: &mut IconTimings,
+    ) -> Option<IconMatchHit> {
+        let preprocess_start = Instant::now();
         let rgb = icon_crop_to_rgb256(gray_crop, self.template_size);
+        timings.preprocess_ms += preprocess_start.elapsed().as_secs_f64() * 1000.0;
+
+        let embed_start = Instant::now();
         let embedding = self.embedder.embed_rgb256(&rgb).ok()?;
-        self.match_embedding(&embedding).ok().flatten()
+        timings.embed_ms += embed_start.elapsed().as_secs_f64() * 1000.0;
+
+        let index_start = Instant::now();
+        let hit = self.match_embedding(&embedding).ok().flatten();
+        timings.index_ms += index_start.elapsed().as_secs_f64() * 1000.0;
+        hit
     }
 
     pub fn match_embedding(&self, embedding: &[f32]) -> Result<Option<IconMatchHit>> {

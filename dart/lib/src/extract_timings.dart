@@ -79,10 +79,20 @@ class UiExtractIconStats {
 class UiExtractIconTimings {
   const UiExtractIconTimings({
     this.loadMs = 0,
+    this.grayMs = 0,
+    this.cropMs = 0,
+    this.preprocessMs = 0,
+    this.embedMs = 0,
+    this.indexMs = 0,
     this.matchMs = 0,
   });
 
   final double loadMs;
+  final double grayMs;
+  final double cropMs;
+  final double preprocessMs;
+  final double embedMs;
+  final double indexMs;
   final double matchMs;
 
   factory UiExtractIconTimings.fromJson(Object? json) {
@@ -90,6 +100,11 @@ class UiExtractIconTimings {
     final map = Map<String, dynamic>.from(json);
     return UiExtractIconTimings(
       loadMs: _readMs(map['load_ms']),
+      grayMs: _readMs(map['gray_ms']),
+      cropMs: _readMs(map['crop_ms']),
+      preprocessMs: _readMs(map['preprocess_ms']),
+      embedMs: _readMs(map['embed_ms']),
+      indexMs: _readMs(map['index_ms']),
       matchMs: _readMs(map['match_ms']),
     );
   }

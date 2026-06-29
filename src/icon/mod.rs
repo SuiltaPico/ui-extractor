@@ -40,6 +40,17 @@ use serde::Serialize;
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct IconTimings {
     pub load_ms: f64,
+    /// Grayscale conversion at the start of the icon pass.
+    pub gray_ms: f64,
+    /// Per-candidate crop from the screenshot gray buffer.
+    pub crop_ms: f64,
+    /// Mask normalization + 256×256 RGB render per candidate.
+    pub preprocess_ms: f64,
+    /// MobileCLIP embed inference per candidate (usually dominates).
+    pub embed_ms: f64,
+    /// Cosine search in the icon index per candidate.
+    pub index_ms: f64,
+    /// Wall time for the entire icon pass (includes tree walk overhead).
     pub match_ms: f64,
 }
 
@@ -57,11 +68,15 @@ pub fn attach_icons_with_pack(
     config: &IconConfig,
 ) -> IconMatchStats {
     let match_start = Instant::now();
+    let gray_start = Instant::now();
     let gray = crate::layout::to_gray(source);
     let mut stats = IconMatchStats {
         candidates: 0,
         matched: 0,
-        timings: IconTimings::default(),
+        timings: IconTimings {
+            gray_ms: gray_start.elapsed().as_secs_f64() * 1000.0,
+            ..IconTimings::default()
+        },
     };
 
     walk_mut_pack(root, &gray, pack, config, &mut stats);
@@ -85,7 +100,7 @@ fn walk_mut_pack(
         let child = &node.children[i];
         if is_icon_candidate(child, config) {
             stats.candidates += 1;
-            if let Some(hit) = match_candidate_pack(gray, &child.bounds, pack) {
+            if let Some(hit) = match_candidate_pack(gray, &child.bounds, pack, &mut stats.timings) {
                 let bounds = child.bounds;
                 node.children[i] = UiElement::icon(bounds, hit.name, Some(hit.score as f32));
                 stats.matched += 1;
@@ -127,9 +142,12 @@ fn match_candidate_pack(
     gray: &GrayImage,
     bounds: &Bounds,
     pack: &mut IconPack,
+    timings: &mut IconTimings,
 ) -> Option<IconMatchHit> {
+    let crop_start = Instant::now();
     let crop = crop_gray(gray, bounds)?;
-    pack.match_gray_crop(&crop)
+    timings.crop_ms += crop_start.elapsed().as_secs_f64() * 1000.0;
+    pack.match_gray_crop_timed(&crop, timings)
 }
 
 fn crop_gray(gray: &GrayImage, bounds: &Bounds) -> Option<GrayImage> {

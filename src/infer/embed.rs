@@ -69,6 +69,11 @@ impl EmbedEngine {
 
 impl Drop for EmbedEngine {
     fn drop(&mut self) {
-        ffi::embed_engine_destroy(self.handle);
+        let handle = self.handle;
+        if handle.is_null() {
+            return;
+        }
+        self.handle = std::ptr::null_mut();
+        ffi::embed_engine_destroy(handle);
     }
 }

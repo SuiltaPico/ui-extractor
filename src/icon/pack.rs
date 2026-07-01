@@ -146,6 +146,25 @@ impl IconPack {
             .map_err(|e| ExtractError::Image(e.to_string()))
     }
 
+    pub fn match_embeddings_batch(
+        &self,
+        embeddings: &[&[f32]],
+    ) -> Result<Vec<Option<IconMatchHit>>> {
+        self.index
+            .match_embeddings_batch(embeddings, self.match_options.min_cosine)
+            .map(|hits| {
+                hits.into_iter()
+                    .map(|m| {
+                        m.map(|hit| IconMatchHit {
+                            name: hit.name,
+                            score: hit.score,
+                        })
+                    })
+                    .collect()
+            })
+            .map_err(|e| ExtractError::Image(e.to_string()))
+    }
+
     pub fn search_embedding(&self, embedding: &[f32], top_k: usize) -> Result<Vec<IconMatchHit>> {
         self.index
             .search(embedding, top_k.max(1))

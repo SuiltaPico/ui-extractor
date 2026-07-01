@@ -80,6 +80,15 @@ extern "C" {
         out_json: *mut *mut c_char,
         out_error: *mut *mut c_char,
     ) -> c_int;
+    fn infer_icon_index_match_embeddings_batch(
+        index: *mut c_void,
+        embeddings: *const f32,
+        count: usize,
+        dim: usize,
+        min_cosine: f32,
+        out_json: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> c_int;
     fn infer_icon_index_search(
         index: *mut c_void,
         embedding: *const f32,
@@ -351,6 +360,41 @@ pub fn icon_index_match_embedding(
             handle,
             embedding.as_ptr(),
             embedding.len(),
+            min_cosine,
+            &mut out_json as *mut *mut c_char,
+            &mut err as *mut *mut c_char,
+        )
+    };
+    if rc != 0 {
+        return Err(take_error(err));
+    }
+    take_string(out_json)
+}
+
+pub fn icon_index_match_embeddings_batch(
+    handle: *mut c_void,
+    embeddings: &[f32],
+    dim: usize,
+    min_cosine: f32,
+) -> Result<String> {
+    if dim == 0 {
+        return Err(InferError::Ffi("embedding dim must be > 0".into()));
+    }
+    if !embeddings.len().is_multiple_of(dim) {
+        return Err(InferError::Ffi(format!(
+            "embeddings length {} is not a multiple of dim {dim}",
+            embeddings.len()
+        )));
+    }
+    let count = embeddings.len() / dim;
+    let mut out_json: *mut c_char = ptr::null_mut();
+    let mut err: *mut c_char = ptr::null_mut();
+    let rc = unsafe {
+        infer_icon_index_match_embeddings_batch(
+            handle,
+            embeddings.as_ptr(),
+            count,
+            dim,
             min_cosine,
             &mut out_json as *mut *mut c_char,
             &mut err as *mut *mut c_char,

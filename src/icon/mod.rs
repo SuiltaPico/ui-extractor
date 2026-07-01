@@ -122,10 +122,14 @@ pub fn attach_icons_with_pack(
     };
     stats.timings.embed_ms += embed_start.elapsed().as_secs_f64() * 1000.0;
 
-    for (job, embedding) in valid_jobs.iter().zip(embeddings) {
-        let index_start = Instant::now();
-        let hit = pack.match_embedding(&embedding).ok().flatten();
-        stats.timings.index_ms += index_start.elapsed().as_secs_f64() * 1000.0;
+    let index_start = Instant::now();
+    let embedding_refs: Vec<&[f32]> = embeddings.iter().map(|e| e.as_slice()).collect();
+    let hits = pack
+        .match_embeddings_batch(&embedding_refs)
+        .unwrap_or_default();
+    stats.timings.index_ms += index_start.elapsed().as_secs_f64() * 1000.0;
+
+    for (job, hit) in valid_jobs.iter().zip(hits) {
         if let Some(hit) = hit {
             if let Some(node) = node_at_path_mut(root, &job.path) {
                 let bounds = node.bounds;

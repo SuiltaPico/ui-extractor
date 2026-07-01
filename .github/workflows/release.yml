@@ -28,14 +28,6 @@ jobs:
           toolchain: "1.95.0"
           targets: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
-      - name: Cache infer-core Windows release
-        uses: actions/cache@v4
-        with:
-          path: .infer-core-release
-          key: infer-core-release-${{ github.ref_name }}-windows-${{ hashFiles('scripts/infer_core_release.ps1', 'scripts/download_infer_core_release.ps1') }}
-          restore-keys: |
-            infer-core-release-${{ github.ref_name }}-windows-
-
       - name: Cache Rust build artifacts
         uses: Swatinem/rust-cache@v2
         with:
@@ -44,7 +36,7 @@ jobs:
 
       - name: Download infer-core Windows release
         shell: pwsh
-        run: ./scripts/download_infer_core_release.ps1 -Platform windows
+        run: ./scripts/download_infer_core_release.ps1 -Platform windows -Force
 
       - name: Build Windows release packages
         shell: pwsh
@@ -65,14 +57,6 @@ jobs:
         with:
           toolchain: "1.95.0"
           targets: aarch64-linux-android,x86_64-linux-android
-
-      - name: Cache infer-core Android release
-        uses: actions/cache@v4
-        with:
-          path: .infer-core-release
-          key: infer-core-release-${{ github.ref_name }}-android-${{ hashFiles('scripts/infer_core_release.ps1', 'scripts/download_infer_core_release.ps1') }}
-          restore-keys: |
-            infer-core-release-${{ github.ref_name }}-android-
 
       - name: Cache Rust build artifacts
         uses: Swatinem/rust-cache@v2
@@ -96,7 +80,7 @@ jobs:
 
       - name: Download infer-core Android release
         shell: pwsh
-        run: ./scripts/download_infer_core_release.ps1 -Platform android
+        run: ./scripts/download_infer_core_release.ps1 -Platform android -Force
 
       - name: Build Android release packages
         shell: pwsh

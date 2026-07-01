@@ -15,8 +15,8 @@ function Get-ReleaseTag {
     )
 
     if ($Tag) { return $(if ($Tag -match '^v') { $Tag } else { "v$Tag" }) }
-    if ($env:GITHUB_REF_NAME) {
-        $refTag = $env:GITHUB_REF_NAME
+    if ($env:GITHUB_REF -match '^refs/tags/(.+)$') {
+        $refTag = $Matches[1]
         return $(if ($refTag -match '^v') { $refTag } else { "v$refTag" })
     }
 

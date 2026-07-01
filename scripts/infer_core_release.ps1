@@ -27,8 +27,10 @@ function Get-InferCoreReleaseTag {
     if ($Tag) {
         return $(if ($Tag -match '^v') { $Tag } else { "v$Tag" })
     }
-    if ($env:GITHUB_REF_NAME) {
-        $refTag = $env:GITHUB_REF_NAME
+    # Only trust GITHUB_REF when it is a tag (e.g. refs/tags/v0.1.0).
+    # workflow_dispatch on main would otherwise resolve to vmain, which is not a release tag.
+    if ($env:GITHUB_REF -match '^refs/tags/(.+)$') {
+        $refTag = $Matches[1]
         return $(if ($refTag -match '^v') { $refTag } else { "v$refTag" })
     }
 
@@ -94,15 +96,18 @@ function Ensure-InferCoreReleaseAsset {
     $root = Get-InferCoreReleaseRoot -OutDir $ReleaseRoot
     $extractDir = Join-Path $root $AssetBaseName
     $marker = Join-Path $extractDir ".extracted"
+    $url = Get-InferCoreReleaseUrl -AssetBaseName $AssetBaseName -Repo $Repo -Tag $Tag
     if ((Test-Path $marker) -and -not $Force) {
-        return $extractDir
+        $cachedUrl = (Get-Content $marker -Raw).Trim()
+        if ($cachedUrl -eq $url) {
+            return $extractDir
+        }
     }
 
     $cacheDir = Join-Path (Get-ScratchDir) "infer-core-release-cache"
     New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
     $zipPath = Join-Path $cacheDir "$AssetBaseName.zip"
 
-    $url = Get-InferCoreReleaseUrl -AssetBaseName $AssetBaseName -Repo $Repo -Tag $Tag
     if (-not (Test-Path $zipPath) -or $Force) {
         Write-Host "Downloading infer-core release asset: $url"
         Invoke-WebRequest -Uri $url -OutFile $zipPath -UseBasicParsing

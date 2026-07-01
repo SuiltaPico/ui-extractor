@@ -154,11 +154,14 @@ Android layout: jniLibs/<abi>/libinfer_core.so",
 }
 
 fn resolve_release_tag() -> String {
-    if let Ok(ref_name) = std::env::var("GITHUB_REF_NAME") {
-        if ref_name.starts_with('v') {
-            return ref_name;
+    // Only trust GITHUB_REF for tag refs. workflow_dispatch on main would become vmain.
+    if let Ok(github_ref) = std::env::var("GITHUB_REF") {
+        if let Some(tag) = github_ref.strip_prefix("refs/tags/") {
+            if tag.starts_with('v') {
+                return tag.to_string();
+            }
+            return format!("v{tag}");
         }
-        return format!("v{ref_name}");
     }
 
     let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.1.0".into());

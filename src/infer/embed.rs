@@ -65,6 +65,11 @@ impl EmbedEngine {
     pub fn embed_rgb256(&mut self, rgb: &RgbImage) -> Result<Vec<f32>> {
         ffi::embed_rgb256(self.handle, rgb.as_raw())
     }
+
+    pub fn embed_rgb256_batch(&mut self, images: &[RgbImage]) -> Result<Vec<Vec<f32>>> {
+        let slices: Vec<&[u8]> = images.iter().map(|img| img.as_raw().as_slice()).collect();
+        ffi::embed_rgb256_batch(self.handle, &slices)
+    }
 }
 
 impl Drop for EmbedEngine {

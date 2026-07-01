@@ -79,35 +79,101 @@ pub fn attach_icons_with_pack(
         },
     };
 
-    walk_mut_pack(root, &gray, pack, config, &mut stats);
+    let mut jobs = Vec::new();
+    collect_icon_jobs(root, &mut Vec::new(), config, &mut jobs);
+    if jobs.is_empty() {
+        stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
+        return stats;
+    }
+
+    let mut valid_jobs = Vec::with_capacity(jobs.len());
+    let mut gray_crops = Vec::with_capacity(jobs.len());
+    for job in jobs {
+        let crop_start = Instant::now();
+        if let Some(crop) = crop_gray(&gray, &job.bounds) {
+            stats.timings.crop_ms += crop_start.elapsed().as_secs_f64() * 1000.0;
+            gray_crops.push(crop);
+            valid_jobs.push(job);
+        } else {
+            stats.timings.crop_ms += crop_start.elapsed().as_secs_f64() * 1000.0;
+        }
+    }
+    stats.candidates = valid_jobs.len();
+
+    if valid_jobs.is_empty() {
+        stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
+        return stats;
+    }
+
+    let preprocess_start = Instant::now();
+    let rgbs: Vec<_> = gray_crops
+        .iter()
+        .map(|crop| icon_crop_to_rgb256(crop, pack.template_size))
+        .collect();
+    stats.timings.preprocess_ms += preprocess_start.elapsed().as_secs_f64() * 1000.0;
+
+    let embed_start = Instant::now();
+    let embeddings = match pack.embed_rgb256_batch(&rgbs) {
+        Ok(v) => v,
+        Err(_) => {
+            stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
+            return stats;
+        }
+    };
+    stats.timings.embed_ms += embed_start.elapsed().as_secs_f64() * 1000.0;
+
+    for (job, embedding) in valid_jobs.iter().zip(embeddings) {
+        let index_start = Instant::now();
+        let hit = pack.match_embedding(&embedding).ok().flatten();
+        stats.timings.index_ms += index_start.elapsed().as_secs_f64() * 1000.0;
+        if let Some(hit) = hit {
+            if let Some(node) = node_at_path_mut(root, &job.path) {
+                let bounds = node.bounds;
+                *node = UiElement::icon(bounds, hit.name, Some(hit.score as f32));
+                stats.matched += 1;
+            }
+        }
+    }
+
     stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
     stats
 }
 
-fn walk_mut_pack(
-    node: &mut UiElement,
-    gray: &GrayImage,
-    pack: &mut IconPack,
-    config: &IconConfig,
-    stats: &mut IconMatchStats,
-) {
-    for child in &mut node.children {
-        walk_mut_pack(child, gray, pack, config, stats);
-    }
+#[derive(Debug, Clone)]
+struct IconJob {
+    path: Vec<usize>,
+    bounds: Bounds,
+}
 
-    let mut i = 0;
-    while i < node.children.len() {
-        let child = &node.children[i];
+fn collect_icon_jobs(
+    node: &UiElement,
+    path: &mut Vec<usize>,
+    config: &IconConfig,
+    jobs: &mut Vec<IconJob>,
+) {
+    for (i, child) in node.children.iter().enumerate() {
         if is_icon_candidate(child, config) {
-            stats.candidates += 1;
-            if let Some(hit) = match_candidate_pack(gray, &child.bounds, pack, &mut stats.timings) {
-                let bounds = child.bounds;
-                node.children[i] = UiElement::icon(bounds, hit.name, Some(hit.score as f32));
-                stats.matched += 1;
-            }
+            jobs.push(IconJob {
+                path: {
+                    let mut p = path.clone();
+                    p.push(i);
+                    p
+                },
+                bounds: child.bounds,
+            });
         }
-        i += 1;
+        path.push(i);
+        collect_icon_jobs(child, path, config, jobs);
+        path.pop();
     }
+}
+
+fn node_at_path_mut<'a>(root: &'a mut UiElement, path: &[usize]) -> Option<&'a mut UiElement> {
+    let mut node = root;
+    for &i in path {
+        node = node.children.get_mut(i)?;
+    }
+    Some(node)
 }
 
 fn is_icon_candidate(element: &UiElement, config: &IconConfig) -> bool {
@@ -136,18 +202,6 @@ fn has_text_descendant(element: &UiElement) -> bool {
     element.children.iter().any(|child| {
         matches!(child.kind, UiElementKind::Text { .. }) || has_text_descendant(child)
     })
-}
-
-fn match_candidate_pack(
-    gray: &GrayImage,
-    bounds: &Bounds,
-    pack: &mut IconPack,
-    timings: &mut IconTimings,
-) -> Option<IconMatchHit> {
-    let crop_start = Instant::now();
-    let crop = crop_gray(gray, bounds)?;
-    timings.crop_ms += crop_start.elapsed().as_secs_f64() * 1000.0;
-    pack.match_gray_crop_timed(&crop, timings)
 }
 
 fn crop_gray(gray: &GrayImage, bounds: &Bounds) -> Option<GrayImage> {

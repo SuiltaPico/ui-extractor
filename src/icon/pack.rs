@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use image::{DynamicImage, GrayImage};
+use image::{DynamicImage, GrayImage, RgbImage};
 use crate::infer::{EmbedEngine, IconIndex, Registry};
 
 use crate::{
@@ -88,6 +88,20 @@ impl IconPack {
         let rgb = icon_crop_to_rgb256(gray_crop, self.template_size);
         self.embedder
             .embed_rgb256(&rgb)
+            .map_err(|e| ExtractError::Image(e.to_string()))
+    }
+
+    pub fn embed_query_batch(&mut self, gray_crops: &[GrayImage]) -> Result<Vec<Vec<f32>>> {
+        let rgbs: Vec<_> = gray_crops
+            .iter()
+            .map(|crop| icon_crop_to_rgb256(crop, self.template_size))
+            .collect();
+        self.embed_rgb256_batch(&rgbs)
+    }
+
+    pub fn embed_rgb256_batch(&mut self, rgbs: &[RgbImage]) -> Result<Vec<Vec<f32>>> {
+        self.embedder
+            .embed_rgb256_batch(rgbs)
             .map_err(|e| ExtractError::Image(e.to_string()))
     }
 

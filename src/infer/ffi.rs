@@ -46,6 +46,15 @@ extern "C" {
         out_dim: *mut usize,
         out_error: *mut *mut c_char,
     ) -> *mut f32;
+    fn infer_embed_rgb256_batch(
+        engine: *mut c_void,
+        rgb_batch: *const u8,
+        rgb_len: usize,
+        count: usize,
+        out_count: *mut usize,
+        out_dim: *mut usize,
+        out_error: *mut *mut c_char,
+    ) -> *mut f32;
     fn infer_registry_pack_ids_json(
         handle: *mut c_void,
         out_json: *mut *mut c_char,
@@ -230,6 +239,52 @@ pub fn embed_rgb256(handle: *mut c_void, rgb_bytes: &[u8]) -> Result<Vec<f32>> {
         owned
     };
     Ok(values)
+}
+
+pub fn embed_rgb256_batch(handle: *mut c_void, rgb_batches: &[&[u8]]) -> Result<Vec<Vec<f32>>> {
+    if rgb_batches.is_empty() {
+        return Ok(Vec::new());
+    }
+    let per_image = crate::infer::INPUT_SIZE as usize * crate::infer::INPUT_SIZE as usize * 3;
+    for (i, bytes) in rgb_batches.iter().enumerate() {
+        if bytes.len() != per_image {
+            return Err(InferError::Embed(format!(
+                "rgb256[{i}] must be {per_image} bytes, got {}",
+                bytes.len()
+            )));
+        }
+    }
+    let flat: Vec<u8> = rgb_batches.iter().flat_map(|b| b.iter().copied()).collect();
+    let mut count = 0usize;
+    let mut dim = 0usize;
+    let mut err: *mut c_char = ptr::null_mut();
+    let ptr = unsafe {
+        infer_embed_rgb256_batch(
+            handle,
+            flat.as_ptr(),
+            flat.len(),
+            rgb_batches.len(),
+            &mut count as *mut usize,
+            &mut dim as *mut usize,
+            &mut err as *mut *mut c_char,
+        )
+    };
+    if ptr.is_null() {
+        return Err(take_error(err));
+    }
+    let values = unsafe {
+        let slice = std::slice::from_raw_parts(ptr, count * dim);
+        let owned = slice.to_vec();
+        infer_floats_free(ptr, count * dim);
+        owned
+    };
+    if dim == 0 {
+        return Ok(vec![Vec::new(); count]);
+    }
+    Ok(values
+        .chunks(dim)
+        .map(|chunk| chunk.to_vec())
+        .collect())
 }
 
 pub fn registry_pack_ids_json(handle: *mut c_void) -> Result<String> {

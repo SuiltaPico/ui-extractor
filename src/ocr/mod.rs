@@ -37,6 +37,9 @@ use serde::Serialize;
 pub struct OcrTimings {
     pub init_ms: f64,
     pub predict_ms: f64,
+    pub det_ms: f64,
+    pub rec_ms: f64,
+    pub post_ms: f64,
 }
 
 pub fn load_ocr_engine(registry: &Registry, pack_id: &str, config: &OcrConfig) -> Result<OcrEngine> {
@@ -81,6 +84,9 @@ fn convert_timings(t: crate::infer::OcrTimings) -> OcrTimings {
     OcrTimings {
         init_ms: t.init_ms,
         predict_ms: t.predict_ms,
+        det_ms: t.det_ms,
+        rec_ms: t.rec_ms,
+        post_ms: t.post_ms,
     }
 }
 

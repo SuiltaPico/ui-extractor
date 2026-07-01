@@ -418,6 +418,9 @@ mod tests {
             ocr: OcrTimings {
                 init_ms: 0.0,
                 predict_ms: 80.0,
+                det_ms: 30.0,
+                rec_ms: 45.0,
+                post_ms: 5.0,
             },
             attach_words_ms: 3.0,
             icon: IconMatchStats {

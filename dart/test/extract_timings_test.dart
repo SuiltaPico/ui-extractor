@@ -7,7 +7,7 @@ void main() {
       'gray_ms': 1.2,
       'layout_ms': 45.6,
       'parallel_ms': 210.0,
-      'ocr': {'init_ms': 0, 'predict_ms': 180.5},
+      'ocr': {'init_ms': 0, 'predict_ms': 180.5, 'det_ms': 70.0, 'rec_ms': 100.0, 'post_ms': 10.5},
       'attach_words_ms': 3.1,
       'icon': {
         'candidates': 12,
@@ -20,6 +20,8 @@ void main() {
     expect(timings.layoutMs, 45.6);
     expect(timings.parallelMs, 210.0);
     expect(timings.ocr.predictMs, 180.5);
+    expect(timings.ocr.detMs, 70.0);
+    expect(timings.ocr.recMs, 100.0);
     expect(timings.icon.matched, 4);
     expect(timings.icon.timings.matchMs, 2200.0);
   });

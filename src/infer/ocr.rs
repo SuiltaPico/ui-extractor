@@ -35,6 +35,9 @@ pub struct OcrWord {
 pub struct OcrTimings {
     pub init_ms: f64,
     pub predict_ms: f64,
+    pub det_ms: f64,
+    pub rec_ms: f64,
+    pub post_ms: f64,
 }
 
 pub struct OcrEngine {
@@ -107,6 +110,18 @@ fn parse_recognize_json(json: &str) -> Result<(Vec<OcrWord>, OcrTimings)> {
             .unwrap_or(0.0),
         predict_ms: timings_value
             .get("predict_ms")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0),
+        det_ms: timings_value
+            .get("det_ms")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0),
+        rec_ms: timings_value
+            .get("rec_ms")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0),
+        post_ms: timings_value
+            .get("post_ms")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0),
     };

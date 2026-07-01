@@ -39,10 +39,16 @@ class UiExtractOcrTimings {
   const UiExtractOcrTimings({
     this.initMs = 0,
     this.predictMs = 0,
+    this.detMs = 0,
+    this.recMs = 0,
+    this.postMs = 0,
   });
 
   final double initMs;
   final double predictMs;
+  final double detMs;
+  final double recMs;
+  final double postMs;
 
   factory UiExtractOcrTimings.fromJson(Object? json) {
     if (json is! Map) return const UiExtractOcrTimings();
@@ -50,6 +56,9 @@ class UiExtractOcrTimings {
     return UiExtractOcrTimings(
       initMs: _readMs(map['init_ms']),
       predictMs: _readMs(map['predict_ms']),
+      detMs: _readMs(map['det_ms']),
+      recMs: _readMs(map['rec_ms']),
+      postMs: _readMs(map['post_ms']),
     );
   }
 }

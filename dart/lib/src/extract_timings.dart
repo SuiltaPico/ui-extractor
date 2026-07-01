@@ -94,6 +94,7 @@ class UiExtractIconTimings {
     this.embedMs = 0,
     this.indexMs = 0,
     this.matchMs = 0,
+    this.embedDetail = const UiExtractIconEmbedDetail(),
   });
 
   final double loadMs;
@@ -103,6 +104,7 @@ class UiExtractIconTimings {
   final double embedMs;
   final double indexMs;
   final double matchMs;
+  final UiExtractIconEmbedDetail embedDetail;
 
   factory UiExtractIconTimings.fromJson(Object? json) {
     if (json is! Map) return const UiExtractIconTimings();
@@ -115,6 +117,52 @@ class UiExtractIconTimings {
       embedMs: _readMs(map['embed_ms']),
       indexMs: _readMs(map['index_ms']),
       matchMs: _readMs(map['match_ms']),
+      embedDetail: UiExtractIconEmbedDetail.fromJson(map['embed_detail']),
+    );
+  }
+}
+
+class UiExtractIconEmbedDetail {
+  const UiExtractIconEmbedDetail({
+    this.resizeMs = 0,
+    this.packNchwMs = 0,
+    this.copyInputMs = 0,
+    this.runSessionMs = 0,
+    this.readOutputMs = 0,
+    this.finalizeMs = 0,
+    this.batchRuns = 0,
+    this.imageCount = 0,
+  });
+
+  final double resizeMs;
+  final double packNchwMs;
+  final double copyInputMs;
+  final double runSessionMs;
+  final double readOutputMs;
+  final double finalizeMs;
+  final int batchRuns;
+  final int imageCount;
+
+  bool get hasBreakdown =>
+      resizeMs > 0 ||
+      packNchwMs > 0 ||
+      copyInputMs > 0 ||
+      runSessionMs > 0 ||
+      readOutputMs > 0 ||
+      finalizeMs > 0;
+
+  factory UiExtractIconEmbedDetail.fromJson(Object? json) {
+    if (json is! Map) return const UiExtractIconEmbedDetail();
+    final map = Map<String, dynamic>.from(json);
+    return UiExtractIconEmbedDetail(
+      resizeMs: _readMs(map['resize_ms']),
+      packNchwMs: _readMs(map['pack_nchw_ms']),
+      copyInputMs: _readMs(map['copy_input_ms']),
+      runSessionMs: _readMs(map['run_session_ms']),
+      readOutputMs: _readMs(map['read_output_ms']),
+      finalizeMs: _readMs(map['finalize_ms']),
+      batchRuns: (map['batch_runs'] as num?)?.toInt() ?? 0,
+      imageCount: (map['image_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

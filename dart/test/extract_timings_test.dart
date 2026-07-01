@@ -26,6 +26,27 @@ void main() {
     expect(timings.icon.timings.matchMs, 2200.0);
   });
 
+  test('UiExtractIconTimings parses embed_detail', () {
+    final timings = UiExtractIconTimings.fromJson({
+      'embed_ms': 1775.0,
+      'embed_detail': {
+        'resize_ms': 12.0,
+        'pack_nchw_ms': 8.0,
+        'copy_input_ms': 5.0,
+        'run_session_ms': 1600.0,
+        'read_output_ms': 120.0,
+        'finalize_ms': 3.0,
+        'batch_runs': 5,
+        'image_count': 36,
+      },
+    });
+
+    expect(timings.embedMs, 1775.0);
+    expect(timings.embedDetail.runSessionMs, 1600.0);
+    expect(timings.embedDetail.batchRuns, 5);
+    expect(timings.embedDetail.hasBreakdown, isTrue);
+  });
+
   test('UiExtractOutput strips timings from resultJson', () {
     final output = UiExtractOutput.fromJson({
       'width': 100,

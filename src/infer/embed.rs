@@ -8,6 +8,19 @@ use image::RgbImage;
 use crate::infer::error::{InferError, Result};
 use crate::infer::ffi;
 
+/// Native embed batch stage timings from infer-core (`embed_rgb256_batch_timed`).
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+pub struct EmbedTimings {
+    pub resize_ms: f64,
+    pub pack_nchw_ms: f64,
+    pub copy_input_ms: f64,
+    pub run_session_ms: f64,
+    pub read_output_ms: f64,
+    pub finalize_ms: f64,
+    pub batch_runs: u32,
+    pub image_count: u32,
+}
+
 /// Convert RGB 256×256 to NCHW float tensor in [0, 1].
 pub fn rgb256_to_nchw(rgb: &RgbImage) -> Vec<f32> {
     debug_assert_eq!(rgb.dimensions(), (INPUT_SIZE, INPUT_SIZE));
@@ -67,8 +80,15 @@ impl EmbedEngine {
     }
 
     pub fn embed_rgb256_batch(&mut self, images: &[RgbImage]) -> Result<Vec<Vec<f32>>> {
+        Ok(self.embed_rgb256_batch_timed(images)?.0)
+    }
+
+    pub fn embed_rgb256_batch_timed(
+        &mut self,
+        images: &[RgbImage],
+    ) -> Result<(Vec<Vec<f32>>, EmbedTimings)> {
         let slices: Vec<&[u8]> = images.iter().map(|img| img.as_raw().as_slice()).collect();
-        ffi::embed_rgb256_batch(self.handle, &slices)
+        ffi::embed_rgb256_batch_timed(self.handle, &slices)
     }
 }
 

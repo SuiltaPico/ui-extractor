@@ -38,6 +38,33 @@ impl Default for IconConfig {
 use serde::Serialize;
 
 #[derive(Debug, Clone, Default, Serialize)]
+pub struct IconEmbedDetail {
+    pub resize_ms: f64,
+    pub pack_nchw_ms: f64,
+    pub copy_input_ms: f64,
+    pub run_session_ms: f64,
+    pub read_output_ms: f64,
+    pub finalize_ms: f64,
+    pub batch_runs: u32,
+    pub image_count: u32,
+}
+
+impl From<crate::infer::EmbedTimings> for IconEmbedDetail {
+    fn from(t: crate::infer::EmbedTimings) -> Self {
+        Self {
+            resize_ms: t.resize_ms,
+            pack_nchw_ms: t.pack_nchw_ms,
+            copy_input_ms: t.copy_input_ms,
+            run_session_ms: t.run_session_ms,
+            read_output_ms: t.read_output_ms,
+            finalize_ms: t.finalize_ms,
+            batch_runs: t.batch_runs,
+            image_count: t.image_count,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct IconTimings {
     pub load_ms: f64,
     /// Grayscale conversion at the start of the icon pass.
@@ -52,6 +79,9 @@ pub struct IconTimings {
     pub index_ms: f64,
     /// Wall time for the entire icon pass (includes tree walk overhead).
     pub match_ms: f64,
+    /// Native embed stage breakdown from infer-core (when available).
+    #[serde(default)]
+    pub embed_detail: IconEmbedDetail,
 }
 
 #[derive(Debug, Clone, Default, Serialize)]
@@ -113,7 +143,7 @@ pub fn attach_icons_with_pack(
     stats.timings.preprocess_ms += preprocess_start.elapsed().as_secs_f64() * 1000.0;
 
     let embed_start = Instant::now();
-    let embeddings = match pack.embed_rgb256_batch(&rgbs) {
+    let (embeddings, embed_detail) = match pack.embed_rgb256_batch_timed(&rgbs) {
         Ok(v) => v,
         Err(_) => {
             stats.timings.match_ms = match_start.elapsed().as_secs_f64() * 1000.0;
@@ -121,6 +151,7 @@ pub fn attach_icons_with_pack(
         }
     };
     stats.timings.embed_ms += embed_start.elapsed().as_secs_f64() * 1000.0;
+    stats.timings.embed_detail = embed_detail.into();
 
     let index_start = Instant::now();
     let embedding_refs: Vec<&[f32]> = embeddings.iter().map(|e| e.as_slice()).collect();

@@ -4,6 +4,7 @@ use std::path::Path;
 use std::ptr;
 
 use crate::infer::error::{InferError, Result};
+use crate::infer::EmbedTimings;
 
 extern "C" {
     fn infer_string_free(s: *mut c_char);
@@ -53,6 +54,7 @@ extern "C" {
         count: usize,
         out_count: *mut usize,
         out_dim: *mut usize,
+        out_timings_json: *mut *mut c_char,
         out_error: *mut *mut c_char,
     ) -> *mut f32;
     fn infer_registry_pack_ids_json(
@@ -251,8 +253,15 @@ pub fn embed_rgb256(handle: *mut c_void, rgb_bytes: &[u8]) -> Result<Vec<f32>> {
 }
 
 pub fn embed_rgb256_batch(handle: *mut c_void, rgb_batches: &[&[u8]]) -> Result<Vec<Vec<f32>>> {
+    Ok(embed_rgb256_batch_timed(handle, rgb_batches)?.0)
+}
+
+pub fn embed_rgb256_batch_timed(
+    handle: *mut c_void,
+    rgb_batches: &[&[u8]],
+) -> Result<(Vec<Vec<f32>>, EmbedTimings)> {
     if rgb_batches.is_empty() {
-        return Ok(Vec::new());
+        return Ok((Vec::new(), EmbedTimings::default()));
     }
     let per_image = crate::infer::INPUT_SIZE as usize * crate::infer::INPUT_SIZE as usize * 3;
     for (i, bytes) in rgb_batches.iter().enumerate() {
@@ -266,6 +275,7 @@ pub fn embed_rgb256_batch(handle: *mut c_void, rgb_batches: &[&[u8]]) -> Result<
     let flat: Vec<u8> = rgb_batches.iter().flat_map(|b| b.iter().copied()).collect();
     let mut count = 0usize;
     let mut dim = 0usize;
+    let mut timings_json: *mut c_char = ptr::null_mut();
     let mut err: *mut c_char = ptr::null_mut();
     let ptr = unsafe {
         infer_embed_rgb256_batch(
@@ -275,12 +285,14 @@ pub fn embed_rgb256_batch(handle: *mut c_void, rgb_batches: &[&[u8]]) -> Result<
             rgb_batches.len(),
             &mut count as *mut usize,
             &mut dim as *mut usize,
+            &mut timings_json as *mut *mut c_char,
             &mut err as *mut *mut c_char,
         )
     };
     if ptr.is_null() {
         return Err(take_error(err));
     }
+    let timings = parse_embed_timings_json(take_string(timings_json).ok());
     let values = unsafe {
         let slice = std::slice::from_raw_parts(ptr, count * dim);
         let owned = slice.to_vec();
@@ -288,12 +300,20 @@ pub fn embed_rgb256_batch(handle: *mut c_void, rgb_batches: &[&[u8]]) -> Result<
         owned
     };
     if dim == 0 {
-        return Ok(vec![Vec::new(); count]);
+        return Ok((vec![Vec::new(); count], timings));
     }
-    Ok(values
+    let embeddings = values
         .chunks(dim)
         .map(|chunk| chunk.to_vec())
-        .collect())
+        .collect();
+    Ok((embeddings, timings))
+}
+
+fn parse_embed_timings_json(json: Option<String>) -> EmbedTimings {
+    let Some(text) = json else {
+        return EmbedTimings::default();
+    };
+    serde_json::from_str(&text).unwrap_or_default()
 }
 
 pub fn registry_pack_ids_json(handle: *mut c_void) -> Result<String> {

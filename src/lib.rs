@@ -18,7 +18,7 @@ pub use annotate::{render_annotation, render_layout_annotation};
 pub use skeleton::{render_skeleton_html, write_skeleton_html};
 pub use cases::{format_ms, process_case, run_cases, CaseBatchSummary, CaseOutputs, CaseTimings};
 pub use icon::{
-    attach_icons_with_pack, IconConfig, IconMatchHit,
+    attach_icons_with_pack, IconConfig, IconEmbedDetail, IconMatchHit,
     IconMatchOptions, IconMatchStats, IconPack, IconTimings,
 };
 pub use layout::{LayoutConfig, LayoutStages};

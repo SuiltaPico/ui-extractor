@@ -9,7 +9,8 @@ pub mod runtime;
 mod ffi;
 
 pub use embed::{
-    cosine, finalize_embedding, l2_normalize, rgb256_to_nchw, EmbedEngine, EMBED_DIM, INPUT_SIZE,
+    cosine, finalize_embedding, l2_normalize, rgb256_to_nchw, EmbedEngine, EmbedTimings, EMBED_DIM,
+    INPUT_SIZE,
 };
 pub use error::{InferError, Result};
 pub use icon_index::{IconIndex, IconMatch};

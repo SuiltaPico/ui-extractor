@@ -100,8 +100,16 @@ impl IconPack {
     }
 
     pub fn embed_rgb256_batch(&mut self, rgbs: &[RgbImage]) -> Result<Vec<Vec<f32>>> {
+        Ok(self.embed_rgb256_batch_timed(rgbs)?.0)
+    }
+
+    pub fn embed_rgb256_batch_timed(
+        &mut self,
+        rgbs: &[RgbImage],
+    ) -> Result<(Vec<Vec<f32>>, super::IconEmbedDetail)> {
         self.embedder
-            .embed_rgb256_batch(rgbs)
+            .embed_rgb256_batch_timed(rgbs)
+            .map(|(v, t)| (v, t.into()))
             .map_err(|e| ExtractError::Image(e.to_string()))
     }
 
